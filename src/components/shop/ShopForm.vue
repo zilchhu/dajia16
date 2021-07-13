@@ -3,21 +3,21 @@ a-card(size="small")
   template(#title)
     .title
       .title-meta
-        router-link.title_shopname(:to="{name: 'shop', params: {shopid: shop_meta.shop_id}}") {{shop_meta.shop_name}}
+        router-link.title_shopname(:to="{ name: 'shop', params: { shopid: shop_meta.shop_id } }") {{ shop_meta.shop_name }}
         i.title_platform.iconfont.icon-meituan1(v-show="shop_meta.platform == '美团'" :title="shop_meta.platform") 
       .title-tags
         a-tooltip(v-for="tag in tags" :key="tag.q")
           template(#title)
-            span {{tag.value}}
-          a-checkable-tag(:style="{background: tag.tag_color}" v-model:checked="tag.checked") {{tag.q}}
+            span {{ tag.value }}
+          a-checkable-tag(:style="{ background: tag.tag_color }" v-model:checked="tag.checked") {{ tag.q }}
   a-table(v-if="items_show.length > 0" :columns="columns" :data-source="items_show" rowKey="q" :pagination="false" size="small" :showHeader="false")
-    template(#name="{text, record}")
+    template(#name="{ text, record }")
       a-input(:value="text" @change="e => handleChange(e.target.value, record, 'name')" size="small")
-    template(#a="{text, record}")
-      a-textarea(:value="text" @change="e => handleChange(e.target.value, record, 'a')" :autoSize="{minRows: 1}")
-    template(#time="{text, record}")
+    template(#a="{ text, record }")
+      a-textarea(:value="text" @change="e => handleChange(e.target.value, record, 'a')" :autoSize="{ minRows: 1 }")
+    template(#time="{ text, record }")
       a-spin(:spinning="saving" size="small") 
-        span {{text}}
+        span {{ text }}
 </template>
 
 <script>
@@ -70,7 +70,7 @@ export default {
       columns,
       tags: this.as
         .map(a => ({ ...a, checked: false, saved: a.a.trim().length > 0 }))
-        .map(a => ({ ...a, tag_color: a.saved ? '#91d5ff99' : '#fefefe' })),
+        .map(a => ({ ...a, tag_color: a.saved ? '#91d5ff99' : (['低收入', '高推广', '高成本', '严重超跌'].includes(a.q) ? '#ffa39e' : '#fefefe') })),
       debounce_save: null,
       saving: false
     }
@@ -85,6 +85,7 @@ export default {
   },
   methods: {
     handleChange(value, record, column) {
+      if (/^\s+$/.test(value)) return
       const newTags = [...this.tags]
       const target = newTags.filter(item => record.q === item.q)[0]
       if (target) {

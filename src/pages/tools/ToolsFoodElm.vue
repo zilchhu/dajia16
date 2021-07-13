@@ -14,6 +14,7 @@
     a-auto-complete(
       v-model:value="auth",
       placeholder="请输入Cookie",
+      :filter-option="authFilter"
       size="small",
       style="width: 400px"
     )
@@ -55,8 +56,8 @@ export default {
          message.error("please input cookie");
         return;
       }
-      console.log({ table: file.response.res.filename, auth: this.auth.split('||')[1] });
-      this.sock.send(JSON.stringify({ table: file.response.res.filename, auth: this.auth.split('||')[1] }));
+      console.log({ table: file.response.res.filename, auth: this.auth.split('||')[1]  || this.auth});
+      this.sock.send(JSON.stringify({ table: file.response.res.filename, auth: this.auth.split('||')[1]  || this.auth}));
       this.sock.onmessage = (e) => {
         console.log("message", e.data);
         this.results.push(e.data);
@@ -76,6 +77,9 @@ export default {
           this.loading = false;
         });
     },
+    authFilter(input, opt) {
+      return opt.shopName.includes(input)
+    }
   },
   created() {
     this.sock.onopen = function () {

@@ -52,12 +52,20 @@ export default {
         message.error("please upload a file");
         return;
       }
-      if(this.auth.length == 0) {
-         message.error("please input cookie");
+      if (this.auth.length == 0) {
+        message.error("please input cookie");
         return;
       }
-      console.log({ table: file.response.res.filename, auth: this.auth.split('||')[1] });
-      this.sock.send(JSON.stringify({ table: file.response.res.filename, auth: this.auth.split('||')[1] }));
+      console.log({
+        table: file.response.res.filename,
+        auth: this.auth.split("||")[1] || this.auth,
+      });
+      this.sock.send(
+        JSON.stringify({
+          table: file.response.res.filename,
+          auth: this.auth.split("||")[1] || this.auth,
+        })
+      );
       this.sock.onmessage = (e) => {
         console.log("message", e.data);
         this.results.push(e.data);
@@ -69,7 +77,7 @@ export default {
       new Shop()
         .auths()
         .then((res) => {
-          this.auths = res.filter(v => v.platform == 1);
+          this.auths = res.filter((v) => v.platform == 1);
           this.loading = false;
         })
         .catch((err) => {

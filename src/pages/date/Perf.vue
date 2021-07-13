@@ -27,311 +27,322 @@ div
 </template>
 
 <script>
-import { message } from 'ant-design-vue'
-import Perf from '../../api/perf'
-import dayjs from 'dayjs'
-import localeData from 'dayjs/plugin/localeData'
-import weekday from 'dayjs/plugin/weekday'
-import updateLocale from 'dayjs/plugin/updateLocale'
-import TableSelect from '../../components/TableSelect'
+  import { message } from "ant-design-vue";
+  import Perf from "../../api/perf";
+  import dayjs from "dayjs";
+  import localeData from "dayjs/plugin/localeData";
+  import weekday from "dayjs/plugin/weekday";
+  import updateLocale from "dayjs/plugin/updateLocale";
+  import TableSelect from "../../components/TableSelect";
 
-import 'dayjs/locale/zh-cn'
+  import "dayjs/locale/zh-cn";
 
-dayjs.extend(localeData)
-dayjs.extend(weekday)
-dayjs.extend(updateLocale)
+  dayjs.extend(localeData);
+  dayjs.extend(weekday);
+  dayjs.extend(updateLocale);
 
-dayjs.locale('zh-cn')
+  dayjs.locale("zh-cn");
 
-dayjs.updateLocale('zh-cn', {
-  weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-})
+  dayjs.updateLocale("zh-cn", {
+    weekdays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+  });
 
-export default {
-  name: 'perf',
-  components: {
-    TableSelect
-  },
-  data() {
-    return {
-      perfs: [],
-      spinning: false,
-      scrollY: 900,
-      defaultPageSize: 40,
-      last_perf_route: { path: '/perf/31' },
-      ruleIdx: ['income_avg', 'cost_sum_ratio', 'consume_sum_ratio', 'score'],
-      djh: true
-    }
-  },
-  computed: {
-    day() {
-      return this.$route.params.day
+  export default {
+    name: "perf",
+    components: {
+      TableSelect,
     },
-    yesterday() {
-      return dayjs()
-        .subtract(1, 'day')
-        .format('YYYYMMDD')
+    data() {
+      return {
+        perfs: [],
+        spinning: false,
+        scrollY: 900,
+        defaultPageSize: 40,
+        last_perf_route: { path: "/perf/31" },
+        ruleIdx: ["income_avg", "cost_sum_ratio", "consume_sum_ratio", "score"],
+        djh: true,
+      };
     },
-    perf_columns() {
-      let fiexed_cols = [
-        {
-          title: '城市',
-          dataIndex: 'city',
-          width: 75,
-          slots: { filterDropdown: 'filterDropdown' },
-          filterMultiple: true,
-          fixed: 'left',
-          onFilter: (value, record) => record.city == value
-        },
-        {
-          title: '运营',
-          dataIndex: 'person',
-          width: 75,
-          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          filterMultiple: true,
-          fixed: 'left',
-          onFilter: (value, record) => record.person == value
-        },
-        {
-          title: '物理店',
-          dataIndex: 'real_shop',
-          width: 120,
-          slots: { filterDropdown: 'filterDropdown' },
-          filterMultiple: true,
-          fixed: 'left',
-          onFilter: (value, record) => record.real_shop == value,
-          sorter: (a, b) => (a.real_shop < b.real_shop ? -1 : 1)
-        },
-        {
-          title: '收入',
-          dataIndex: 'income_sum',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.income_sum) - this.toNum(b.income_sum)
-        },
-        {
-          title: '平均收入',
-          dataIndex: 'income_avg',
-          align: 'right',
-          width: 100,
-          slots: { customRender: 'income_avg' },
-          sorter: (a, b) => this.toNum(a.income_avg) - this.toNum(b.income_avg)
-        },
-        {
-          title: '收入分',
-          dataIndex: 'income_score',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.income_score) - this.toNum(b.income_score)
-        },
-        {
-          title: '收入分变化',
-          dataIndex: 'income_score_1',
-          align: 'right',
-          width: 120,
-          sorter: (a, b) => this.toNum(a.income_score_1) - this.toNum(b.income_score_1)
-        },
-        {
-          title: '成本',
-          dataIndex: 'cost_sum',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.cost_sum) - this.toNum(b.cost_sum)
-        },
-        {
-          title: '平均成本',
-          dataIndex: 'cost_avg',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.cost_avg) - this.toNum(b.cost_avg)
-        },
-        {
-          title: '成本比例',
-          dataIndex: 'cost_sum_ratio',
-          align: 'right',
-          width: 100,
-          slots: { customRender: 'cost_sum_ratio' },
-          sorter: (a, b) => this.toNum(a.cost_sum_ratio) - this.toNum(b.cost_sum_ratio)
-        },
-        {
-          title: '总成本比',
-          dataIndex: 'cost_sum_sum_ratio',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.cost_sum_sum_ratio) - this.toNum(b.cost_sum_sum_ratio)
-        },
-        {
-          title: '成本分',
-          dataIndex: 'cost_score',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.cost_score) - this.toNum(b.cost_score)
-        },
-        {
-          title: '成本分变化',
-          dataIndex: 'cost_score_1',
-          align: 'right',
-          width: 120,
-          sorter: (a, b) => this.toNum(a.cost_score_1) - this.toNum(b.cost_score_1)
-        },
-        {
-          title: '推广',
-          dataIndex: 'consume_sum',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.consume_sum) - this.toNum(b.consume_sum)
-        },
-        {
-          title: '平均推广',
-          dataIndex: 'consume_avg',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.consume_avg) - this.toNum(b.consume_avg)
-        },
-        {
-          title: '推广比例',
-          dataIndex: 'consume_sum_ratio',
-          align: 'right',
-          width: 100,
-          slots: { customRender: 'consume_sum_ratio' },
-          sorter: (a, b) => this.toNum(a.consume_sum_ratio) - this.toNum(b.consume_sum_ratio)
-        },
-        {
-          title: '总推广比',
-          dataIndex: 'consume_sum_sum_ratio',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.consume_sum_sum_ratio) - this.toNum(b.consume_sum_sum_ratio)
-        },
-        {
-          title: '推广分',
-          dataIndex: 'consume_score',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.consume_score) - this.toNum(b.consume_score)
-        },
-        {
-          title: '推广分变化',
-          dataIndex: 'consume_score_1',
-          align: 'right',
-          width: 120,
-          sorter: (a, b) => this.toNum(a.consume_score_1) - this.toNum(b.consume_score_1)
-        },
-        {
-          title: '分数',
-          dataIndex: 'score',
-          align: 'right',
-          width: 100,
-          slots: { customRender: 'score' },
-          sorter: (a, b) => this.toNum(a.score) - this.toNum(b.score)
-        },
-        {
-          title: '分数变化',
-          dataIndex: 'score_1',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.score_1) - this.toNum(b.score_1)
-        },
-        {
-          title: '平均分',
-          dataIndex: 'score_avg',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.score_avg) - this.toNum(b.score_avg)
-        },
-        {
-          title: '平均分变化',
-          dataIndex: 'score_avg_1',
-          align: 'right',
-          width: 110,
-          sorter: (a, b) => this.toNum(a.score_avg_1) - this.toNum(b.score_avg_1)
-        },
-        {
-          title: '日期',
-          dataIndex: 'date',
-          align: 'right',
-          fixed: 'right',
-          slots: { filterDropdown: 'filterDropdown' },
-          defaultFilteredValue: [
-            +dayjs()
-              .subtract(1, 'day')
-              .format('YYYYMMDD')
-          ],
-          width: 100,
-          onFilter: (value, record) => record.date == value
+    computed: {
+      day() {
+        return this.$route.params.day;
+      },
+      yesterday() {
+        return dayjs().subtract(1, "day").format("YYYYMMDD");
+      },
+      perf_columns() {
+        let fiexed_cols = [
+          {
+            title: "城市",
+            dataIndex: "city",
+            width: 75,
+            slots: { filterDropdown: "filterDropdown" },
+            filterMultiple: true,
+            fixed: "left",
+            onFilter: (value, record) => record.city == value,
+          },
+          {
+            title: "运营",
+            dataIndex: "person",
+            width: 75,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            filterMultiple: true,
+            fixed: "left",
+            onFilter: (value, record) => record.person == value,
+          },
+          {
+            title: "物理店",
+            dataIndex: "real_shop",
+            width: 120,
+            slots: { filterDropdown: "filterDropdown" },
+            filterMultiple: true,
+            fixed: "left",
+            onFilter: (value, record) => record.real_shop == value,
+            sorter: (a, b) => (a.real_shop < b.real_shop ? -1 : 1),
+          },
+          {
+            title: "收入",
+            dataIndex: "income_sum",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.income_sum) - this.toNum(b.income_sum),
+          },
+          {
+            title: "平均收入",
+            dataIndex: "income_avg",
+            align: "right",
+            width: 100,
+            slots: { customRender: "income_avg" },
+            sorter: (a, b) => this.toNum(a.income_avg) - this.toNum(b.income_avg),
+          },
+          {
+            title: "收入分",
+            dataIndex: "income_score",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.income_score) - this.toNum(b.income_score),
+          },
+          {
+            title: "收入分变化",
+            dataIndex: "income_score_1",
+            align: "right",
+            width: 120,
+            sorter: (a, b) =>
+              this.toNum(a.income_score_1) - this.toNum(b.income_score_1),
+          },
+          {
+            title: "成本",
+            dataIndex: "cost_sum",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.cost_sum) - this.toNum(b.cost_sum),
+          },
+          {
+            title: "平均成本",
+            dataIndex: "cost_avg",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.cost_avg) - this.toNum(b.cost_avg),
+          },
+          {
+            title: "成本比例",
+            dataIndex: "cost_sum_ratio",
+            align: "right",
+            width: 100,
+            slots: { customRender: "cost_sum_ratio" },
+            sorter: (a, b) =>
+              this.toNum(a.cost_sum_ratio) - this.toNum(b.cost_sum_ratio),
+          },
+          {
+            title: "总成本比",
+            dataIndex: "cost_sum_sum_ratio",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.cost_sum_sum_ratio) - this.toNum(b.cost_sum_sum_ratio),
+          },
+          {
+            title: "成本分",
+            dataIndex: "cost_score",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.cost_score) - this.toNum(b.cost_score),
+          },
+          {
+            title: "成本分变化",
+            dataIndex: "cost_score_1",
+            align: "right",
+            width: 120,
+            sorter: (a, b) =>
+              this.toNum(a.cost_score_1) - this.toNum(b.cost_score_1),
+          },
+          {
+            title: "推广",
+            dataIndex: "consume_sum",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.consume_sum) - this.toNum(b.consume_sum),
+          },
+          {
+            title: "平均推广",
+            dataIndex: "consume_avg",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.consume_avg) - this.toNum(b.consume_avg),
+          },
+          {
+            title: "推广比例",
+            dataIndex: "consume_sum_ratio",
+            align: "right",
+            width: 100,
+            slots: { customRender: "consume_sum_ratio" },
+            sorter: (a, b) =>
+              this.toNum(a.consume_sum_ratio) - this.toNum(b.consume_sum_ratio),
+          },
+          {
+            title: "总推广比",
+            dataIndex: "consume_sum_sum_ratio",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.consume_sum_sum_ratio) -
+              this.toNum(b.consume_sum_sum_ratio),
+          },
+          {
+            title: "推广分",
+            dataIndex: "consume_score",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.consume_score) - this.toNum(b.consume_score),
+          },
+          {
+            title: "推广分变化",
+            dataIndex: "consume_score_1",
+            align: "right",
+            width: 120,
+            sorter: (a, b) =>
+              this.toNum(a.consume_score_1) - this.toNum(b.consume_score_1),
+          },
+          {
+            title: "分数",
+            dataIndex: "score",
+            align: "right",
+            width: 100,
+            slots: { customRender: "score" },
+            sorter: (a, b) => this.toNum(a.score) - this.toNum(b.score),
+          },
+          {
+            title: "分数变化",
+            dataIndex: "score_1",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.score_1) - this.toNum(b.score_1),
+          },
+          {
+            title: "平均分",
+            dataIndex: "score_avg",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.score_avg) - this.toNum(b.score_avg),
+          },
+          {
+            title: "平均分变化",
+            dataIndex: "score_avg_1",
+            align: "right",
+            width: 110,
+            sorter: (a, b) =>
+              this.toNum(a.score_avg_1) - this.toNum(b.score_avg_1),
+          },
+          {
+            title: "日期",
+            dataIndex: "date",
+            align: "right",
+            fixed: "right",
+            slots: { filterDropdown: "filterDropdown" },
+            defaultFilteredValue: [
+              +dayjs().subtract(1, "day").format("YYYYMMDD"),
+            ],
+            width: 100,
+            onFilter: (value, record) => record.date == value,
+          },
+        ];
+        return [...fiexed_cols];
+      },
+      scrollX() {
+        let x = this.reduce_width(this.perf_columns);
+        return x;
+      },
+    },
+    methods: {
+      reduce_width(nodes) {
+        return nodes.reduce((sw, c) => {
+          if (c.width) return sw + c.width;
+          if (c.children) return sw + this.reduce_width(c.children);
+          return sw;
+        }, 10);
+      },
+      toNum(str) {
+        try {
+          if (str == null || str == "") return 0;
+          return parseFloat(str);
+        } catch (error) {
+          return 0;
         }
-      ]
-      return [...fiexed_cols]
+      },
+      getColFilters(colName) {
+        return Array.from(new Set(this.perfs.map((row) => row[colName] || "")))
+          .sort()
+          .map((col) => ({
+            label: col,
+            value: col,
+          }));
+      },
+      fetch_perf() {
+        this.spinning = true;
+        new Perf(this.day)
+          .single(this.djh ? 1 : 0)
+          .then((res) => {
+            this.perfs = res;
+            this.spinning = false;
+          })
+          .catch((e) => {
+            console.error(e);
+            message.error(e);
+            this.spinning = false;
+          });
+      },
+      table_change(pagination) {
+        localStorage.setItem("perf/defaultPageSize", pagination.pageSize);
+      },
+      isUnsatisfy(text, col) {
+        if (col == "income_avg") return this.toNum(text) < 1500;
+        if (col == "cost_sum_ratio") return this.toNum(text) > 50;
+        if (col == "consume_sum_ratio") return this.toNum(text) > 5;
+        if (col == "score") return this.toNum(text) < 50;
+      },
     },
-    scrollX() {
-      let x = this.reduce_width(this.perf_columns)
-      return x
-    }
-  },
-  methods: {
-    reduce_width(nodes) {
-      return nodes.reduce((sw, c) => {
-        if (c.width) return sw + c.width
-        if (c.children) return sw + this.reduce_width(c.children)
-        return sw
-      }, 10)
+    created() {
+      this.scrollY = document.body.clientHeight - 116;
+      this.defaultPageSize = +localStorage.getItem("perf/defaultPageSize") || 40;
+      this.fetch_perf();
     },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
-    },
-    getColFilters(colName) {
-      return Array.from(new Set(this.perfs.map(row => row[colName] || '')))
-        .sort()
-        .map(col => ({
-          label: col,
-          value: col
-        }))
-    },
-    fetch_perf() {
-      this.spinning = true
-      new Perf(this.day)
-        .single(this.djh ? 1 : 0)
-        .then(res => {
-          this.perfs = res
-          this.spinning = false
-        })
-        .catch(e => {
-          console.error(e)
-          message.error(e)
-          this.spinning = false
-        })
-    },
-    table_change(pagination) {
-      localStorage.setItem('perf/defaultPageSize', pagination.pageSize)
-    },
-    isUnsatisfy(text, col) {
-      if (col == 'income_avg') return this.toNum(text) < 1500
-      if (col == 'cost_sum_ratio') return this.toNum(text) > 50
-      if (col == 'consume_sum_ratio') return this.toNum(text) > 5
-      if (col == 'score') return this.toNum(text) < 50
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 116
-    this.defaultPageSize = +localStorage.getItem('perf/defaultPageSize') || 40
-    this.fetch_perf()
-  },
-  watch: {
-    $route(route) {
-      if (route.name == 'perf') {
-        this.defaultPageSize = +localStorage.getItem('perf/defaultPageSize') || 40
-        if (route.path != this.last_perf_route.path) {
-          this.fetch_perf()
+    watch: {
+      $route(route) {
+        if (route.name == "perf") {
+          this.defaultPageSize =
+            +localStorage.getItem("perf/defaultPageSize") || 40;
+          if (route.path != this.last_perf_route.path) {
+            this.fetch_perf();
+          }
+          this.last_perf_route = route;
         }
-        this.last_perf_route = route
-      }
-    }
-  }
-}
+      },
+    },
+  };
 </script>
 
 <style lang="sass" scoped>

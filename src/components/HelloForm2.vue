@@ -98,6 +98,7 @@ export default {
   },
   methods: {
     handleChange(value, record, column) {
+      if (/^\s+$/.test(value)) return
       const newData = [...this.data]
       const target = newData.filter(item => record.q === item.q)[0]
       if (target) {
