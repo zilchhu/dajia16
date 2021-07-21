@@ -57,52 +57,52 @@ div
 </template>
 
 <script>
-import User from "./api/user";
-import dayjs from "dayjs";
-import moment from "moment";
+  import User from "./api/user";
+  import dayjs from "dayjs";
+  import moment from "moment";
 
-export default {
-  data() {
-    return {
-      menu_keys: [],
-      all_names: [],
-      新人培训: [
-        "订单缺陷率.html",
-        "评价管理.html",
-        "刷单操作手册.html",
-        "新店工作安排.html",
-        "新员工培训流程.html",
-        "运营工作优化.html",
-        "运营思维.html",
-        "低业绩影响因素.html",
-        "外卖优化方向.pdf",
-      ],
-      selected_date: moment().subtract(1, "days"),
-    };
-  },
-  methods: {
-    fetch_all_names() {
-      new User("")
-        .all_names()
-        .then((res) => {
-          this.all_names = res;
-        })
-        .catch((err) => console.error(err));
+  export default {
+    data() {
+      return {
+        menu_keys: [],
+        all_names: [],
+        新人培训: [
+          "订单缺陷率.html",
+          "评价管理.html",
+          "刷单操作手册.html",
+          "新店工作安排.html",
+          "新员工培训流程.html",
+          "运营工作优化.html",
+          "运营思维.html",
+          "低业绩影响因素.html",
+          "外卖优化方向.pdf",
+        ],
+        selected_date: moment().subtract(1, "days"),
+      };
     },
-    date_change(date, date_str) {
-      let date1 = dayjs()
-        .startOf("day")
-        .diff(dayjs(date_str).startOf("day"), "day");
-      this.$router.replace({ name: "date", params: { day: date1 } });
+    methods: {
+      fetch_all_names() {
+        new User("")
+          .all_names()
+          .then((res) => {
+            this.all_names = res;
+          })
+          .catch((err) => console.error(err));
+      },
+      date_change(date, date_str) {
+        let date1 = dayjs()
+          .startOf("day")
+          .diff(dayjs(date_str).startOf("day"), "day");
+        this.$router.replace({ name: "date", params: { day: date1 } });
+      },
+      disabledDate(currentDate) {
+        return currentDate.isAfter(moment().subtract(1, "days"));
+      },
     },
-    disabledDate(currentDate) {
-      return currentDate.isAfter(moment().subtract(1, "days"));
+    mounted() {
+      this.fetch_all_names();
     },
-  },
-  mounted() {
-    this.fetch_all_names();
-  },
-};
+  };
 </script>
 
 <style lang="sass">

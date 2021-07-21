@@ -4,7 +4,7 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
   size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
 
   template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-    table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
+    table-select(:style="`min-width: 160px; width: ${column.width + 50 || 350}px;`" :filterOptions="getColFilters(column.dataIndex)" 
       :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
 
   template(#handle="{text, record}")
@@ -14,11 +14,10 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
 <script>
 import Probs from '../../api/probs'
 import { message } from 'ant-design-vue'
-import dayjs from 'dayjs'
 import TableSelect from '../../components/TableSelect'
 
 export default {
-  name: 'ProbAC',
+  name: 'ProbAM',
   components: {
     TableSelect
   },
@@ -34,86 +33,62 @@ export default {
     columns() {
       return [
         {
-          title: '门店编号',
-          dataIndex: '门店编号',
+          title: '店铺id',
+          dataIndex: 'shop_id',
           width: 90,
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.门店编号 == value
+          onFilter: (value, record) => record.shop_id == value
         },
         {
           title: '店名',
-          dataIndex: '店名',
-          width: 150,
+          dataIndex: 'shop_name',
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.店名 == value
+          onFilter: (value, record) => record.shop_name == value
         },
         {
           title: '平台',
-          dataIndex: '平台',
+          dataIndex: 'platform',
           width: 70,
           filters: [
             { text: '美团', value: '美团' },
             { text: '饿了么', value: '饿了么' }
           ],
           filterMultiple: true,
-          onFilter: (value, record) => record.平台 == value
+          onFilter: (value, record) => record.platform == value
         },
         {
           title: '责任人',
-          dataIndex: '责任人',
+          dataIndex: 'person',
           width: 90,
           slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.责任人 == value
+          onFilter: (value, record) => record.person == value
         },
         {
-          title: '合作方案',
-          dataIndex: '合作方案',
-          slots: { filterDropdown: 'filterDropdown' },
-          width: 150,
-          onFilter: (value, record) => (record.合作方案 || '') == value
-        },
-        {
-          title: '活动规则',
-          dataIndex: '活动规则',
-          width: 230,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => (record.活动规则 || '') == value
-        },
-        {
-          title: '基础配送费',
-          dataIndex: '基础配送费',
-          align: 'right',
-          width: 130,
-          sorter: (a, b) => this.toNum(a.基础配送费) - this.toNum(b.基础配送费)
-        },
-        {
-          title: '减配力度',
-          dataIndex: '减配力度',
-          align: 'right',
+          title: '物理店',
+          dataIndex: 'real_shop_name',
           width: 100,
-          sorter: (a, b) => this.toNum(a.减配力度) - this.toNum(b.减配力度)
-        },
-        {
-          title: '力度偏差',
-          dataIndex: '力度偏差',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.力度偏差) - this.toNum(b.力度偏差)
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => record.real_shop_name == value
         },
         {
           title: '起送价',
           dataIndex: '起送价',
-          align: 'right',
-          width: 130,
+          width: 100,
           sorter: (a, b) => this.toNum(a.起送价) - this.toNum(b.起送价)
         },
         {
-          title: '到期时间',
-          dataIndex: '到期时间',
-          width: 130,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => (record.到期时间 || '') == value,
-          sorter: (a, b) => (dayjs(a.到期时间).isBefore(dayjs(b.到期时间)) ? -1 : 1)
+          title: '前一天起送价',
+          dataIndex: '前一天起送价',
+          width: 150,
+          sorter: (a, b) => this.toNum(a.前一天起送价) - this.toNum(b.前一天起送价)
+        },
+        {
+          title: '查询日期',
+          dataIndex: '查询日期',
+          width: 120,
+          slots: { filterDropdown: 'filterDropdown'},
+          onFilter: (value, record) => record.查询日期 == value,
+          sorter: (a, b) => this.toNum(a.查询日期) - this.toNum(b.查询日期)
         },
         {
           title: '处理',
@@ -148,7 +123,7 @@ export default {
     fetchTable() {
       this.loading = true
       new Probs()
-        .single('ac')
+        .single('am')
         .then(res => {
           this.table = res
           this.loading = false
@@ -176,7 +151,7 @@ export default {
       const target = this.table.filter(item => record.key === item.key)[0]
       if (target) {
         new Probs()
-          .save('ac', record.key, target['handle'])
+          .save('am', record.key, target['handle'])
           .then(res => {
             console.log(res)
           })

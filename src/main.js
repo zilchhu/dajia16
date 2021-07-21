@@ -6,6 +6,7 @@ import 'ant-design-vue/dist/antd.css'
 
 import store from './store'
 import router from './router'
+import './ws'
 
 const app = createApp(App)
 app.config.productionTip = false
@@ -15,3 +16,5 @@ app.use(store)
 app.use(router)
 
 app.mount('#app')
+
+

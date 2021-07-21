@@ -11,6 +11,7 @@
     "@antv/g2plot": "^2.3.8",
     "@vue/server-renderer": "^3.0.10",
     "ant-design-vue": "^2.0.0-rc.3",
+    "apprun": "^3.28.6",
     "calendar": "^0.1.1",
     "clipboardy": "^2.3.0",
     "core-js": "^3.6.5",
