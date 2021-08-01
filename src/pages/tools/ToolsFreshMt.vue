@@ -61,6 +61,7 @@ export default {
         { key: 18, name: '店内海报', checked: true, res: null },
         { key: 19, name: '品牌故事', checked: true, res: null },
         { key: 20, name: '店铺招牌', checked: true, res: null },
+        { key: 21, name: '删除商品', checked: true, res: null },
       ],
       loading: false
     }

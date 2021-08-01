@@ -92,8 +92,8 @@ export default {
     return {
       tabs: [
         { key: 39, tab: '起送价变化', comp: 'ProbAM' },
-        { key: 37, tab: '饿了么折扣起购错误', comp: 'ProbAK' },
-        { key: 38, tab: '饿了么折扣限购错误', comp: 'ProbAL' },
+        { key: 37, tab: '折扣起购错误', comp: 'ProbAK' },
+        { key: 38, tab: '折扣限购错误', comp: 'ProbAL' },
         { key: 35, tab: '差评', comp: 'ProbAI' },
         { key: 31, tab: '满减活动检查', comp: 'ProbAE' },
         { key: 29, tab: '减配活动检查', comp: 'ProbAC' },

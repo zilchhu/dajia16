@@ -46,12 +46,14 @@
   // import SockJS from "sockjs-client";
   import { message } from "ant-design-vue";
   import Shop from "../../api/shop";
+  import TableSelect from "../../components/TableSelect";
   import app from "apprun";
 
   export default {
     name: "tools-food-elm",
     components: {
       UploadOutlined,
+      TableSelect
     },
     data() {
       return {
@@ -62,6 +64,7 @@
         auth: "",
         jsonTable: [],
         table: [],
+        scrollY: 900,
       };
     },
     computed: {
@@ -215,6 +218,7 @@
       },
     },
     created() {
+      this.scrollY = document.body.clientHeight - 276;
       // this.sock.onopen = function () {
       //   console.log("open");
       // };
@@ -245,4 +249,10 @@
 .tools-food-elm
   width: 960px
   margin: 20px auto
+
+.succ-text
+  background: rgba(0, 255, 0, .7)
+
+.error-text
+  background: rgba(255, 0, 0, .7)
 </style>

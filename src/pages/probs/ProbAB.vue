@@ -70,18 +70,17 @@ export default {
           onFilter: (value, record) => record.food_name == value
         },
         {
+          title: '活动价',
+          dataIndex: 'activi_price',
+          align: 'right',
+          sorter: (a, b) => this.toNum(a.activi_price) - this.toNum(b.activi_price)
+        },
+        {
           title: '活动状态',
           dataIndex: 'activi_status',
           width: 200,
           slots: { filterDropdown: 'filterDropdown' },
           onFilter: (value, record) => record.activi_status == value
-        },
-        {
-          title: '活动日期',
-          dataIndex: 'activi_date',
-          width: 200,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.activi_date == value
         },
         {
           title: '处理',

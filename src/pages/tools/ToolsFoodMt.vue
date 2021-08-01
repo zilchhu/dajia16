@@ -1,7 +1,7 @@
 <template lang="pug">
 .tools-food-mt
   div(style="display: flex; align-items: center; justify-content: center; column-gap: 0.75rem")
-    a(href="/美团折扣商品涨原价表格模板.xlsx", target="_blank") 下载模板
+    a(href="/美团折扣商品涨原价表格模板v2.xlsx", target="_blank") 下载模板v2
     a-upload(
       v-model:file-list="fileList",
       action="http://192.168.3.3:9005/upload",
@@ -14,12 +14,13 @@
 
     a-auto-complete(
       v-model:value="auth",
+      :filterOption="onFilterAuth"
       placeholder="请输入Cookie",
       size="small",
       style="width: 400px"
     )
       template(#dataSource)
-        a-select-option(v-for="au in auths", :key="`${au.shopId}||${au.auth}`") {{ au.shopId }} {{ au.shopName }} {{ au.auth }}
+        a-select-option(v-for="au in auths", :key="`${au.shopId}||${au.auth}`") {{ au.shopId }} {{ au.shopName }}
 
   a-divider
 
@@ -66,7 +67,7 @@
         table: [],
         scrollY: 900,
         loading: false,
-        tableName: ''
+        tableName: "",
       };
     },
     computed: {
@@ -92,6 +93,13 @@
             width: 200,
             slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
             onFilter: (value, record) => record.商品名称 == value,
+          },
+          {
+            title: "规格名称",
+            dataIndex: "规格名称",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.规格名称 == value,
           },
           {
             title: "价格",
@@ -149,6 +157,22 @@
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.数量单位 == value,
           },
+          {
+            title: "图片",
+            dataIndex: "图片",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.图片 == value,
+          },
+          {
+            title: "新商品名",
+            dataIndex: "新商品名",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.新商品名 == value,
+          },
         ];
       },
     },
@@ -169,8 +193,15 @@
         }
       },
       flattenObj(obj) {
-        if(obj == null) return ''
-        return Object.entries(obj).map(entry => entry.join(' ')).join('\n\n')
+        if (obj == null) return "";
+        if (typeof obj != "object") return obj;
+        return Object.entries(obj)
+          .map(([k, v]) => `${k} ${typeof v == "string" ? v : JSON.stringify(v)}`)
+          .join("\n");
+      },
+      onFilterAuth(input, option) {
+        console.log(input, option);
+        return true;
       },
       run() {
         let file = this.fileList.find((v) => v.status == "done");
@@ -191,11 +222,11 @@
           jsonTable: this.jsonTable,
         });
 
-        this.loading = true
+        this.loading = true;
       },
       onFileChange({ file }) {
         if (file.status == "done" && file?.response?.res?.filename) {
-          this.tableName = file.response.res.filename
+          this.tableName = file.response.res.filename;
           setTimeout(() => {
             app.run("ws://", "@upload-table", {
               table: file.response.res.filename,
@@ -252,7 +283,7 @@
 
       app.on("@update-food", (state) => {
         console.log(state);
-        if(state._i == -1) this.loading = false
+        if (state._i == -1) this.loading = false;
         this.results.push(JSON.stringify(state));
         this.updateRow(state._i, state);
         // window.scrollTo(0, document.body.scrollHeight + 20);
