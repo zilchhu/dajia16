@@ -1,29 +1,26 @@
 <template lang="pug">
-a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-  :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-  size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+div
+  a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
+    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
+    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
 
-  template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-    //- a-row(type="flex")
-    //-   a-col(flex="auto")
-    //-     a-select(mode="multiple" :value="selectedKeys" @change="onSelectChange" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width || 220}px;`")
-    //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-    //-   a-col(flex="60px")
-    //-     a-button(type="link" @click="confirm") confirm
-    //-     br
-    //-     a-button(type="link" @click="clearFilters") reset
-    //- p {{selectedKeys}}
-    table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-      :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
+    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
+      table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
+        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
 
-  template(#handle="{text, record}")
-    a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+    template(#handle="{text, record}")
+      a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+
+  .left-bottom-div(v-show="!loading")
+    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
+    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
 </template>
 
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
   import TableSelect from "../../components/TableSelect";
+  import app from "apprun";
 
   export default {
     name: "ProbA",
@@ -36,6 +33,8 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
         loading: false,
         scrollY: 900,
         debounce_save: null,
+        exporting: false,
+        tableUrl: null,
       };
     },
     computed: {
@@ -188,11 +187,32 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
       onSelectChange(checks) {
         console.log(checks);
       },
+      transformTable() {
+        return this.table.map((row) =>
+          this.columns.reduce(
+            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
+            {}
+          )
+        );
+      },
+      exportTable() {
+        this.exporting = true;
+        app.run("ws://", "@export-table", {
+          json: this.transformTable(),
+        });
+      },
     },
     created() {
       this.scrollY = document.body.clientHeight - 176;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
+    },
+    mounted() {
+      app.on("@export-table", (state) => {
+        console.log(state);
+        this.exporting = false;
+        this.tableUrl = state.path;
+      });
     },
   };
 </script>

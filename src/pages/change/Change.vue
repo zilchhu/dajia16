@@ -311,4 +311,16 @@ export default {
   background: transparent
   color: #fa821c
 
+.left-bottom-div 
+  display: flex
+  align-items: center
+  position: absolute
+  max-height: 40px
+  bottom: 0px
+  left: 4px
+  z-index: 100
+
+.left-bottom-div button, .left-bottom-div a
+  font-size: 12px
+
 </style>

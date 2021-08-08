@@ -14,15 +14,18 @@ div
     template(#handle="{text, record}")
       a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
 
-  .day-slider(v-show="!loading")
+  .left-bottom-div(v-show="!loading")
     div(style="margin-right: 8px; font-size: 10px;") 变化天数
     a-slider(v-model:value="day" :min="1" :max="10" style="width: 160px;")
+    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
+    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
 </template>
 
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
   import TableSelect from "../../components/TableSelect";
+  import app from "apprun";
 
   export default {
     name: "ProbAH",
@@ -37,6 +40,8 @@ div
         debounce_save: null,
         debounce_fetch: null,
         day: 2,
+        exporting: false,
+        tableUrl: null,
       };
     },
     computed: {
@@ -185,12 +190,33 @@ div
           )
           .join("<span>-></span>");
       },
+      transformTable() {
+        return this.table.map((row) =>
+          this.columns.reduce(
+            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
+            {}
+          )
+        );
+      },
+      exportTable() {
+        this.exporting = true;
+        app.run("ws://", "@export-table", {
+          json: this.transformTable(),
+        });
+      },
     },
     created() {
       this.scrollY = document.body.clientHeight - 176;
       this.debounce_save = this.debounce(this.save);
       this.debounce_fetch = this.debounce(this.fetchTable);
       this.fetchTable();
+    },
+    mounted() {
+      app.on("@export-table", (state) => {
+        console.log(state);
+        this.exporting = false;
+        this.tableUrl = state.path;
+      });
     },
     watch: {
       day() {

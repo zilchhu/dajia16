@@ -1,7 +1,8 @@
 <template lang="pug">
-a-tabs(tab-position="top" size="small" :tabBarGutter="0")
+a-tabs(tab-position="top" size="small" :tabBarGutter="0" :animated="{inkBar: true, tabPane: false}")
   a-tab-pane(v-for="tab in tabs" :key="tab.key" :tab="tab.tab")
-    component(:is="tab.comp")
+    keep-alive
+      component(:is="tab.comp")
 </template>
 
 <script>
@@ -103,7 +104,7 @@ export default {
         { key: 27, tab: '折扣遗漏商品查询', comp: 'ProbAA' },
         { key: 26, tab: '美团配送范围对比昨日', comp: 'ProbZ' },
         { key: 25, tab: '查询点金0曝光的时间', comp: 'ProbY' },
-        { key: 24, tab: '成本表查漏', comp: 'ProbX' },
+        // { key: 24, tab: '成本表查漏', comp: 'ProbX' },
         { key: 12, tab: '津贴联盟', comp: 'ProbL' },
         { key: 23, tab: '单折扣起送', comp: 'ProbW' },
         { key: 11, tab: '两份起购餐品价格错误', comp: 'ProbK' },
