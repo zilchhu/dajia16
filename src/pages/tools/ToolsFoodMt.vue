@@ -26,7 +26,7 @@
 
   a-table.ant-table-change(v-show="table.length > 0" :columns="columns" :data-source="table" rowKey="_i" 
     :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+    size="small" :scroll="{y: scrollY, x: scrollX}" :rowClassName="(record, index) => record?._res?.code == 0 ? 'row-succ': (record?._res?.code == 1 ? 'row-error' : '')")
 
     template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
       table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
@@ -36,7 +36,7 @@
       a-tooltip
         template(#title)
           div(style="white-space: pre-wrap;") {{record?._res?.code == 0 ? record?._res?.data : record?._res?.err}}
-        div(:class="[{'succ-text': record?._res?.code == 0}, {'error-text': record?._res?.code == 1}]" ) {{text}}
+        div {{text}}
 
   //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
 
@@ -173,8 +173,27 @@
             ellipsis: true,
             onFilter: (value, record) => record.新商品名 == value,
           },
+          {
+            title: "属性",
+            dataIndex: "属性",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.属性 == value,
+          },
+          {
+            title: "描述",
+            dataIndex: "描述",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.描述 == value,
+          },
         ];
       },
+      scrollX() {
+        return this.reduceWidth(this.columns)
+      }
     },
     methods: {
       getColFilters(colName) {
@@ -184,6 +203,13 @@
             value: col || "",
           })
         );
+      },
+      reduceWidth(nodes) {
+        return nodes.reduce((sw, c) => {
+          if (c.width) return sw + c.width;
+          if (c.children) return sw + this.reduceWidth(c.children);
+          return sw;
+        }, 10);
       },
       toNum(str) {
         try {

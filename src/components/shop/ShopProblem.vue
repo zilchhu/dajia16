@@ -14,6 +14,11 @@ import ShopOrder from './ShopOrder'
 
 let cols = [
   {
+    title: '门店Id',
+    dataIndex: 'shop_id',
+    width: 100
+  },
+  {
     title: '门店',
     dataIndex: 'shop_name',
     width: 180
@@ -77,7 +82,7 @@ export default {
               ...cols,
               {
                 title: '单均配送',
-                dataIndex: '单均配送',
+                dataIndex: '单均配送费',
                 width: 80,
                 align: 'right'
               }

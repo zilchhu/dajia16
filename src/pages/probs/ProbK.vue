@@ -12,174 +12,197 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
 </template>
 
 <script>
-import Probs from '../../api/probs'
-import { message } from 'ant-design-vue'
-import TableSelect from '../../components/TableSelect'
+  import Probs from "../../api/probs";
+  import { message } from "ant-design-vue";
+  import TableSelect from "../../components/TableSelect";
 
-export default {
-  name: 'ProbK',
-  components: {
-    TableSelect
-  },
-  data() {
-    return {
-      table: [],
-      loading: false,
-      scrollY: 900,
-      debounce_save: null
-    }
-  },
-  computed: {
-    columns() {
-      return [
-        {
-          title: '门店id',
-          dataIndex: 'shop_id',
-          width: 90,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.shop_id == value
-        },
-        {
-          title: '店名',
-          dataIndex: 'shop_name',
-          width: 250,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.shop_name == value
-        },
-        {
-          title: '平台',
-          dataIndex: 'platform',
-          width: 70,
-          filters: [
-            { text: '美团', value: '美团' },
-            { text: '饿了么', value: '饿了么' }
-          ],
-          filterMultiple: true,
-          onFilter: (value, record) => record.platform == value
-        },
-        {
-          title: '负责人',
-          dataIndex: 'person',
-          width: 90,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.person == value
-        },
-        {
-          title: '分类',
-          dataIndex: 'category_name',
-          width: 140,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.category_name == value
-        },
-        {
-          title: '品名',
-          dataIndex: 'name',
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.name == value
-        },
-        {
-          title: '原价',
-          dataIndex: '商品原价',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.商品原价) - this.toNum(b.商品原价)
-        },
-        {
-          title: '凑满减/起送价格',
-          dataIndex: '凑满减/起送价格',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a['凑满减/起送价格']) - this.toNum(b['凑满减/起送价格'])
-        },
-        {
-          title: '餐盒费',
-          dataIndex: '餐盒费',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费)
-        },
-        {
-          title: '起购量',
-          dataIndex: '起购量',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.起购量) - this.toNum(b.起购量)
-        },
-        {
-          title: '处理',
-          dataIndex: 'handle',
-          filters: [
-            { text: '已处理', value: '' },
-            { text: '未处理', value: '1' }
-          ],
-          filterMultiple: true,
-          slots: { customRender: 'handle' },
-          onFilter: (value, record) => (record?.handle == null) == Boolean(value)
+  export default {
+    name: "ProbK",
+    components: {
+      TableSelect,
+    },
+    data() {
+      return {
+        table: [],
+        loading: false,
+        scrollY: 900,
+        debounce_save: null,
+      };
+    },
+    computed: {
+      columns() {
+        return [
+          {
+            title: "门店id",
+            dataIndex: "shop_id",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.shop_id == value,
+          },
+          {
+            title: "店名",
+            dataIndex: "shop_name",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.shop_name ?? "") == value,
+          },
+          {
+            title: "平台",
+            dataIndex: "platform",
+            width: 70,
+            filters: [
+              { text: "美团", value: "美团" },
+              { text: "饿了么", value: "饿了么" },
+            ],
+            filterMultiple: true,
+            onFilter: (value, record) => record.platform == value,
+          },
+          {
+            title: "物理店",
+            dataIndex: "real_shop_name",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.real_shop_name ?? "") == value,
+          },
+          {
+            title: "负责人",
+            dataIndex: "person",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.person ?? "") == value,
+          },
+          {
+            title: "组长",
+            dataIndex: "leader",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.leader ?? "") == value,
+          },
+          {
+            title: "新店责任人",
+            dataIndex: "new_person",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.new_person ?? "") == value,
+          },
+          {
+            title: "分类",
+            dataIndex: "category_name",
+            width: 140,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.category_name ?? "") == value,
+          },
+          {
+            title: "品名",
+            dataIndex: "name",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.name ?? "") == value,
+          },
+          {
+            title: "原价",
+            dataIndex: "商品原价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.商品原价) - this.toNum(b.商品原价),
+          },
+          {
+            title: "凑满减/起送价格",
+            dataIndex: "凑满减/起送价格",
+            align: "right",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a["凑满减/起送价格"]) - this.toNum(b["凑满减/起送价格"]),
+          },
+          {
+            title: "餐盒费",
+            dataIndex: "餐盒费",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费),
+          },
+          {
+            title: "起购量",
+            dataIndex: "起购量",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.起购量) - this.toNum(b.起购量),
+          },
+          {
+            title: "处理",
+            dataIndex: "handle",
+            filters: [
+              { text: "已处理", value: "" },
+              { text: "未处理", value: "1" },
+            ],
+            filterMultiple: true,
+            slots: { customRender: "handle" },
+            onFilter: (value, record) =>
+              (record?.handle == null) == Boolean(value),
+          },
+        ];
+      },
+    },
+    methods: {
+      getColFilters(colName) {
+        return Array.from(new Set(this.table.map((row) => row[colName] ?? "")))
+          .sort()
+          .map((col) => ({
+            label: col,
+            value: col,
+          }));
+      },
+      toNum(str) {
+        try {
+          return parseFloat(str);
+        } catch (error) {
+          return 0;
         }
-      ]
-    }
-  },
-  methods: {
-    getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName] || '')))
-        .sort()
-        .map(col => ({
-          label: col,
-          value: col
-        }))
-    },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
-    },
-    fetchTable() {
-      this.loading = true
-      new Probs()
-        .single('k')
-        .then(res => {
-          this.table = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    },
-    debounce(fn) {
-      let timeout = null
-      return function() {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => fn.apply(this, arguments), 800)
-      }
-    },
-    handleChange(value, record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
-        target['handle'] = value
-        this.debounce_save(record)
-      }
-    },
-    save(record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
+      },
+      fetchTable() {
+        this.loading = true;
         new Probs()
-          .save('k', record.key, target['handle'])
-          .then(res => {
-            console.log(res)
+          .single("k")
+          .then((res) => {
+            this.table = res;
+            this.loading = false;
           })
-          .catch(err => {
-            message.error(err)
-          })
-      }
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 176
-    this.debounce_save = this.debounce(this.save)
-    this.fetchTable()
-  }
-}
+          .catch((err) => {
+            message.error(err);
+            this.loading = false;
+          });
+      },
+      debounce(fn) {
+        let timeout = null;
+        return function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+        };
+      },
+      handleChange(value, record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          target["handle"] = value;
+          this.debounce_save(record);
+        }
+      },
+      save(record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          new Probs()
+            .save("k", record.key, target["handle"])
+            .then((res) => {
+              console.log(res);
+            })
+            .catch((err) => {
+              message.error(err);
+            });
+        }
+      },
+    },
+    created() {
+      this.scrollY = document.body.clientHeight - 196;
+      this.debounce_save = this.debounce(this.save);
+      this.fetchTable();
+    },
+  };
 </script>

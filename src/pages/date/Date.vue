@@ -163,6 +163,13 @@ div
             onFilter: (value, record) => record.person == value,
           },
           {
+            title: "组长",
+            dataIndex: "leader",
+            width: 60,
+            slots: { customRender: "person", filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.leader == value,
+          },
+          {
             title: "物理店",
             dataIndex: "real_shop",
             width: 90,
@@ -413,6 +420,7 @@ div
         map.set("id", "id");
         map.set("city", "城市");
         map.set("person", "负责");
+        map.set("leader", "组长");
         map.set("real_shop", "物理店");
         map.set("shop_id", "门店id");
         map.set("shop_name", "店名");

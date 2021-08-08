@@ -21,161 +21,178 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
 </template>
 
 <script>
-import Probs from '../../api/probs'
-import { message } from 'ant-design-vue'
-import TableSelect from '../../components/TableSelect'
+  import Probs from "../../api/probs";
+  import { message } from "ant-design-vue";
+  import TableSelect from "../../components/TableSelect";
 
-export default {
-  name: 'ProbA',
-  components: {
-    TableSelect
-  },
-  data() {
-    return {
-      table: [],
-      loading: false,
-      scrollY: 900,
-      debounce_save: null
-    }
-  },
-  computed: {
-    columns() {
-      return [
-        {
-          title: '门店id',
-          dataIndex: '门店id',
-          width: 90,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.门店id == value
-        },
-        {
-          title: '门店',
-          dataIndex: '门店',
-          width: 250,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.门店 == value
-        },
-        {
-          title: '平台',
-          dataIndex: '平台',
-          width: 70,
-          filters: [
-            { text: '美团', value: '美团' },
-            { text: '饿了么', value: '饿了么' }
-          ],
-          filterMultiple: true,
-          onFilter: (value, record) => record.平台 == value
-        },
-        {
-          title: '负责',
-          dataIndex: 'person',
-          width: 70,
-          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.person == value
-        },
-        {
-          title: '物理店',
-          dataIndex: 'real_shop_name',
-          width: 100,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.real_shop_name == value
-        },
-        {
-          title: '品名',
-          dataIndex: '品名',
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.品名 == value
-        },
-        {
-          title: '原价',
-          dataIndex: '原价',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.原价) - this.toNum(b.原价)
-        },
-        {
-          title: '折扣价',
-          dataIndex: '折扣价',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价)
-        },
-        {
-          title: '处理',
-          dataIndex: 'handle',
-          filters: [
-            { text: '已处理', value: '' },
-            { text: '未处理', value: '1' }
-          ],
-          filterMultiple: true,
-          slots: { customRender: 'handle' },
-          onFilter: (value, record) => (record?.handle == null) == Boolean(value)
+  export default {
+    name: "ProbA",
+    components: {
+      TableSelect,
+    },
+    data() {
+      return {
+        table: [],
+        loading: false,
+        scrollY: 900,
+        debounce_save: null,
+      };
+    },
+    computed: {
+      columns() {
+        return [
+          {
+            title: "门店id",
+            dataIndex: "门店id",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.门店id == value,
+          },
+          {
+            title: "门店",
+            dataIndex: "门店",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.门店 ?? "") == value,
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            width: 70,
+            filters: [
+              { text: "美团", value: "美团" },
+              { text: "饿了么", value: "饿了么" },
+            ],
+            filterMultiple: true,
+            onFilter: (value, record) => record.平台 == value,
+          },
+          {
+            title: "物理店",
+            dataIndex: "物理店",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.物理店 ?? "") == value,
+          },
+          {
+            title: "负责",
+            dataIndex: "责任人",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            onFilter: (value, record) => (record.责任人 ?? "") == value,
+          },
+          {
+            title: "组长",
+            dataIndex: "组长",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            onFilter: (value, record) => (record.组长 ?? "") == value,
+          },
+          {
+            title: "新店责任人",
+            dataIndex: "新店责任人",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.新店责任人 ?? "") == value,
+          },
+          {
+            title: "品名",
+            dataIndex: "品名",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.品名 ?? "") == value,
+          },
+          {
+            title: "原价",
+            dataIndex: "原价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.原价) - this.toNum(b.原价),
+          },
+          {
+            title: "折扣价",
+            dataIndex: "折扣价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价),
+          },
+          {
+            title: "处理",
+            dataIndex: "handle",
+            filters: [
+              { text: "已处理", value: "" },
+              { text: "未处理", value: "1" },
+            ],
+            filterMultiple: true,
+            slots: { customRender: "handle" },
+            onFilter: (value, record) =>
+              (record?.handle == null) == Boolean(value),
+          },
+        ];
+      },
+    },
+    methods: {
+      getColFilters(colName) {
+        return Array.from(
+          new Set(this.table.map((row) => row[colName] ?? ""))
+        ).map((col) => ({
+          label: col || "",
+          value: col || "",
+        }));
+      },
+      toNum(str) {
+        try {
+          return parseFloat(str);
+        } catch (error) {
+          return 0;
         }
-      ]
-    }
-  },
-  methods: {
-    getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName]))).map(col => ({
-        label: col || '',
-        value: col || ''
-      }))
-    },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
-    },
-    fetchTable() {
-      this.loading = true
-      new Probs()
-        .single('a')
-        .then(res => {
-          this.table = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    },
-    debounce(fn) {
-      let timeout = null
-      return function() {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => fn.apply(this, arguments), 800)
-      }
-    },
-    handleChange(value, record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
-        target['handle'] = value
-        this.debounce_save(record)
-      }
-    },
-    save(record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
+      },
+      fetchTable() {
+        this.loading = true;
         new Probs()
-          .save('a', record.key, target['handle'])
-          .then(res => {
-            console.log(res)
+          .single("a")
+          .then((res) => {
+            this.table = res;
+            this.loading = false;
           })
-          .catch(err => {
-            message.error(err)
-          })
-      }
+          .catch((err) => {
+            message.error(err);
+            this.loading = false;
+          });
+      },
+      debounce(fn) {
+        let timeout = null;
+        return function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+        };
+      },
+      handleChange(value, record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          target["handle"] = value;
+          this.debounce_save(record);
+        }
+      },
+      save(record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          new Probs()
+            .save("a", record.key, target["handle"])
+            .then((res) => {
+              console.log(res);
+            })
+            .catch((err) => {
+              message.error(err);
+            });
+        }
+      },
+      onSelectChange(checks) {
+        console.log(checks);
+      },
     },
-    onSelectChange(checks) {
-      console.log(checks)
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 176
-    this.debounce_save = this.debounce(this.save)
-    this.fetchTable()
-  }
-}
+    created() {
+      this.scrollY = document.body.clientHeight - 176;
+      this.debounce_save = this.debounce(this.save);
+      this.fetchTable();
+    },
+  };
 </script>

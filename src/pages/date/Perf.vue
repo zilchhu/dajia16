@@ -91,6 +91,15 @@ div
             onFilter: (value, record) => record.person == value,
           },
           {
+            title: "组长",
+            dataIndex: "leader",
+            width: 75,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            filterMultiple: true,
+            fixed: "left",
+            onFilter: (value, record) => record.leader == value,
+          },
+          {
             title: "物理店",
             dataIndex: "real_shop",
             width: 120,

@@ -66,7 +66,7 @@
   import app from "apprun";
 
   export default {
-    name: "tools-pic-mt",
+    name: "tools-pic-elm",
     components: {
       UploadOutlined,
       TableSelect,
@@ -151,8 +151,9 @@
         }
 
         app.run("ws://", "@upload-pic", {
-          auth: this.auth.split("||")[1] || this.auth,
-          platform: 1,
+          auth: this.auth.split("||")[1],
+          platform: 2,
+          shopId: this.auth.split("||")[0],
           pics: this.allFileList.map((f) => ({
             uid: f.uid,
             filename: f?.response?.res?.filename,
@@ -166,7 +167,7 @@
         new Shop()
           .auths()
           .then((res) => {
-            this.auths = res.filter((v) => v.platform == 1);
+            this.auths = res.filter((v) => v.platform == 2);
             this.loading = false;
           })
           .catch((err) => {
@@ -183,7 +184,7 @@
             data: this.flattenObj(state.data),
             err: this.flattenObj(state.err),
           };
-          newTable[targetIdx]["图片链接"] = state.data.picUrl;
+          newTable[targetIdx]["图片链接"] = state.data.imageUrl;
           this.table = newTable;
           console.log("row", newTable);
         }
@@ -235,7 +236,7 @@
         console.log(n);
         this.table = n.map((v) => ({
           商品名称: v.name.slice(0, v.name.lastIndexOf('.')),
-          图片链接: "", 
+          图片链接: "",
           _i: v.uid,
         }));
         console.log("table", this.table);

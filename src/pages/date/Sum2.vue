@@ -87,6 +87,16 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
             onFilter: (value, record) => record.person == value,
           },
           {
+            title: "组长",
+            dataIndex: "leader",
+            key: "leader",
+            width: 70,
+            slots: { filterDropdown: "filterDropdown" },
+            filterMultiple: true,
+            fixed: "left",
+            onFilter: (value, record) => record.leader == value,
+          },
+          {
             title: "物理店",
             dataIndex: "real_shop",
             key: "real_shop",

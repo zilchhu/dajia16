@@ -85,7 +85,7 @@ a-table.ant-table-striped(
                 ...cols,
                 {
                   title: "单均配送",
-                  dataIndex: "单均配送",
+                  dataIndex: "单均第三方配送费",
                   width: 80,
                   align: "right",
                 },

@@ -37,7 +37,7 @@ a-table.ant-table-change(:columns="changes_cols" :data-source="changes" rowKey="
     .rule(v-else :class="{'after-rule': record.after_rule.length==0, 'before-rule': record.before_rule.length==0}") {{text.map(v=>v.rule).join('\n\n')}}
 
   template(#handle="{text, record}")
-    a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+    a-input.handle-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
       template(#suffix)
         loading-outlined(v-show="record.saving")
 </template>
@@ -87,11 +87,25 @@ export default {
           onFilter: (value, record) => record.platform == value
         },
         {
+          title: '物理店',
+          dataIndex: 'real_shop_name',
+          width: 80,
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => (record.real_shop_name || '') == value
+        },
+        {
           title: '负责',
           dataIndex: 'person',
           width: 70,
           slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
           onFilter: (value, record) => (record.person || '') == value
+        },
+        {
+          title: '组长',
+          dataIndex: 'leader',
+          width: 70,
+          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
+          onFilter: (value, record) => (record.leader || '') == value
         },
         {
           title: '活动',
@@ -283,6 +297,12 @@ export default {
 .ant-table-change .table-striped
   background-color: #fafafa
 
+.ant-table-change .row-error
+  background-color: rgba(255, 0, 0, .6)
+
+.ant-table-change .row-succ
+  background-color: rgba(0, 255, 0, .6)
+
 .ant-table-change .ant-input-affix-wrapper-sm, .ant-table-change .ant-input-sm
   border: none
   background: transparent
@@ -290,4 +310,5 @@ export default {
 .ant-table-change .ant-input-affix-wrapper > input.ant-input, .ant-table-change .ant-input-sm
   background: transparent
   color: #fa821c
+
 </style>

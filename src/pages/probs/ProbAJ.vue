@@ -59,9 +59,23 @@ export default {
         {
           title: '责任人',
           dataIndex: '责任人',
-          width: 90,
+          width: 80,
           slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.责任人 == value
+          onFilter: (value, record) => (record.责任人 ?? '') == value
+        },
+        {
+          title: '组长',
+          dataIndex: '组长',
+          width: 80,
+          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
+          onFilter: (value, record) => (record.组长 ?? '') == value
+        },
+        {
+          title: '新店责任人',
+          dataIndex: '新店责任人',
+          width: 110,
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => (record.新店责任人 ?? '') == value
         },
         {
           title: '物理店',
@@ -92,7 +106,7 @@ export default {
   },
   methods: {
     getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName] || '')))
+      return Array.from(new Set(this.table.map(row => row[colName] ?? '')))
         .sort()
         .map(col => ({
           label: col,

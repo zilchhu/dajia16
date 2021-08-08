@@ -15,148 +15,171 @@ a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :l
 </template>
 
 <script>
-import Probs from '../../api/probs'
-import { message } from 'ant-design-vue'
-import TableSelect from '../../components/TableSelect'
+  import Probs from "../../api/probs";
+  import { message } from "ant-design-vue";
+  import TableSelect from "../../components/TableSelect";
 
-export default {
-  name: 'ProbAG',
-  components: {
-    TableSelect
-  },
-  data() {
-    return {
-      table: [],
-      loading: false,
-      scrollY: 900,
-      debounce_save: null
-    }
-  },
-  computed: {
-    columns() {
-      return [
-        {
-          title: '店铺id',
-          dataIndex: '店铺id',
-          width: 110,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.店铺id == value
-        },
-        {
-          title: '店铺名称',
-          dataIndex: '店铺名称',
-          width: 250,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.店铺名称 == value
-        },
-        {
-          title: '平台',
-          dataIndex: '平台',
-          width: 70,
-          filters: [
-            { text: '美团', value: '美团' },
-            { text: '饿了么', value: '饿了么' }
-          ],
-          filterMultiple: true,
-          onFilter: (value, record) => record.平台 == value
-        },
-        {
-          title: '责任人',
-          dataIndex: '责任人',
-          width: 100,
-          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.责任人 == value
-        },
-        {
-          title: '分类名',
-          dataIndex: '分类名',
-          width: 150,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.分类名 == value
-        },
-        {
-          title: '商品名',
-          dataIndex: '商品名',
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.商品名 == value
-        },
-        {
-          title: '处理',
-          dataIndex: 'handle',
-          filters: [
-            { text: '已处理', value: '' },
-            { text: '未处理', value: '1' }
-          ],
-          filterMultiple: true,
-          slots: { customRender: 'handle' },
-          onFilter: (value, record) => (record?.handle == null) == Boolean(value)
+  export default {
+    name: "ProbAG",
+    components: {
+      TableSelect,
+    },
+    data() {
+      return {
+        table: [],
+        loading: false,
+        scrollY: 900,
+        debounce_save: null,
+      };
+    },
+    computed: {
+      columns() {
+        return [
+          {
+            title: "店铺id",
+            dataIndex: "店铺id",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.店铺id == value,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.店铺名称 ?? "") == value,
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            width: 70,
+            filters: [
+              { text: "美团", value: "美团" },
+              { text: "饿了么", value: "饿了么" },
+            ],
+            filterMultiple: true,
+            onFilter: (value, record) => record.平台 == value,
+          },
+          {
+            title: "物理店",
+            dataIndex: "物理店",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.物理店 ?? "") == value,
+          },
+          {
+            title: "责任人",
+            dataIndex: "责任人",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            onFilter: (value, record) => (record.责任人 ?? "") == value,
+          },
+          {
+            title: "组长",
+            dataIndex: "组长",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            onFilter: (value, record) => (record.组长 ?? "") == value,
+          },
+          {
+            title: "新店责任人",
+            dataIndex: "新店责任人",
+            width: 110,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.新店责任人 ?? "") == value,
+          },
+          {
+            title: "分类名",
+            dataIndex: "分类名",
+            width: 150,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.分类名 ?? "") == value,
+          },
+          {
+            title: "商品名",
+            dataIndex: "商品名",
+            width: 300,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.商品名 ?? "") == value,
+          },
+          {
+            title: "处理",
+            dataIndex: "handle",
+            filters: [
+              { text: "已处理", value: "" },
+              { text: "未处理", value: "1" },
+            ],
+            filterMultiple: true,
+            slots: { customRender: "handle" },
+            onFilter: (value, record) =>
+              (record?.handle == null) == Boolean(value),
+          },
+        ];
+      },
+    },
+    methods: {
+      getColFilters(colName) {
+        return Array.from(new Set(this.table.map((row) => row[colName] ?? "")))
+          .sort()
+          .map((col) => ({
+            label: col,
+            value: col,
+          }));
+      },
+      toNum(str) {
+        try {
+          return parseFloat(str);
+        } catch (error) {
+          return 0;
         }
-      ]
-    }
-  },
-  methods: {
-    getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName] || '')))
-        .sort()
-        .map(col => ({
-          label: col,
-          value: col
-        }))
-    },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
-    },
-    fetchTable() {
-      this.loading = true
-      new Probs()
-        .single('ag')
-        .then(res => {
-          this.table = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    },
-    debounce(fn) {
-      let timeout = null
-      return function() {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => fn.apply(this, arguments), 800)
-      }
-    },
-    handleChange(value, record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
-        target['handle'] = value
-        this.debounce_save(record)
-      }
-    },
-    save(record) {
-      const target = this.table.filter(item => record.key === item.key)[0]
-      if (target) {
+      },
+      fetchTable() {
+        this.loading = true;
         new Probs()
-          .save('ag', record.key, target['handle'])
-          .then(res => {
-            console.log(res)
+          .single("ag")
+          .then((res) => {
+            this.table = res;
+            this.loading = false;
           })
-          .catch(err => {
-            message.error(err)
-          })
-      }
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 176
-    this.debounce_save = this.debounce(this.save)
-    this.fetchTable()
-  }
-}
+          .catch((err) => {
+            message.error(err);
+            this.loading = false;
+          });
+      },
+      debounce(fn) {
+        let timeout = null;
+        return function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+        };
+      },
+      handleChange(value, record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          target["handle"] = value;
+          this.debounce_save(record);
+        }
+      },
+      save(record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          new Probs()
+            .save("ag", record.key, target["handle"])
+            .then((res) => {
+              console.log(res);
+            })
+            .catch((err) => {
+              message.error(err);
+            });
+        }
+      },
+    },
+    created() {
+      this.scrollY = document.body.clientHeight - 176;
+      this.debounce_save = this.debounce(this.save);
+      this.fetchTable();
+    },
+  };
 </script>
 
 <style lang="sass" scoped>

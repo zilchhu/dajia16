@@ -42,8 +42,9 @@ export default {
         {
           title: '门店',
           dataIndex: 'shop_name',
+          width: 250,
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.shop_name == value
+          onFilter: (value, record) => (record.shop_name ?? '') == value
         },
         {
           title: '平台',
@@ -57,24 +58,46 @@ export default {
           onFilter: (value, record) => record.platform == value
         },
         {
+          title: '物理店',
+          dataIndex: 'real_shop_name',
+          width: 90,
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => (record.real_shop_name ?? '') == value
+        },
+        {
           title: '负责',
           dataIndex: 'person',
-          width: 70,
+          width: 80,
           slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.person == value
+          onFilter: (value, record) => (record.person ?? '') == value
+        },
+        {
+          title: '组长',
+          dataIndex: 'leader',
+          width: 80,
+          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
+          onFilter: (value, record) => (record.leader ?? '') == value
+        },
+        {
+          title: '新店责任人',
+          dataIndex: 'new_person',
+          width: 110,
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => (record.new_person ?? '') == value
         },
         {
           title: '分类名',
           dataIndex: 'category_name',
           width: 140,
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.category_name == value
+          onFilter: (value, record) => (record.category_name ?? '') == value
         },
         {
           title: '品名',
           dataIndex: 'name',
+          width: 300,
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.name == value
+          onFilter: (value, record) => (record.name ?? '') == value
         },
         {
           title: '原价',
@@ -99,7 +122,7 @@ export default {
   },
   methods: {
     getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName] || '')))
+      return Array.from(new Set(this.table.map(row => row[colName] ?? '')))
         .sort()
         .map(col => ({
           label: col,
