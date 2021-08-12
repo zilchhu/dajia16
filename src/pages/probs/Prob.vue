@@ -45,6 +45,7 @@ import ProbAJ from './ProbAJ'
 import ProbAK from './ProbAK'
 import ProbAL from './ProbAL'
 import ProbAM from './ProbAM'
+import ProbAN from './ProbAN'
 
 export default {
   name: 'Prob',
@@ -88,10 +89,12 @@ export default {
     ProbAK,
     ProbAL,
     ProbAM,
+    ProbAN
   },
   data() {
     return {
       tabs: [
+        { key: 40, tab: '门店沟通', comp: 'ProbAN' },
         { key: 39, tab: '起送价变化', comp: 'ProbAM' },
         { key: 37, tab: '折扣起购错误', comp: 'ProbAK' },
         { key: 38, tab: '折扣限购错误', comp: 'ProbAL' },

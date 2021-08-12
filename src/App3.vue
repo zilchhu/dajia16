@@ -12,6 +12,8 @@ div
         router-link(:to="{ name: 'fresh-shop' }") 新店
       a-menu-item(key="perf:31")
         router-link(:to="{ name: 'perf', params: { day: 31 } }") 绩效
+      a-menu-item(key="perf2")
+        router-link(:to="{ name: 'perf2' }") 绩效2
 
     a-menu-item(key="date")
       a-date-picker(
@@ -76,6 +78,10 @@ div
           "运营思维.html",
           "低业绩影响因素.html",
           "外卖优化方向.pdf",
+          "外卖培训.pdf",
+          "自配送工作总结.pdf",
+          "【三顾冒菜】专享会.pdf",
+          "饿了么新商户上线操作.pdf"
         ],
         selected_date: moment().subtract(1, "days"),
       };

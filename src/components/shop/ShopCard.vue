@@ -49,7 +49,7 @@ export default {
       if (this.shop.a.length == 0) {
         return this.shop.qs.map(q => ({
           a: '',
-          name: this.shop.person,
+          name: q.type == '低收入' ? this.shop.leader : this.shop.person,
           operation: 'save',
           q: q.type,
           time: '',

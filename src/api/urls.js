@@ -37,6 +37,7 @@ const urls = {
       return `/shops/${platform}`
     },
     real: '/shops/real',
+    real2: '/shops/real2',
     addNewShop: '/addNewShop',
     addFengniao: '/addFengniao',
     fengniao: '/fengniao',
@@ -86,7 +87,9 @@ const urls = {
     },
     save() {
       return `/saveProbs`
-    }
+    },
+    addAn: '/probs/an/add',
+    editAn: '/probs/an/edit',
   },
   plan: {
     multi: 'plans'
@@ -98,7 +101,8 @@ const urls = {
   perf: {
     base(date = 31) {
       return `/perf/${date}`
-    }
+    },
+    base2: `/perf2`
   },
   tests: {
     sync: '/tests/sync',

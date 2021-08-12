@@ -8,4 +8,8 @@ export default class Perf {
   single(djh = 1) {
     return instance.get(urls.perf.base(this.date), { params: { djh } })
   }
+
+  single2() {
+    return instance.get(urls.perf.base2)
+  }
 }

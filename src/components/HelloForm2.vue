@@ -51,7 +51,8 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
         : this.unSatisfiesProblems(this.record)
             .map((v) => ({
               q: v,
-              name: this.record.person,
+              name:
+                v == "低收入" ? this.record.leader : this.record.person,
               a: "",
               operation: "save",
               time: "",

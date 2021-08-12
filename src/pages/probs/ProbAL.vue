@@ -12,6 +12,7 @@ div
       a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
 
   .left-bottom-div(v-show="!loading")
+    a-button(type="link" size="small" @click="fetchTable") 刷新
     a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
     a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
 </template>
@@ -20,7 +21,7 @@ div
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
   import TableSelect from "../../components/TableSelect";
-  import app from 'apprun'
+  import app from "apprun";
 
   export default {
     name: "ProbAL",
@@ -33,7 +34,7 @@ div
         loading: false,
         scrollY: 900,
         debounce_save: null,
-                exporting: false,
+        exporting: false,
         tableUrl: null,
       };
     },
@@ -182,7 +183,7 @@ div
             });
         }
       },
-          transformTable() {
+      transformTable() {
         return this.table.map((row) =>
           this.columns.reduce(
             (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
@@ -202,7 +203,7 @@ div
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },
-        mounted() {
+    mounted() {
       app.on("@export-table", (state) => {
         console.log(state);
         this.exporting = false;

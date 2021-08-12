@@ -12,6 +12,7 @@ div
       a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
 
   .left-bottom-div(v-show="!loading")
+    a-button(type="link" size="small" @click="fetchTable") 刷新
     a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
     a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
 </template>

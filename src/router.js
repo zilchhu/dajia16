@@ -24,6 +24,7 @@ import Date from './pages/date/Date'
 import Sum from './pages/date/Sum'
 import Sum2 from './pages/date/Sum2'
 import Perf from './pages/date/Perf'
+import Perf2 from './pages/date/Perf2'
 import Note from './pages/notes/Note'
 import ActivityComments from './components/user/ActivityComments'
 import { createWebHistory, createRouter } from 'vue-router'
@@ -58,6 +59,7 @@ const routes = [
   {path: '/sum/:day', name: 'sum', component: Sum},
   {path: '/sum2', name: 'sum2', component: Sum2},
   {path: '/perf/:day', name: 'perf', component: Perf},
+  {path: '/perf2', name: 'perf2', component: Perf2},
   {path: '/freshshop', name: 'fresh-shop', component: FreshShop},
   {path: '/testc', name: 'activity-comments', component: ActivityComments},
   {path: '/notes', name: 'note', component: Note},

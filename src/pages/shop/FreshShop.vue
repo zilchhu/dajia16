@@ -164,7 +164,7 @@ export default {
         },
         {
           title: '负责人',
-          dataIndex: 'new_person',
+          dataIndex: 'person',
           width: 85,
           slots: { filterDropdown: 'filterDropdown' },
           filterMultiple: true,
@@ -173,7 +173,7 @@ export default {
             const obj = {
               children: (
                 <div
-                  onclick={() => this.$router.push({ name: 'user', params: { username: record.new_person, date: 0 } })}
+                  onclick={() => this.$router.push({ name: 'user', params: { username: record.person, date: 0 } })}
                   style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);"
                 >
                   {text}
@@ -188,7 +188,35 @@ export default {
             }
             return obj
           },
-          onFilter: (value, record) => record.new_person == value
+          onFilter: (value, record) => record.person == value
+        },
+        {
+          title: '组长',
+          dataIndex: 'leader',
+          width: 85,
+          slots: { filterDropdown: 'filterDropdown' },
+          filterMultiple: true,
+          fixed: 'left',
+          customRender: ({ text, record, index }) => {
+            const obj = {
+              children: (
+                <div
+                  onclick={() => this.$router.push({ name: 'user', params: { username: record.leader, date: 0 } })}
+                  style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);"
+                >
+                  {text}
+                </div>
+              ),
+              props: {}
+            }
+            if (index % 19 == 0) {
+              obj.props.rowSpan = 19
+            } else {
+              obj.props.rowSpan = 0
+            }
+            return obj
+          },
+          onFilter: (value, record) => record.leader == value
         },
         {
           title: '项目',
@@ -201,52 +229,52 @@ export default {
           onFilter: (value, record) => record.field == value
         }
       ]
-      let dates_cols = this.fresh_shop_data.dates.map((v, i) => ({
+      let dates_cols = this.fresh_shop_data.dates.map((v) => ({
         title: dayjs(v, 'YYYYMMDD').format('M/D'),
         dataIndex: v,
         align: 'right',
         width: 80,
         // slots: { customRender: 'value' }
-        customRender: ({ text, record }) => {
-          const obj2 = {
-            children: (
-              <div
-                className={this.isUnsatisfy(record, text) ? 'unsatisfied' : ''}
-                onClick={() => {
-                  if (record.field == '成本比例') this.costRatioClick(v, record)
-                  else if (record.field == '评分') this.ratingClick(record)
-                  else if (record.field == '下架产品量') this.offsellClick(v, record)
-                }}
-              >
-                {text}
-              </div>
-            ),
-            props: {}
-          }
-          const obj3 = {
-            children: (
-              <div style="display: flex; align-items: center; max-width: 1080px;">
-                <a-textarea
-                  auto-size={{ minRows: 1 }}
-                  defaultValue={this.fresh_as_data.find(
-                      v => v.wmpoiid == record.wmPoiId && v.updated_at == this.today
-                    )?.a2}
-                  id={record.key}
-                />
-                <SaveOutlined style="flex-basis: 80px;" onClick={() => this.handleAAModel(record)} />
-                <a-badge
-                  count={this.fresh_as_data.filter(v => v.wmpoiid == record.wmPoiId).length}
-                  number-style={{ backgroundColor: '#52c41acc' }}
-                  style="flex-basis: 80px;"
-                >
-                  <div onClick={() => this.handleAModel(record)}>历史记录</div>
-                </a-badge>
-              </div>
-            ),
-            props: { colSpan: i == 0 ? this.fresh_shop_data.dates.length : 0 }
-          }
-          return record.field == '优化' ? obj3 : obj2
-        }
+        // customRender: ({ text, record }) => {
+        //   const obj2 = {
+        //     children: (
+        //       <div
+        //         className={this.isUnsatisfy(record, text) ? 'unsatisfied' : ''}
+        //         onClick={() => {
+        //           if (record.field == '成本比例') this.costRatioClick(v, record)
+        //           else if (record.field == '评分') this.ratingClick(record)
+        //           else if (record.field == '下架产品量') this.offsellClick(v, record)
+        //         }}
+        //       >
+        //         {text}
+        //       </div>
+        //     ),
+        //     props: {}
+        //   }
+        //   const obj3 = {
+        //     children: (
+        //       <div style="display: flex; align-items: center; max-width: 1080px;">
+        //         <a-textarea
+        //           auto-size={{ minRows: 1 }}
+        //           defaultValue={this.fresh_as_data.find(
+        //               v => v.wmpoiid == record.wmPoiId && v.updated_at == this.today
+        //             )?.a2}
+        //           id={record.key}
+        //         />
+        //         <SaveOutlined style="flex-basis: 80px;" onClick={() => this.handleAAModel(record)} />
+        //         <a-badge
+        //           count={this.fresh_as_data.filter(v => v.wmpoiid == record.wmPoiId).length}
+        //           number-style={{ backgroundColor: '#52c41acc' }}
+        //           style="flex-basis: 80px;"
+        //         >
+        //           <div onClick={() => this.handleAModel(record)}>历史记录</div>
+        //         </a-badge>
+        //       </div>
+        //     ),
+        //     props: { colSpan: i == 0 ? this.fresh_shop_data.dates.length : 0 }
+        //   }
+        //   return record.field == '优化' ? obj3 : obj2
+        // }
         // sorter: (a, b) => this.toNum(a[v]) - this.toNum(b[v])
       }))
       // console.log([...fiexed_cols, ...dates_cols])
@@ -372,6 +400,7 @@ export default {
             message.success('保存成功')
           })
           .catch(err => {
+            console.error(err)
             message.error('保存失败')
           })
         console.log(target)

@@ -15,6 +15,7 @@ div
       a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
 
   .left-bottom-div(v-show="!loading")
+    a-button(type="link" size="small" @click="fetchTable") 刷新
     div(style="margin-right: 8px; font-size: 10px;") 变化天数
     a-slider(v-model:value="day" :min="1" :max="10" style="width: 160px;")
     a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
