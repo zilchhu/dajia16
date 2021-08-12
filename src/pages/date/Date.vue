@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-  a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize}"
+  a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize, total: table.length, showTotal: total => `共${total}条`}"
     @change="table_change" size="small" :scroll="{x: scrollX, y: scrollY}" :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)")
     template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
       //- a-row(type="flex")
@@ -109,14 +109,13 @@ div
         tablesByShopLoading: new Set(),
         tableLoading: false,
         rules: [
-          ["income_avg", "<", 1500],
           ["consume_ratio", ">", 5],
           ["cost_ratio", ">", 50],
           ["settlea_30", "<", 70],
         ],
         mtRules: [["income", "<", 1500]],
         elmRules: [["income", "<", 1000]],
-        ruleIdx: ["income", "income_avg", "consume_ratio", "settlea_30"],
+        ruleIdx: ["income", "consume_ratio", "settlea_30"],
         collapseKey: [],
         scrollY: 2000,
         selectedRowKeys: [],
@@ -458,11 +457,11 @@ div
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-        let v = 0
-        try {
-          v = parseFloat(val)
-        } catch (e) { console.error(e) }
-        return v ${r[1]} ${r[2]}`;
+          let v = 0
+          try {
+            v = parseFloat(val)
+          } catch (e) { console.error(e) }
+          return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,

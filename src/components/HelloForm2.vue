@@ -165,7 +165,6 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
       unSatisfies(record) {
         const {
           income,
-          income_avg,
           consume_ratio,
           cost_ratio,
           settlea_30,
@@ -179,13 +178,13 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
             threshold: platform == "美团" ? "1500" : "1000",
             problem: "低收入",
           });
-        if (this.isIncomeAvg(income_avg))
-          list.push({
-            title: "平均收入",
-            value: income_avg,
-            threshold: "1500",
-            problem: "低收入",
-          });
+        // if (this.isIncomeAvg(income_avg))
+        //   list.push({
+        //     title: "平均收入",
+        //     value: income_avg,
+        //     threshold: "1500",
+        //     problem: "低收入",
+        //   });
         if (this.isConsumeRatio(consume_ratio))
           list.push({
             title: "推广比例",
