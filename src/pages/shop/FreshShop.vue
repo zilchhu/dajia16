@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-  a-table.ant-table-fresh(:columns="fresh_shop_columns" :data-source="fresh_shop_data.shops" rowKey="key" :loading="spinning" 
+  a-table.ant-table-change.ant-table-fresh(:columns="fresh_shop_columns" :data-source="fresh_shop_data.shops" rowKey="key" :loading="spinning" 
     :pagination="{showSizeChanger: true, defaultPageSize, pageSizeOptions: ['19', '38', '76', '152'], size: 'small'}" 
     @change="table_change"
     size="small" :scroll="{ x: scrollX, y: scrollY}" bordered :style="`max-width: ${scrollX + 10}px;`"
@@ -33,7 +33,7 @@ div
       .cell(v-else :class="{unsatisfied: isUnsatisfy(record, text)}") {{text}}
 
     template(#field="{text, record}")
-      .cell(:title="record.name") {{text}}
+      .cell(:title="record.name" @click="() => showChartModal(record)") {{text}}
 
   a-modal(v-model:visible="aModel" :footer="null" centered :width="800")
     a-table(:columns="fresh_as_columns" :data-source="fresh_as" rowKey="updated_at" :pagination="false" :scroll="{y: 850}" size="small" style="max-width: 700px;")
@@ -48,6 +48,9 @@ div
 
   a-modal(v-model:visible="offsellClickModal" :footer="null" centered :width="1080")
     shop-offsell(:goods_meta="shop_meta_offsells")
+
+  a-modal(v-model:visible="isChartModalVis" :footer="null" centered :width="800" forceRender)
+    v-chart(class="chart" :option="option")
 
   a.expo(:href="`http://192.168.3.3:9040/新店表${yesterday}.xlsx`" target="_blank") export
 </template>
@@ -104,10 +107,47 @@ div
         probClickModal: false,
         ratesClickModal: false,
         offsellClickModal: false,
+        isChartModalVis: false,
         shop_meta: { shopId: null, platform: null },
         shop_meta_rates: { shopId: null, platform: null },
         shop_meta_offsells: { shopId: null, platform: null, day: null },
         today: dayjs().format("YYYY-MM-DD"),
+        myChart: null,
+        chartBaseOpt: {
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+          // toolbox: {
+          //   show: true,
+          //   orient: "horizontal",
+          //   color: ["#1e1eff"],
+          //   feature: {
+          //     mark: { show: true },
+          //     magicType: { show: true, type: ["line", "bar", "stack", "tiled"] },
+          //     restore: { show: true },
+          //     saveAsImage: { show: true },
+          //   },
+          // },
+          calculable: true,
+          // dataZoom: {
+          //   type: "inside",
+          //   xAxisIndex: [0],
+          // },
+          // legend: {
+          //   orient: "vertical",
+          //   left: "right",
+          //   top: "middle",
+          //   itemGap: 20,
+          // },
+          yAxis: {
+            type: "value",
+            splitNumber: 10,
+          },
+        },
+        option: {},
       };
     },
     computed: {
@@ -119,7 +159,7 @@ div
           {
             title: "物理店",
             dataIndex: "real_shop_name",
-            width: 85,
+            width: 60,
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
@@ -152,7 +192,7 @@ div
           {
             title: "门店",
             dataIndex: "name",
-            width: 75,
+            width: 60,
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
@@ -179,7 +219,7 @@ div
           {
             title: "负责人",
             dataIndex: "person",
-            width: 85,
+            width: 60,
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
@@ -212,7 +252,7 @@ div
           {
             title: "组长",
             dataIndex: "leader",
-            width: 85,
+            width: 60,
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
@@ -245,7 +285,7 @@ div
           {
             title: "项目",
             dataIndex: "field",
-            width: 100,
+            width: 60,
             // filters: this.getColFilters('field'),
             // filterMultiple: true,
             fixed: "left",
@@ -257,7 +297,7 @@ div
           title: dayjs(v, "YYYYMMDD").format("M/D"),
           dataIndex: v,
           align: "right",
-          width: 80,
+          width: 60,
           slots: { customRender: "value" },
           // customRender: ({ text, record }) => {
           //   const obj2 = {
@@ -437,6 +477,34 @@ div
         let value = document.getElementById(record.key).value;
         this.handleChange(value, record.wmPoiId, this.today);
       },
+      showChartModal(record) {
+        console.log(record);
+        if (record.field == "优化") return;
+        this.option = {
+          ...this.chartBaseOpt,
+          title: {
+            text: record.field,
+          },
+          xAxis: {
+            data: this.fresh_shop_data.dates,
+          },
+          yAxis: {
+            type: record.field.startsWith("袋鼠店长") ? "category" : "value",
+          },
+          series: [
+            {
+              name: record.field,
+              type: "line",
+              data: this.fresh_shop_data.dates.map((d) =>
+                record.field.startsWith("袋鼠店长")
+                  ? record[d]
+                  : this.toNum(record[d])
+              )
+            },
+          ],
+        };
+        this.isChartModalVis = true;
+      },
       table_change(pagination) {
         localStorage.setItem("freshShop/defaultPageSize", pagination.pageSize);
       },
@@ -465,7 +533,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 126;
+      this.scrollY = document.body.clientHeight - 156;
       this.defaultPageSize =
         +localStorage.getItem("freshShop/defaultPageSize") || 19;
       this.debounce_save = this.debounce(this.save);
@@ -508,4 +576,8 @@ div
 
 .pre-wrap
   white-space: pre-wrap
+
+.chart
+  width: 800px
+  height: 500px
 </style>
