@@ -4,10 +4,12 @@ div
     a-tag(
       v-for="route in routes",
       :key="route.path",
+      :color="route.color"
       closable,
       @close="() => removeRoute(route)"
     ) 
-      router-link(:to="route") {{ route.title }}
+      span(@click="() => updateRoute(route)")
+        router-link(:to="route") {{ route.title }}
   a-menu(v-model:selectedKeys="menu_keys", theme="light", mode="horizontal")
     a-sub-menu
       template(#title)
@@ -146,7 +148,15 @@ div
       removeRoute(r) {
         this.routes = this.routes.filter((v) => v.path != r.path);
       },
+      updateRoute(r) { 
+        let i = this.routes.findIndex(v => v.path == r.path)
+        if(i >= 0) {
+          this.routes = this.routes.map(v => ({...v, color: 'default'}))
+          this.routes[i].color = 'blue'
+        }
+      },
       getRouteTitle(r) {
+        // if (r.name == "date") return "主表" + r.params.day;
         if (r.name == "user") return r.params?.username + r.params?.date;
         return this.routeNames.find((v) => v.name == r.name)?.title ?? "-";
         // return "-";
@@ -159,7 +169,7 @@ div
       $route(route) {
         let title = this.getRouteTitle(route);
         if (title == "-" || this.routes.find((v) => v.title == title)) return;
-        this.routes = [...this.routes, { ...route, title }];
+        this.routes = [...this.routes, { ...route, title, color: "default" }];
         console.log(this.routes, title);
       },
     },
