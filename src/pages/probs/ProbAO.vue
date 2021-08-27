@@ -11,22 +11,33 @@ div
     template(#handle="{text, record}")
       a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
 
-  .left-bottom-div(v-show="!loading")
-    a-button(type="link" size="small" @click="fetchTable") 刷新
-    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
-    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
+  .left-bottom-div
+    a-button(type="link" size="small" @click="fetchTable") 
+      SyncOutlined
+      span(style="margin-left: 4px;") 刷新
+    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 
+      ExportOutlined
+      span(style="margin-left: 4px;") 导出
+    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 
+      DownloadOutlined
+      span 下载
+    
 </template>
 
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
+  import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
 
   export default {
-    name: "ProbAA",
+    name: "ProbAO",
     components: {
       TableSelect,
+      SyncOutlined,
+      ExportOutlined,
+      DownloadOutlined
     },
     data() {
       return {
@@ -42,18 +53,25 @@ div
       columns() {
         return [
           {
-            title: "门店id",
+            title: "店铺id",
             dataIndex: "shop_id",
             width: 90,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.shop_id == value,
           },
           {
-            title: "门店",
+            title: "店名",
             dataIndex: "shop_name",
             width: 250,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shop_name ?? "") == value,
+            onFilter: (value, record) => record.shop_name == value,
+          },
+          {
+            title: "城市",
+            dataIndex: "city",
+            width: 100,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.city == value,
           },
           {
             title: "平台",
@@ -69,12 +87,12 @@ div
           {
             title: "物理店",
             dataIndex: "real_shop_name",
-            width: 90,
+            width: 100,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.real_shop_name ?? "") == value,
+            onFilter: (value, record) => record.real_shop_name == value,
           },
           {
-            title: "负责",
+            title: "责任人",
             dataIndex: "person",
             width: 80,
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
@@ -88,32 +106,11 @@ div
             onFilter: (value, record) => (record.leader ?? "") == value,
           },
           {
-            title: "新店责任人",
-            dataIndex: "new_person",
-            width: 110,
+            title: "活动",
+            dataIndex: "by_name",
+            width: 250,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.new_person ?? "") == value,
-          },
-          {
-            title: "分类名",
-            dataIndex: "category_name",
-            width: 140,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.category_name ?? "") == value,
-          },
-          {
-            title: "品名",
-            dataIndex: "name",
-            width: 300,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.name ?? "") == value,
-          },
-          {
-            title: "原价",
-            dataIndex: "price",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.price) - this.toNum(b.price),
+            onFilter: (value, record) => record.by_name == value,
           },
           {
             title: "处理",
@@ -149,7 +146,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("aa")
+          .single("ao")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -177,7 +174,7 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save("aa", record.key, target["handle"])
+            .save("ao", record.key, target["handle"])
             .then((res) => {
               console.log(res);
             })

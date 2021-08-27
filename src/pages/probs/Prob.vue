@@ -46,6 +46,8 @@ import ProbAK from './ProbAK'
 import ProbAL from './ProbAL'
 import ProbAM from './ProbAM'
 import ProbAN from './ProbAN'
+import ProbAO from './ProbAO'
+import ProbAP from './ProbAP'
 
 export default {
   name: 'Prob',
@@ -89,11 +91,15 @@ export default {
     ProbAK,
     ProbAL,
     ProbAM,
-    ProbAN
+    ProbAN,
+    ProbAO,
+    ProbAP,
   },
   data() {
     return {
       tabs: [
+        { key: 42, tab: '单产品满减', comp: 'ProbAP' },
+        { key: 41, tab: '百亿补贴没有报名', comp: 'ProbAO' },
         { key: 40, tab: '门店沟通', comp: 'ProbAN' },
         { key: 39, tab: '起送价变化', comp: 'ProbAM' },
         { key: 37, tab: '折扣起购错误', comp: 'ProbAK' },

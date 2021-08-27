@@ -85,13 +85,6 @@ div
             onFilter: (value, record) => (record.组长 ?? "") == value,
           },
           {
-            title: "新店责任人",
-            dataIndex: "新店责任人",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.新店责任人 ?? "") == value,
-          },
-          {
             title: "活动类型",
             dataIndex: "活动类型",
             width: 130,
@@ -200,7 +193,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 176;
+      this.scrollY = document.body.clientHeight - 204;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },

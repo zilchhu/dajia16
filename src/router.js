@@ -29,7 +29,7 @@ import Note from './pages/notes/Note'
 import ActivityComments from './components/user/ActivityComments'
 import { createWebHistory, createRouter } from 'vue-router'
 
-const routes = [
+export const routes = [
   { path: '/shop/:shopid(\\d+)', name: 'shop', component: Shop },
   { path: '/user/:username/:date(\\d+)', name: 'user', component: User },
   { path: '/user/:username/acts', name: 'user-acts', component: UserActsOvTable },
@@ -39,30 +39,31 @@ const routes = [
     path: '/tools',
     component: Tools,
     name: 'tools',
-    children: [
-      { path: 'add/fresh', name: 'tools-add-fresh', component: ToolsAddFresh },
-      { path: 'add/fengniao', name: 'tools-add-fengniao', component: ToolsAddFengniao },
-      { path: 'add/dada', name: 'tools-add-dada', component: ToolsAddDada },
-      { path: 'add/shunfeng', name: 'tools-add-shunfeng', component: ToolsAddShunfeng },
-      { path: 'add/myt', name: 'tools-add-myt', component: ToolsAddMyt },
-      { path: 'fresh/mt', name: 'tools-fresh-mt', component: ToolsFreshMt },
-      { path: 'fresh/elm', name: 'tools-fresh-elm', component: ToolsFreshElm },
-      { path: 'food/mt', name: 'tools-food-mt', component: ToolsFoodMt },
-      { path: 'food/elm', name: 'tools-food-elm', component: ToolsFoodElm },
-      { path: 'pic/mt', name: 'tools-pic-mt', component: ToolsPicMt },
-      { path: 'pic/elm', name: 'tools-pic-elm', component: ToolsPicElm },
-      { path: 'whitelist', name: 'tools-white-list', component: ToolsWhiteListRedirect },
-      { path: 'tests', name: 'tools-tests', component: ToolsTests }
-    ]
+    // children: [
+
+    // ]
   },
-  {path: '/date/:day', name: 'date', component: Date},
-  {path: '/sum/:day', name: 'sum', component: Sum},
-  {path: '/sum2', name: 'sum2', component: Sum2},
-  {path: '/perf/:day', name: 'perf', component: Perf},
-  {path: '/perf2', name: 'perf2', component: Perf2},
-  {path: '/freshshop', name: 'fresh-shop', component: FreshShop},
-  {path: '/testc', name: 'activity-comments', component: ActivityComments},
-  {path: '/notes', name: 'note', component: Note},
+  { path: '/tools/add/fresh', name: 'tools-add-fresh', component: ToolsAddFresh },
+  { path: '/tools/add/fengniao', name: 'tools-add-fengniao', component: ToolsAddFengniao },
+  { path: '/tools/add/dada', name: 'tools-add-dada', component: ToolsAddDada },
+  { path: '/tools/add/shunfeng', name: 'tools-add-shunfeng', component: ToolsAddShunfeng },
+  { path: '/tools/add/myt', name: 'tools-add-myt', component: ToolsAddMyt },
+  { path: '/tools/fresh/mt', name: 'tools-fresh-mt', component: ToolsFreshMt },
+  { path: '/tools/fresh/elm', name: 'tools-fresh-elm', component: ToolsFreshElm },
+  { path: '/tools/food/mt', name: 'tools-food-mt', component: ToolsFoodMt },
+  { path: '/tools/food/elm', name: 'tools-food-elm', component: ToolsFoodElm },
+  { path: '/tools/pic/mt', name: 'tools-pic-mt', component: ToolsPicMt },
+  { path: '/tools/pic/elm', name: 'tools-pic-elm', component: ToolsPicElm },
+  { path: '/tools/whitelist', name: 'tools-white-list', component: ToolsWhiteListRedirect },
+  { path: '/tools/tests', name: 'tools-tests', component: ToolsTests },
+  { path: '/date/:day', name: 'date', component: Date },
+  { path: '/sum/:day', name: 'sum', component: Sum },
+  { path: '/sum2', name: 'sum2', component: Sum2 },
+  { path: '/perf/:day', name: 'perf', component: Perf },
+  { path: '/perf2', name: 'perf2', component: Perf2 },
+  { path: '/freshshop', name: 'fresh-shop', component: FreshShop },
+  { path: '/testc', name: 'activity-comments', component: ActivityComments },
+  { path: '/notes', name: 'note', component: Note },
   { path: '/', name: 'index', redirect: '/date/1' }
 ]
 

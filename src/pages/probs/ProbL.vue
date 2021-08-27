@@ -130,11 +130,11 @@ div
             sorter: (a, b) => this.toNum(a.商家代金券) - this.toNum(b.商家代金券),
           },
           {
-            title: "超值联盟",
-            dataIndex: "超值联盟",
+            title: "支付红包",
+            dataIndex: "支付红包",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.超值联盟) - this.toNum(b.超值联盟),
+            sorter: (a, b) => this.toNum(a.支付红包) - this.toNum(b.支付红包),
           },
           {
             title: "新客立减",
@@ -237,7 +237,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 176;
+      this.scrollY = document.body.clientHeight - 204;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },

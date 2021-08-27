@@ -124,7 +124,7 @@ export default {
               ...cols,
               {
                 title: '单均配送',
-                dataIndex: '单均配送',
+                dataIndex: '单均配送费',
                 width: 80,
                 align: 'right'
               }

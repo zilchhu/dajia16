@@ -1,6 +1,7 @@
 <template lang="pug">
 div
-  a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize, total: table.length, showTotal: total => `共${total}条`}"
+  a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" 
+    :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize, total: table.length, showTotal: total => `共${total}条`}"
     @change="table_change" size="small" :scroll="{x: scrollX, y: scrollY}" :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)")
     template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
       //- a-row(type="flex")
@@ -15,16 +16,30 @@ div
        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
 
     //- 染色
-    template(v-for="col in ruleIdx" #[col]="{text, record}")
-      .cell(:class="{unsatisfied: rules2fn[record.platform][col](text)}") {{text}}
     template(#shop_id="{text, record}")
-      router-link.cell(:to="{name: 'shop', params: {shopid: text}}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
+      .copy-cell
+        router-link(:to="{name: 'shop', params: {shopid: text}}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
+        .copy-icon(@click.stop="() => copy(text, `id${record.shop_id}`)")
+          a-tooltip(title="copied" :visible="shopNameCopyShows[`id${record.shop_id}`]")
+            CopyOutlined
+    template(#shop_name="{text, record}")
+      .copy-cell
+        div {{text}}
+        .copy-icon(@click.stop="() => copy(text, `name${record.shop_id}`)")
+          a-tooltip(title="copied" :visible="shopNameCopyShows[`name${record.shop_id}`]")
+            CopyOutlined
+    template(#income="{text, record}")
+      .cell(:class="{unsatisfied: isIncome(text, record)}" @click="copy") {{text}}
+    template(#consume_ratio="{text, record}")
+      .cell(:class="{unsatisfied: isConsumeRatio(text, record)}") {{text}}
+    template(#settlea_30="{text, record}")
+      .cell(:class="{unsatisfied: isSettlea30(text)}") {{text}}
     template(#person="{text, record}")
       a-tooltip(v-if="record.new_person" :title="`新店 : ${record.new_person}`")
         router-link.cell(:to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
       router-link.cell(v-else :to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
     template(#cost_ratio="{text, record}")
-      .cell(:class="{unsatisfied: rules2fn[record.platform]['cost_ratio'](text)}" @click.stop="() => costRatioClick(text, record)" style="cursor: pointer;") {{text}}
+      .cell(:class="{unsatisfied: isCostRatio(text, record)}" @click.stop="() => costRatioClick(text, record)" style="cursor: pointer;") {{text}}
     template(#rating="{text, record}")
       .cell(@click.stop="() => ratingClick(record)" :class="{unsatisfied: text < record.rating_last}" style="cursor: pointer;") {{text}}
 
@@ -85,8 +100,10 @@ div
 
 <script>
   import { message } from "ant-design-vue";
+  import { CopyOutlined } from "@ant-design/icons-vue";
   import { getTableByDate, getTableByShop } from "../../api";
   import dayjs from "dayjs";
+  import mcopy from "modern-copy";
   import HelloForm2 from "../../components/HelloForm2";
   import AllShopForm from "../../components/shop/AllShopForm";
   import ShopProblem from "../../components/shop/ShopProblem";
@@ -126,6 +143,7 @@ div
         defaultPageSize: 30,
         shop_meta: { shopId: null, platform: null },
         shop_meta_rates: { shopId: null, platform: null },
+        shopNameCopyShows: {},
       };
     },
     components: {
@@ -134,6 +152,7 @@ div
       ShopProblem,
       ShopIndices,
       TableSelect,
+      CopyOutlined,
     },
     computed: {
       tablePersonColFilters() {
@@ -179,7 +198,7 @@ div
           {
             title: "门店id",
             dataIndex: "shop_id",
-            width: 90,
+            width: 100,
             slots: { filterDropdown: "filterDropdown", customRender: "shop_id" },
             onFilter: (value, record) => record.shop_id == value,
           },
@@ -187,7 +206,10 @@ div
             title: "店名",
             dataIndex: "shop_name",
             width: 280,
-            slots: { filterDropdown: "filterDropdown" },
+            slots: {
+              filterDropdown: "filterDropdown",
+              customRender: "shop_name",
+            },
             onFilter: (value, record) => record.shop_name == value,
           },
           {
@@ -246,7 +268,6 @@ div
             slots: { customRender: "income" },
             sorter: (a, b) => this.toNum(a.income) - this.toNum(b.income),
           },
-
           {
             title: "成本比例",
             dataIndex: "cost_ratio",
@@ -457,11 +478,11 @@ div
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-          let v = 0
-          try {
-            v = parseFloat(val)
-          } catch (e) { console.error(e) }
-          return v ${r[1]} ${r[2]}`;
+                            let v = 0
+                            try {
+                              v = parseFloat(val)
+                            } catch (e) { console.error(e) }
+                            return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -563,6 +584,30 @@ div
           return 0;
         }
       },
+      copy(text, key) {
+        mcopy(`${text}`);
+        this.shopNameCopyShows[key] = true;
+        setTimeout(() => (this.shopNameCopyShows[key] = false), 400);
+      },
+      isIncome(text, record) {
+        if (record.platform == "美团") return this.toNum(text) < 1500;
+        else if (record.platform == "饿了么") return this.toNum(text) < 1000;
+        return false;
+      },
+      isIncomeAvg(text) {
+        return this.toNum(text) < 1500;
+      },
+      isConsumeRatio(text, record) {
+        return (
+          this.toNum(text) > 5 && !(record.income < 300 && record.consume < 50)
+        );
+      },
+      isCostRatio(text) {
+        return this.toNum(text) > 50;
+      },
+      isSettlea30(text) {
+        return this.toNum(text) < 70;
+      },
       thresholdSuffix(name, platform) {
         let r =
           platform == "美团"
@@ -593,6 +638,7 @@ div
         this.$router.push({ name: "shop", params: { shopid: text } });
       },
       costRatioClick(_, record) {
+        if (this.probClickModal == true) return;
         this.shop_meta = {
           shopId: record.shop_id,
           platform: record.platform == "美团" ? "mt" : "elm",
@@ -611,7 +657,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 140;
+      this.scrollY = document.body.clientHeight - 168;
       this.defaultPageSize = +localStorage.getItem("date/defaultPageSize") || 30;
       this.getTableByDate();
     },
@@ -632,6 +678,20 @@ div
   display: inline-block
   width: 100%
   text-align: right
+
+.copy-cell
+  display: flex
+  align-items: center
+  column-gap: 4px
+
+.copy-icon
+  display: none
+  font-size: 13px
+  color: gray
+  cursor: pointer
+
+.copy-cell:hover .copy-icon
+  display: block
 
 .unsatisfied
   color: #fa541c

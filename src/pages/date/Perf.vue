@@ -19,8 +19,14 @@ div
     template(#person="{text, record}")
         router-link(:to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
 
+    template(v-for="col in cellIdx" #cell="{text, record}")
+      .cell(@click="() => showChartModal(record, col)") {{text}}
+
     template(v-for="col in ruleIdx" #[col]="{text, record}")
       .cell(:class="{unsatisfied: isUnsatisfy(text, col)}") {{text}}
+
+  a-modal(v-model:visible="isChartModalVis" :footer="null" centered :width="800")
+    v-chart(class="chart" :option="option")
 
   a.expo(:href="`http://192.168.3.3:9040/绩效表${yesterday}.xlsx`" target="_blank") export
   a-checkbox.djh(v-model:checked="djh" @change="fetch_perf") 大计划
@@ -60,7 +66,23 @@ div
         defaultPageSize: 40,
         last_perf_route: { path: "/perf/31" },
         ruleIdx: ["income_avg", "cost_sum_ratio", "consume_sum_ratio", "score"],
+        cellIdx: ["income_sum"],
         djh: true,
+        isChartModalVis: false,
+        chartBaseOpt: {
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+          calculable: true,
+          yAxis: {
+            type: "value",
+            splitNumber: 10,
+          },
+        },
+        option: {},
       };
     },
     computed: {
@@ -114,6 +136,7 @@ div
             dataIndex: "income_sum",
             align: "right",
             width: 100,
+            slots: { customRender: "cell" },
             sorter: (a, b) => this.toNum(a.income_sum) - this.toNum(b.income_sum),
           },
           {
@@ -281,6 +304,9 @@ div
         ];
         return [...fiexed_cols];
       },
+      perf_dates() {
+        return [...new Set(this.perfs.map((v) => v.date))].sort();
+      },
       scrollX() {
         let x = this.reduce_width(this.perf_columns);
         return x;
@@ -333,9 +359,34 @@ div
         if (col == "consume_sum_ratio") return this.toNum(text) > 5;
         if (col == "score") return this.toNum(text) < 50;
       },
+      showChartModal(record, col) {
+        let perf_realshop = this.perfs.filter(
+          (v) => v.real_shop == record.real_shop
+        );
+
+        this.option = {
+          ...this.chartBaseOpt,
+          title: {
+            text: col,
+          },
+          xAxis: {
+            data: this.perf_dates,
+          },
+          series: [
+            {
+              name: col,
+              type: "line",
+              data: this.perf_dates.map(
+                (d) => perf_realshop.find((v) => v.date == d)[col]
+              ),
+            },
+          ],
+        };
+        this.isChartModalVis = true;
+      },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 116;
+      this.scrollY = document.body.clientHeight - 144;
       this.defaultPageSize = +localStorage.getItem("perf/defaultPageSize") || 40;
       this.fetch_perf();
     },

@@ -150,9 +150,9 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
         text = this.toNum(text);
         return text < 1500;
       },
-      isConsumeRatio(text) {
+      isConsumeRatio(text, record) {
         text = this.toNum(text);
-        return text > 5;
+        return text > 5 && !(record.income < 300 && record.consume < 50)
       },
       isCostRatio(text) {
         text = this.toNum(text);
@@ -185,7 +185,7 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
         //     threshold: "1500",
         //     problem: "低收入",
         //   });
-        if (this.isConsumeRatio(consume_ratio))
+        if (this.isConsumeRatio(consume_ratio, record))
           list.push({
             title: "推广比例",
             value: consume_ratio,

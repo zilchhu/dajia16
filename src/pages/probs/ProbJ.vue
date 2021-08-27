@@ -212,7 +212,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 176;
+      this.scrollY = document.body.clientHeight - 204;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },

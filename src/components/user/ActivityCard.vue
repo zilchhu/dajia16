@@ -94,7 +94,7 @@ export default {
     },
     title_value() {
       if(['自定义', '发现问题', '解决问题', '举一反三'].includes(this.activity.q)) return ''
-      return this.activity.qs.find(q => q.type == this.activity.q).value.toFixed(2)
+      return this.activity.qs.find(q => q.type == this.activity.q)?.value?.toFixed(2)
     },
     shop_data() {
       return {

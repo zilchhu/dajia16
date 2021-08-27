@@ -20,7 +20,7 @@ div
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
-  import dayjs from "dayjs";
+  // import dayjs from "dayjs";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
 
@@ -51,8 +51,8 @@ div
           },
           {
             title: "店名",
-            dataIndex: "店名",
-            width: 250,
+            dataIndex: "店铺",
+            width: 200,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.店名 == value,
           },
@@ -69,10 +69,10 @@ div
           },
           {
             title: "责任人",
-            dataIndex: "责任人",
+            dataIndex: "组员",
             width: 80,
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.责任人 ?? "") == value,
+            onFilter: (value, record) => (record.组员 ?? "") == value,
           },
           {
             title: "组长",
@@ -82,62 +82,70 @@ div
             onFilter: (value, record) => (record.组长 ?? "") == value,
           },
           {
-            title: "新店责任人",
-            dataIndex: "新店责任人",
-            width: 110,
+            title: "生效时段",
+            dataIndex: "生效时段",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.新店责任人 ?? "") == value,
+            onFilter: (value, record) => (record.生效时段 ?? "") == value,
           },
           {
-            title: "合作方案",
-            dataIndex: "合作方案",
-            slots: { filterDropdown: "filterDropdown" },
-            width: 150,
-            onFilter: (value, record) => (record.合作方案 ?? "") == value,
-          },
-          {
-            title: "活动规则",
-            dataIndex: "活动规则",
-            width: 230,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.活动规则 ?? "") == value,
-          },
-          {
-            title: "基础配送费",
-            dataIndex: "基础配送费",
-            align: "right",
-            width: 130,
-            sorter: (a, b) => this.toNum(a.基础配送费) - this.toNum(b.基础配送费),
-          },
-          {
-            title: "减配力度",
-            dataIndex: "减配力度",
-            align: "right",
+            title: "到期时间",
+            dataIndex: "到期时间",
             width: 100,
-            sorter: (a, b) => this.toNum(a.减配力度) - this.toNum(b.减配力度),
-          },
-          {
-            title: "力度偏差",
-            dataIndex: "力度偏差",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.力度偏差) - this.toNum(b.力度偏差),
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.到期时间 ?? "") == value,
           },
           {
             title: "起送价",
             dataIndex: "起送价",
             align: "right",
-            width: 130,
+            width: 90,
             sorter: (a, b) => this.toNum(a.起送价) - this.toNum(b.起送价),
           },
           {
-            title: "到期时间",
-            dataIndex: "到期时间",
-            width: 130,
+            title: "基础配送",
+            dataIndex: "基础配送",
+            align: "right",
+            width: 90,
+            sorter: (a, b) => this.toNum(a.基础配送) - this.toNum(b.基础配送),
+          },
+          {
+            title: "实际减配",
+            dataIndex: "实际减配",
+            align: "right",
+            width: 90,
+            sorter: (a, b) => this.toNum(a.实际减配) - this.toNum(b.实际减配),
+          },
+          {
+            title: "商家出资",
+            dataIndex: "商家出资",
+            align: "right",
+            width: 90,
+            sorter: (a, b) => this.toNum(a.商家出资) - this.toNum(b.商家出资),
+          },
+          {
+            title: "平台出资",
+            dataIndex: "平台出资",
+            align: "right",
+            width: 90,
+            sorter: (a, b) => this.toNum(a.平台出资) - this.toNum(b.平台出资),
+          },
+          {
+            title: "适配标品",
+            dataIndex: "适配标品",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.到期时间 || "") == value,
-            sorter: (a, b) =>
-              dayjs(a.到期时间).isBefore(dayjs(b.到期时间)) ? -1 : 1,
+            onFilter: (value, record) => (record.适配标品 ?? "") == value,
+          },
+          {
+            title: "配送方式",
+            dataIndex: "配送方式",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.配送方式 ?? "") == value,
+          },
+          {
+            title: "问题",
+            dataIndex: "问题",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.问题 ?? "") == value,
           },
           {
             title: "处理",
@@ -226,7 +234,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 176;
+      this.scrollY = document.body.clientHeight - 204;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },

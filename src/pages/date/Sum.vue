@@ -20,9 +20,6 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
 
   template(#cost_sum_ratio="{text, record}")
     .cell(:class="{unsatisfied: text ? toNum(text) > 50 : false}") {{text}}
-
-  template(#real_shop="{text, record}")
-    router-link.cell(:to="{ name: 'date', params: { day: 1 }, query: {real_shop: text} }" style="color: rgba(0, 0, 0, 0.65);") {{text}}
 </template>
 
 <script>
@@ -105,10 +102,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
             dataIndex: "real_shop",
             key: "real_shop",
             width: 90,
-            slots: {
-              filterDropdown: "filterDropdown",
-              customRender: "real_shop",
-            },
+            slots: { filterDropdown: "filterDropdown" },
             fixed: "left",
             onFilter: (value, record) => record.real_shop == value,
             sorter: (a, b) => (a.real_shop < b.real_shop ? -1 : 1),
@@ -288,7 +282,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 220;
+      this.scrollY = document.body.clientHeight - 248;
       this.defaultPageSize = +localStorage.getItem("sum/defaultPageSize") || 40;
       this.fetch_sum_single();
     },

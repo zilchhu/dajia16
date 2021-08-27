@@ -164,17 +164,10 @@ div
             filterMultiple: true,
             fixed: "left",
             customRender: ({ text, record, index }) => {
+              console.log(record)
               const obj = {
                 children: (
-                  <div
-                    onclick={() =>
-                      this.$router.push({
-                        name: "user",
-                        params: { username: record.new_person, date: 0 },
-                      })
-                    }
-                    style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);"
-                  >
+                  <div style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);">
                     {text}
                   </div>
                 ),
@@ -499,7 +492,7 @@ div
                 record.field.startsWith("袋鼠店长")
                   ? record[d]
                   : this.toNum(record[d])
-              )
+              ),
             },
           ],
         };
@@ -533,7 +526,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 156;
+      this.scrollY = document.body.clientHeight - 184;
       this.defaultPageSize =
         +localStorage.getItem("freshShop/defaultPageSize") || 19;
       this.debounce_save = this.debounce(this.save);
@@ -570,7 +563,7 @@ div
 .expo
   display: block
   position: absolute
-  bottom: 20px
+  bottom: 40px
   left: 10px
   z-index: 100
 

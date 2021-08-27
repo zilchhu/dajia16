@@ -181,7 +181,7 @@ div
       }
     },
     created() {
-      this.scrollY = document.body.clientHeight - 116;
+      this.scrollY = document.body.clientHeight - 144;
       this.defaultPageSize = +localStorage.getItem("perf2/defaultPageSize") || 40;
       this.fetch_perf();
     },

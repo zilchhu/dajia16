@@ -180,7 +180,7 @@ export default {
     }
   },
   mounted() {
-    this.scrollY = document.body.clientHeight - 166
+    this.scrollY = document.body.clientHeight - 194
     this.fetch_acts_ov_single()
   },
   watch: {
