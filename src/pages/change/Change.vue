@@ -247,7 +247,7 @@ export default {
     }
   },
   created() {
-    this.scrollY = document.body.clientHeight - 126
+    this.scrollY = document.body.clientHeight - 154
     this.defaultPageSize = +localStorage.getItem('changes/defaultPageSize') || 100
     this.debounce_save = this.debounce(this.save)
     this.fetch_changes()

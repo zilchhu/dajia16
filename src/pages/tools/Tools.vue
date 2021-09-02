@@ -4,7 +4,7 @@
     h4 {{ menu.title }}
     .sub-menu
       .menu-item(v-for="item in menu.items", :key="item.title")
-          router-link(:to="item.to") {{ item.title }}
+        router-link(:to="item.to") {{ item.title }}
 </template>
 
 <script>
@@ -42,6 +42,10 @@
               { title: "美团", to: { name: "tools-food-mt" } },
               { title: "饿了么", to: { name: "tools-food-elm" } },
             ],
+          },
+          {
+            title: "商品替换",
+            items: [{ title: "美团", to: { name: "tools-food-sub-mt" } }],
           },
           {
             title: "图片上传",

@@ -4,12 +4,12 @@ div
     a-tag(
       v-for="route in routes",
       :key="route.path",
-      :color="route.color"
+      :color="route.color",
       closable,
       @close="() => removeRoute(route)"
     ) 
       span(@click="() => updateRoute(route)")
-        router-link(:to="route") {{ route.title }}
+        router-link(:to="{ path: route.path }") {{ route.title }}
   a-menu(v-model:selectedKeys="menu_keys", theme="light", mode="horizontal")
     a-sub-menu
       template(#title)
@@ -29,7 +29,6 @@ div
       a-date-picker(
         v-model:value="selected_date",
         @change="date_change",
-        :disabledDate="disabledDate",
         :allowClear="false",
         size="small"
       )
@@ -109,6 +108,7 @@ div
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food-mt", title: "美团改价" },
+          { name: "tools-food-sub-mt", title: "美团替换" },
           { name: "tools-food-elm", title: "饿了么改价" },
           { name: "tools-pic-mt", title: "美团图片" },
           { name: "tools-pic-elm", title: "饿了么图片" },
@@ -140,20 +140,41 @@ div
         let date1 = dayjs()
           .startOf("day")
           .diff(dayjs(date_str).startOf("day"), "day");
+        if (date1 <= 0) return;
         this.$router.replace({ name: "date", params: { day: date1 } });
       },
       disabledDate(currentDate) {
         return currentDate.isAfter(moment().subtract(1, "days"));
       },
+      saveRoutes() {
+        localStorage.setItem(
+          "routes",
+          JSON.stringify(
+            this.routes.map((v) => ({
+              path: v.path,
+              color: v.color,
+              title: v.title,
+            }))
+          )
+        );
+      },
+      getRoutes() {
+        let sroutes = localStorage.getItem("routes");
+        if (sroutes) {
+          this.routes = JSON.parse(sroutes);
+        }
+      },
       removeRoute(r) {
         this.routes = this.routes.filter((v) => v.path != r.path);
+        this.saveRoutes();
       },
-      updateRoute(r) { 
-        let i = this.routes.findIndex(v => v.path == r.path)
-        if(i >= 0) {
-          this.routes = this.routes.map(v => ({...v, color: 'default'}))
-          this.routes[i].color = 'blue'
+      updateRoute(r) {
+        let i = this.routes.findIndex((v) => v.path == r.path);
+        if (i >= 0) {
+          this.routes = this.routes.map((v) => ({ ...v, color: "default" }));
+          this.routes[i].color = "blue";
         }
+        this.saveRoutes();
       },
       getRouteTitle(r) {
         // if (r.name == "date") return "主表" + r.params.day;
@@ -162,15 +183,17 @@ div
         // return "-";
       },
     },
-    mounted() {
+    created() {
       this.fetch_all_names();
+      this.getRoutes();
     },
     watch: {
       $route(route) {
         let title = this.getRouteTitle(route);
         if (title == "-" || this.routes.find((v) => v.title == title)) return;
         this.routes = [...this.routes, { ...route, title, color: "default" }];
-        console.log(this.routes, title);
+        this.updateRoute(route);
+        console.log(this.routes);
       },
     },
   };
