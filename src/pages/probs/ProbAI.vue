@@ -1,7 +1,7 @@
 <template lang="pug">
 div
   a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
+    :pagination="{showSizeChanger: true, defaultPageSize: 50, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
     size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
 
     template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
@@ -82,6 +82,7 @@ div
             width: 250,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.shopName == value,
+            sorter: (a, b) => a.shopName?.localeCompare(b.shopName),
           },
           {
             title: "平台",
@@ -95,18 +96,12 @@ div
             onFilter: (value, record) => record.platform == value,
           },
           {
-            title: "负责",
-            dataIndex: "person",
-            width: 70,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => record.person == value,
-          },
-          {
             title: "物理店",
             dataIndex: "real_shop_name",
             width: 100,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.real_shop_name == value,
+            sorter: (a, b) => a.real_shop_name?.localeCompare(b.real_shop_name),
           },
           {
             title: "星级",
@@ -129,6 +124,13 @@ div
             title: "订单id",
             dataIndex: "orderId",
             width: 200,
+          },
+          {
+            title: "负责",
+            dataIndex: "person",
+            width: 70,
+            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            onFilter: (value, record) => record.person == value,
           },
           {
             title: "处理",

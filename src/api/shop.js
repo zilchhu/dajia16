@@ -77,12 +77,12 @@ export default class Shop {
     return instance.get(urls.shop.myt)
   }
 
-  prob(type, platform, date) {
-    return instance.get(urls.shop.prob.base(type, platform, this.shopid, date))
+  prob(date) {
+    return instance.get(`/cost/${this.shopid}/${date}`)
   }
 
-  order(platform, activi, counts, date) {
-    return instance.get(urls.shop.order.base(this.shopid, platform, date), { params: { activi, counts } })
+  order(activi, counts, date) {
+    return instance.get(`/order/${this.shopid}/${date}`, { params: { activi, counts } })
   }
 
   indices(platform, day = 7) {

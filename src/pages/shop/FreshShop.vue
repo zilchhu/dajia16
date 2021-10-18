@@ -24,7 +24,7 @@ div
           a-popover(color="cyan")
             template(#content)
               a-textarea(:defaultValue="text?.a2" :autoSize="{minRows: 12}" style="min-width: 500px" @change="(e) => handleChange(e, text, record.wmPoiId)")
-            .truncate(style="width: 100%;") {{text?.a2 ?? '-'}}
+            .truncate(style="width: 100%;") {{isEmpty(text?.a2) ? '-' : text?.a2}}
         div(v-else)
           a-tooltip(color="cyan")
             template(#title)
@@ -164,7 +164,7 @@ div
             filterMultiple: true,
             fixed: "left",
             customRender: ({ text, record, index }) => {
-              console.log(record)
+              console.log(record);
               const obj = {
                 children: (
                   <div style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);">
@@ -364,6 +364,12 @@ div
           if (c.children) return sw + this.reduce_width(c.children);
           return sw;
         }, 10);
+      },
+      isEmpty(val) {
+        if (val == null) return true;
+        if (val == "") return true;
+        if (/^\s$/.test(val)) return true;
+        return false;
       },
       toNum(str) {
         try {

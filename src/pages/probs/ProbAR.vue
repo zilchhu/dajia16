@@ -27,17 +27,21 @@ div
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
-  import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue";
+  import {
+    SyncOutlined,
+    ExportOutlined,
+    DownloadOutlined,
+  } from "@ant-design/icons-vue";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
 
   export default {
-    name: "ProbAO",
+    name: "ProbAR",
     components: {
       TableSelect,
       SyncOutlined,
       ExportOutlined,
-      DownloadOutlined
+      DownloadOutlined,
     },
     data() {
       return {
@@ -67,24 +71,6 @@ div
             onFilter: (value, record) => record.shop_name == value,
           },
           {
-            title: "城市",
-            dataIndex: "city",
-            width: 100,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.city == value,
-          },
-          {
-            title: "平台",
-            dataIndex: "platform",
-            width: 70,
-            filters: [
-              { text: "美团", value: "美团" },
-              { text: "饿了么", value: "饿了么" },
-            ],
-            filterMultiple: true,
-            onFilter: (value, record) => record.platform == value,
-          },
-          {
             title: "物理店",
             dataIndex: "real_shop_name",
             width: 100,
@@ -99,32 +85,59 @@ div
             onFilter: (value, record) => (record.person ?? "") == value,
           },
           {
-            title: "组长",
-            dataIndex: "leader",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.leader ?? "") == value,
+            title: "收藏有礼",
+            dataIndex: "收藏有礼",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.收藏有礼 ?? "") == value,
           },
           {
-            title: "活动",
-            dataIndex: "by_name",
-            width: 250,
+            title: "店内领券",
+            dataIndex: "店内领券",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.by_name == value,
+            onFilter: (value, record) => (record.店内领券 ?? "") == value,
           },
           {
-            title: "状态",
-            dataIndex: "descs",
-            width: 80,
+            title: "超值换购",
+            dataIndex: "超值换购",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.descs ?? "") == value,
+            onFilter: (value, record) => (record.超值换购 ?? "") == value,
           },
           {
-            title: "时段",
-            dataIndex: "date",
-            width: 250,
+            title: "满赠活动",
+            dataIndex: "满赠活动",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.date ?? "") == value,
+            onFilter: (value, record) => (record.满赠活动 ?? "") == value,
+          },
+          {
+            title: "下单返券",
+            dataIndex: "下单返券",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.下单返券 ?? "") == value,
+          },
+          {
+            title: "集点返券",
+            dataIndex: "集点返券",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.集点返券 ?? "") == value,
+          },
+          {
+            title: "新客立减（平台）",
+            dataIndex: "新客立减（平台）",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) =>
+              (record["新客立减（平台）"] ?? "") == value,
+          },
+          {
+            title: "店外发券",
+            dataIndex: "店外发券",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.店外发券 ?? "") == value,
+          },
+          {
+            title: "售卖代金券",
+            dataIndex: "售卖代金券",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.售卖代金券 ?? "") == value,
           },
           {
             title: "处理",
@@ -160,7 +173,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("ao")
+          .single("ar")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -188,7 +201,7 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save("ao", record.key, target["handle"])
+            .save("ar", record.key, target["handle"])
             .then((res) => {
               console.log(res);
             })

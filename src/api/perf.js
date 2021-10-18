@@ -9,7 +9,7 @@ export default class Perf {
     return instance.get(urls.perf.base(this.date), { params: { djh } })
   }
 
-  single2() {
-    return instance.get(urls.perf.base2)
+  single2(type = 2) {
+    return instance.get(`/perf2?type=${type}`)
   }
 }

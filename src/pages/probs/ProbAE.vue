@@ -25,7 +25,7 @@ div
   import { message } from "ant-design-vue";
   import dayjs from "dayjs";
   import TableSelect from "../../components/TableSelect";
-  import app from 'apprun'
+  import app from "apprun";
 
   export default {
     name: "ProbAE",
@@ -69,6 +69,13 @@ div
             ],
             filterMultiple: true,
             onFilter: (value, record) => record.平台 == value,
+          },
+          {
+            title: "物理店",
+            dataIndex: "real_shop_name",
+            width: 80,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.real_shop_name ?? "") == value,
           },
           {
             title: "责任人",

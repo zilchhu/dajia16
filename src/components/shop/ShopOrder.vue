@@ -1,20 +1,20 @@
 <template lang="pug">
-a-table.ant-table-striped(
+a-table.ant-table-change(
   :columns="cols",
   :data-source="data",
-  rowKey="订单id",
+  rowKey="订单编号",
   :loading="loading",
   :expandRowByClick="true",
   :pagination="false",
   :expandIconAsCell="false",
   :expandIconColumnIndex="-1",
   size="small",
-  style="width: 1000px",
+  style="width: 1180px",
   :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
 )
   //- template(#expandedRowRender="{record}")
   //-   shop-data(:shop_data="omit(record, history_hiddens)" style="width: 936px;")
-  template(#订单id="{ text }")
+  template(#订单编号="{ text }")
     div(style="font-size: 10px") {{ text }}
     //- a(v-else
     //-   :href="`https://melody.shop.ele.me/app/shop/${goods_meta.shopId}/order__searchings#app.shop.order.searchings?searchInfo={"searchType":"orderId","keyWord":"${text}","searchValue":null}`"
@@ -30,45 +30,70 @@ a-table.ant-table-striped(
 
   let cols = [
     {
-      title: "订单id",
-      dataIndex: "订单id",
-      slots: { customRender: "订单id" },
+      title: "订单编号",
+      dataIndex: "订单编号",
+      slots: { customRender: "订单编号" },
       width: 110,
-    },
-    {
-      title: "活动",
-      dataIndex: "活动",
-      width: 60,
-    },
-    {
-      title: "商品数",
-      dataIndex: "商品数",
-      width: 50,
-      align: "right",
+      align: 'right',
     },
     {
       title: "订单信息",
       dataIndex: "订单信息",
       slots: { customRender: "订单信息" },
-      width: 280,
       align: "right",
     },
     {
-      title: "成本",
-      dataIndex: "成本",
-      width: 60,
+      title: "理论成本",
+      dataIndex: "理论成本",
+      width: 70,
       align: "right",
     },
     {
-      title: "收入",
-      dataIndex: "收入",
-      width: 60,
+      title: "商家收入",
+      dataIndex: "商家收入",
+      width: 70,
       align: "right",
     },
     {
       title: "成本比例",
       dataIndex: "成本比例",
-      width: 60,
+      width: 70,
+      align: "right",
+    },
+    {
+      title: "订单配送",
+      dataIndex: "订单配送",
+      width: 70,
+      align: "right",
+    },
+    {
+      title: "减配支出",
+      dataIndex: "减配支出",
+      width: 70,
+      align: "right",
+    },
+    {
+      title: "新客立减",
+      dataIndex: "新客立减",
+      width: 70,
+      align: "right",
+    },
+    {
+      title: "红包支出",
+      dataIndex: "红包支出",
+      width: 70,
+      align: "right",
+    },
+    {
+      title: "代金券支出",
+      dataIndex: "代金券支出",
+      width: 90,
+      align: "right",
+    },
+    {
+      title: "订单距离/m",
+      dataIndex: "订单距离/m",
+      width: 90,
       align: "right",
     },
   ];
@@ -78,18 +103,7 @@ a-table.ant-table-striped(
     props: ["goods_meta"],
     data() {
       return {
-        cols:
-          this.goods_meta.platform == "mt"
-            ? cols
-            : [
-                ...cols,
-                {
-                  title: "单均配送",
-                  dataIndex: "单均第三方配送费",
-                  width: 80,
-                  align: "right",
-                },
-              ],
+        cols,
         data: [],
         loading: false,
       };
@@ -97,9 +111,9 @@ a-table.ant-table-striped(
     methods: {
       fetchOrder() {
         this.loading = true;
-        let { shopId, platform, activi, counts, date } = this.goods_meta;
+        let { shopId, activi, counts, date } = this.goods_meta;
         new Shop(shopId)
-          .order(platform, activi, counts, date)
+          .order(activi, counts, date)
           .then((res) => {
             this.data = res;
             this.loading = false;
@@ -114,26 +128,9 @@ a-table.ant-table-striped(
       this.fetchOrder();
     },
     watch: {
-      goods_meta(n) {
+      goods_meta() {
         this.fetchOrder();
-        this.cols =
-          n.platform == "mt"
-            ? cols
-            : [
-                ...cols,
-                {
-                  title: "单均配送",
-                  dataIndex: "单均第三方配送费",
-                  width: 80,
-                  align: "right",
-                },
-              ];
       },
     },
   };
 </script>
-
-<style lang="sass" scoped>
-.ant-table-striped :deep(.table-striped)
-  background-color: #fafafa
-</style>

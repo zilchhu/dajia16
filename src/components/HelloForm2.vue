@@ -13,7 +13,7 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
   import dayjs from "dayjs";
   import { updateTableById } from "../api";
   import { message } from "ant-design-vue";
-  import app from "apprun";
+  // import app from "apprun";
 
   const columns = [
     {
@@ -51,8 +51,7 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
         : this.unSatisfiesProblems(this.record)
             .map((v) => ({
               q: v,
-              name:
-                v == "低收入" ? this.record.leader : this.record.person,
+              name: this.record.person,
               a: "",
               operation: "save",
               time: "",
@@ -92,11 +91,15 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
         columns,
         saving: false,
         debounce_save: null,
+        yesterday: dayjs().subtract(1, "day").format("YYYYMMDD"),
       };
     },
     computed: {
       scrollX() {
         return this.columns.reduce((sum, { width }) => sum + width, 50);
+      },
+      isYesterday() {
+        return this.record.date == this.yesterday;
       },
     },
     methods: {
@@ -113,6 +116,12 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
       save(record) {
         const newData = [...this.data];
         const target = newData.filter((item) => record.q === item.q)[0];
+
+        // if (this.record.date != dayjs().subtract(1, "day").format("YYYYMMDD")) {
+        //   message.error("请刷新后重试");
+        //   return;
+        // }
+
         if (target) {
           this.saving = true;
           target["time"] = dayjs().format("YYYY/MM/DD HH:mm:ss");
@@ -130,7 +139,7 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
               this.saving = false;
             });
 
-          app.run("ws://", "@record", { ...record, ...target });
+          // app.run("ws://", "@record", { ...record, ...target });
         }
       },
       toNum(str) {
@@ -142,8 +151,8 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
       },
       isIncome(text, record) {
         text = this.toNum(text);
-        if (record.platform == "美团") return text < 1500;
-        else if (record.platform == "饿了么") return text < 1000;
+        if (record.platform == "美团") return text < 900;
+        else if (record.platform == "饿了么") return text < 700;
         return false;
       },
       isIncomeAvg(text) {
@@ -152,30 +161,25 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
       },
       isConsumeRatio(text, record) {
         text = this.toNum(text);
-        return text > 5 && !(record.income < 300 && record.consume < 50)
+        return text > 6 && record.income > 300;
       },
       isCostRatio(text) {
         text = this.toNum(text);
-        return text > 50;
+        return text > 53;
       },
       isSettlea30(text) {
         text = this.toNum(text);
-        return text < 70;
+        return text < 80;
       },
       unSatisfies(record) {
-        const {
-          income,
-          consume_ratio,
-          cost_ratio,
-          settlea_30,
-          platform,
-        } = record;
+        const { income, consume_ratio, cost_ratio, settlea_30, platform } =
+          record;
         let list = [];
         if (this.isIncome(income, record))
           list.push({
             title: "收入",
             value: income,
-            threshold: platform == "美团" ? "1500" : "1000",
+            threshold: platform == "美团" ? "900" : "700",
             problem: "低收入",
           });
         // if (this.isIncomeAvg(income_avg))
@@ -189,21 +193,21 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
           list.push({
             title: "推广比例",
             value: consume_ratio,
-            threshold: "5%",
+            threshold: "6%",
             problem: "高推广",
           });
         if (this.isCostRatio(cost_ratio))
           list.push({
             title: "成本比例",
             value: cost_ratio,
-            threshold: "50%",
+            threshold: "53%",
             problem: "高成本",
           });
         if (this.isSettlea30(settlea_30))
           list.push({
             title: "比30日",
             value: settlea_30,
-            threshold: "70%",
+            threshold: "80%",
             problem: "严重超跌",
           });
         return list;

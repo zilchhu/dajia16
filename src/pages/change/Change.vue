@@ -18,7 +18,7 @@ a-table.ant-table-change(:columns="changes_cols" :data-source="changes" rowKey="
 
 
   template(#shop_id="{text, record}")
-    router-link.small(:to="{name: 'shop', params: {shopid: text}}") {{text}}
+    router-link.small(:to="{name: 'shop', params: {shopid: text}, query: {name: record.shop_name}}") {{text}}
 
   template(#person="{text, record}")
     router-link.small(:to="{ name: 'user', params: { username: text || '-', date: 0 }}") {{text}}

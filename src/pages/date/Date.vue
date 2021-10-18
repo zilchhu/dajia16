@@ -1,5 +1,5 @@
 <template lang="pug">
-div
+div(ref="date")
   a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" 
     :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize, total: table.length, showTotal: total => `共${total}条`}"
     @change="table_change" size="small" :scroll="{x: scrollX, y: scrollY}" :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)")
@@ -18,7 +18,7 @@ div
     //- 染色
     template(#shop_id="{text, record}")
       .copy-cell
-        router-link(:to="{name: 'shop', params: {shopid: text}}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
+        router-link(:to="{name: 'shop', params: {shopid: text}, query: {name: record.shop_name}}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
         .copy-icon(@click.stop="() => copy(text, `id${record.shop_id}`)")
           a-tooltip(title="copied" :visible="shopNameCopyShows[`id${record.shop_id}`]")
             CopyOutlined
@@ -89,7 +89,7 @@ div
     a-textarea(v-model:value="editedRowKeys" placeholder="导入门店ID（慎用）" :autoSize="{minRows: 10, maxRows: 10}")
     all-shop-form(:shop_metas="selectedShopMetas")
 
-  a-modal(v-model:visible="probClickModal" :footer="null" centered :width="1080")
+  a-modal(v-model:visible="probClickModal" :footer="null" centered :width="1280")
     shop-problem(:shop_meta="shop_meta")
 
   a-modal(v-model:visible="ratesClickModal" :footer="null" centered :width="800")
@@ -178,14 +178,14 @@ div
             dataIndex: "person",
             width: 60,
             slots: { customRender: "person", filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.person == value,
+            onFilter: (value, record) => (record.person || '') == value,
           },
           {
             title: "组长",
             dataIndex: "leader",
             width: 60,
             slots: { customRender: "person", filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.leader == value,
+            onFilter: (value, record) => (record.leader || '') == value,
           },
           {
             title: "物理店",
@@ -448,6 +448,7 @@ div
         map.set("rating", "评分");
         map.set("rating_last", "上次评分");
         map.set("third_send", "三方配送");
+        map.set("ship_fee_avg", "单均配送");
         map.set("unit_price", "单价");
         map.set("orders", "订单");
         map.set("income", "收入");
@@ -458,6 +459,7 @@ div
         map.set("cost_sum", "总成本");
         map.set("cost_ratio", "成本比例");
         map.set("cost_sum_ratio", "总成本比例");
+        map.set('wait_for_improve_cost', '待优化成本'),
         map.set("consume", "推广");
         map.set("consume_avg", "平均推广");
         map.set("consume_sum", "总推广");
@@ -478,11 +480,11 @@ div
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-                            let v = 0
-                            try {
-                              v = parseFloat(val)
-                            } catch (e) { console.error(e) }
-                            return v ${r[1]} ${r[2]}`;
+                              let v = 0
+                              try {
+                                v = parseFloat(val)
+                              } catch (e) { console.error(e) }
+                              return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -590,8 +592,8 @@ div
         setTimeout(() => (this.shopNameCopyShows[key] = false), 400);
       },
       isIncome(text, record) {
-        if (record.platform == "美团") return this.toNum(text) < 1500;
-        else if (record.platform == "饿了么") return this.toNum(text) < 1000;
+        if (record.platform == "美团") return this.toNum(text) < 900;
+        else if (record.platform == "饿了么") return this.toNum(text) < 700;
         return false;
       },
       isIncomeAvg(text) {
@@ -599,14 +601,14 @@ div
       },
       isConsumeRatio(text, record) {
         return (
-          this.toNum(text) > 5 && !(record.income < 300 && record.consume < 50)
+          this.toNum(text) > 6 && record.income > 300
         );
       },
-      isCostRatio(text) {
-        return this.toNum(text) > 50;
+      isCostRatio(text, record) {
+        return this.toNum(text) > 53 && record.income > 300;
       },
       isSettlea30(text) {
-        return this.toNum(text) < 70;
+        return this.toNum(text) < 80;
       },
       thresholdSuffix(name, platform) {
         let r =
@@ -642,9 +644,7 @@ div
         this.shop_meta = {
           shopId: record.shop_id,
           platform: record.platform == "美团" ? "mt" : "elm",
-          date: dayjs()
-            .subtract(+this.day, "day")
-            .format("YYYYMMDD"),
+          date: record.date,
         };
         this.probClickModal = true;
       },

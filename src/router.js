@@ -1,9 +1,11 @@
 // import App2 from './App2.vue'
 import User from './pages/user/User'
 import UserActsOvTable from './pages/user/UserActsOvTable'
+import UserRecords from './pages/user/UserRecords'
 import Shop from './pages/shop/Shop'
 import FreshShop from './pages/shop/FreshShop'
 import Change from './pages/change/Change'
+import Tasks from './pages/change/Tasks'
 import Prob from './pages/probs/Prob'
 import Tools from './pages/tools/Tools'
 import ToolsAddFresh from './pages/tools/ToolsAddFresh'
@@ -35,6 +37,7 @@ export const routes = [
   { path: '/user/:username/:date(\\d+)', name: 'user', component: User },
   { path: '/user/:username/acts', name: 'user-acts', component: UserActsOvTable },
   { path: '/changes', name: 'changes', component: Change },
+  { path: '/tasks', name: 'tasks', component: Tasks },
   { path: '/probs', name: 'probs', component: Prob },
   {
     path: '/tools',
@@ -63,6 +66,7 @@ export const routes = [
   { path: '/sum2', name: 'sum2', component: Sum2 },
   { path: '/perf/:day', name: 'perf', component: Perf },
   { path: '/perf2', name: 'perf2', component: Perf2 },
+  { path: '/records', name: 'records', component: UserRecords },
   { path: '/freshshop', name: 'fresh-shop', component: FreshShop },
   { path: '/testc', name: 'activity-comments', component: ActivityComments },
   { path: '/notes', name: 'note', component: Note },

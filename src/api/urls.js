@@ -5,6 +5,9 @@ const urls = {
     },
     acts(username, date) {
       return `/user_acts/${username}/${date}`
+    },
+    records(date) {
+      return `record/indices/${date}`
     }
   },
   date: 'date',

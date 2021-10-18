@@ -8,7 +8,7 @@ div
       closable,
       @close="() => removeRoute(route)"
     ) 
-      span(@click="() => updateRoute(route)")
+      span(@click="changeRoute(route)") 
         router-link(:to="{ path: route.path }") {{ route.title }}
   a-menu(v-model:selectedKeys="menu_keys", theme="light", mode="horizontal")
     a-sub-menu
@@ -24,6 +24,8 @@ div
         router-link(:to="{ name: 'perf', params: { day: 31 } }") 绩效
       a-menu-item(key="perf2")
         router-link(:to="{ name: 'perf2' }") 绩效2
+      a-menu-item(key="records")
+        router-link(:to="{ name: 'records' }") 优化指标
 
     a-menu-item(key="date")
       a-date-picker(
@@ -40,6 +42,8 @@ div
         router-link(:to="{ name: 'probs' }") 问题
       a-menu-item(key="changes")
         router-link(:to="{ name: 'changes' }") 变化
+      a-menu-item(key="tasks")
+        router-link(:to="{ name: 'tasks' }") 任务
 
     a-sub-menu
       template(#title)
@@ -93,11 +97,13 @@ div
           "饿了么新商户上线操作.pdf",
         ],
         routes: [],
+        lastRoute: { title: "" },
         routeNames: [
           { name: "shop", title: "门店" },
           { name: "user", title: "用户" },
           { name: "user-acts", title: "动态" },
           { name: "changes", title: "变化" },
+          { name: "tasks", title: "任务" },
           { name: "probs", title: "问题" },
           { name: "tools", title: "工具" },
           { name: "tools-add-fresh", title: "新店录入" },
@@ -123,6 +129,7 @@ div
           { name: "activity-comments", title: "评论" },
           { name: "note", title: "note" },
           { name: "index", title: "首页" },
+          { name: "records", title: "优化指标" },
         ],
         selected_date: moment().subtract(1, "days"),
       };
@@ -141,7 +148,11 @@ div
           .startOf("day")
           .diff(dayjs(date_str).startOf("day"), "day");
         if (date1 <= 0) return;
-        this.$router.replace({ name: "date", params: { day: date1 } });
+        this.$router.replace({
+          name: "date",
+          params: { day: date1 },
+          query: { d: date_str },
+        });
       },
       disabledDate(currentDate) {
         return currentDate.isAfter(moment().subtract(1, "days"));
@@ -165,34 +176,59 @@ div
         }
       },
       removeRoute(r) {
-        this.routes = this.routes.filter((v) => v.path != r.path);
+        this.routes = this.routes.filter((v) => v.title != r.title);
         this.saveRoutes();
       },
       updateRoute(r) {
-        let i = this.routes.findIndex((v) => v.path == r.path);
+        let i = this.routes.findIndex((v) => v.title == r.title);
         if (i >= 0) {
+          console.log(i);
           this.routes = this.routes.map((v) => ({ ...v, color: "default" }));
           this.routes[i].color = "blue";
         }
         this.saveRoutes();
       },
+      changeRoute(r) {
+        let activeRoute = this.routes.find((v) => v.color == "blue");
+        if (r.title == activeRoute?.title) {
+          // this.$router.push({
+          //   to: { path: r.path },
+          //   query: { r: Math.random() },
+          // });
+        } else {
+          // this.$router.push({ to: { path: r.path } });
+        }
+        console.log(r, this.lastRoute);
+      },
       getRouteTitle(r) {
         // if (r.name == "date") return "主表" + r.params.day;
         if (r.name == "user") return r.params?.username + r.params?.date;
+        // if (r.name == "shop" && r.query?.name) {
+        //   let suffix = r.query?.name?.match(/[（(](.*店)[）)]/);
+        //   return suffix ? suffix[1] : r.query?.name;
+        // }
+        if (r.name == "date")
+          return "主表" + (r.params?.day == 1 ? "(最新)" : r.params?.day);
         return this.routeNames.find((v) => v.name == r.name)?.title ?? "-";
         // return "-";
       },
     },
     created() {
       this.fetch_all_names();
+      // localStorage.removeItem("routes");
       this.getRoutes();
     },
     watch: {
-      $route(route) {
+      $route(route, oldRoute) {
+        this.lastRoute = { ...oldRoute, title: this.getRouteTitle(oldRoute) };
         let title = this.getRouteTitle(route);
-        if (title == "-" || this.routes.find((v) => v.title == title)) return;
+        if (title == "-") return;
+        if (this.routes.find((v) => v.title == title)) {
+          this.updateRoute({ ...route, title });
+          return;
+        }
         this.routes = [...this.routes, { ...route, title, color: "default" }];
-        this.updateRoute(route);
+        this.updateRoute({ ...route, title });
         console.log(this.routes);
       },
     },
@@ -215,7 +251,7 @@ div
 
 .ant-menu-horizontal
   line-height: 36px !important
-  border: none !important
+  border-bottom: none !important
 
 .ant-comment-inner
   padding: 0 !important
@@ -230,4 +266,10 @@ div
   display: flex
   overflow: auto
   align-items: center
+
+.success-color
+  color: rgb(135, 203, 255)
+
+.error-color
+  color: rgb(255, 143, 138)
 </style>

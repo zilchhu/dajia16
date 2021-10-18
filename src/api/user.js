@@ -25,4 +25,8 @@ export default class User {
   all_acts() {
     return instance.get(urls.user.acts(this.username, ':all'))
   }
+
+  record_indices(d0, d1) {
+    return instance.get(`record/indices/${d0}/${d1}`)
+  }
 }

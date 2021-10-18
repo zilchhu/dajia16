@@ -69,13 +69,13 @@ div
             onFilter: (value, record) => record.级别 == value,
           },
           {
-            title: "人员",
-            dataIndex: "人员",
+            title: "运营",
+            dataIndex: "运营",
             width: 80,
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
             filterMultiple: true,
             // fixed: "left",
-            onFilter: (value, record) => record.人员 == value,
+            onFilter: (value, record) => record.运营 == value,
           },
           {
             title: "收入",
@@ -123,12 +123,12 @@ div
           },
           {
             title: "日期",
-            dataIndex: "date",
+            dataIndex: "日期",
             align: "right",
             fixed: "right",
             slots: { filterDropdown: "filterDropdown" },
             width: 100,
-            onFilter: (value, record) => record.date == value,
+            onFilter: (value, record) => record.日期 == value,
           },
         ];
         return [...fiexed_cols];
@@ -164,8 +164,8 @@ div
       },
       fetch_perf() {
         this.spinning = true;
-        new Perf(this.day)
-          .single2()
+        new Perf()
+          .single2(2)
           .then((res) => {
             this.perfs = res;
             this.spinning = false;

@@ -27,17 +27,21 @@ div
 <script>
   import Probs from "../../api/probs";
   import { message } from "ant-design-vue";
-  import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue";
+  import {
+    SyncOutlined,
+    ExportOutlined,
+    DownloadOutlined,
+  } from "@ant-design/icons-vue";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
 
   export default {
-    name: "ProbAO",
+    name: "ProbAQ",
     components: {
       TableSelect,
       SyncOutlined,
       ExportOutlined,
-      DownloadOutlined
+      DownloadOutlined,
     },
     data() {
       return {
@@ -67,24 +71,6 @@ div
             onFilter: (value, record) => record.shop_name == value,
           },
           {
-            title: "城市",
-            dataIndex: "city",
-            width: 100,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.city == value,
-          },
-          {
-            title: "平台",
-            dataIndex: "platform",
-            width: 70,
-            filters: [
-              { text: "美团", value: "美团" },
-              { text: "饿了么", value: "饿了么" },
-            ],
-            filterMultiple: true,
-            onFilter: (value, record) => record.platform == value,
-          },
-          {
             title: "物理店",
             dataIndex: "real_shop_name",
             width: 100,
@@ -99,32 +85,40 @@ div
             onFilter: (value, record) => (record.person ?? "") == value,
           },
           {
-            title: "组长",
-            dataIndex: "leader",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.leader ?? "") == value,
+            title: "超级吃货红包",
+            dataIndex: "超级吃货红包",      
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.超级吃货红包 ?? '') == value,
           },
           {
-            title: "活动",
-            dataIndex: "by_name",
-            width: 250,
+            title: "下单返红包",
+            dataIndex: "下单返红包",      
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.by_name == value,
+            onFilter: (value, record) => (record.下单返红包 ?? "")== value,
           },
           {
-            title: "状态",
-            dataIndex: "descs",
-            width: 80,
+            title: "吃货红包",
+            dataIndex: "吃货红包",     
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.descs ?? "") == value,
+            onFilter: (value, record) => (record.吃货红包 ?? '') == value,
           },
           {
-            title: "时段",
-            dataIndex: "date",
-            width: 250,
+            title: "集点返红包",
+            dataIndex: "集点返红包",      
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.date ?? "") == value,
+            onFilter: (value, record) => (record.集点返红包 ?? '') == value,
+          },
+          {
+            title: "店铺满赠",
+            dataIndex: "店铺满赠",      
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.店铺满赠 ?? '') == value,
+          },
+          {
+            title: "进店领红包",
+            dataIndex: "进店领红包",     
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.进店领红包 ?? '') == value,
           },
           {
             title: "处理",
@@ -160,7 +154,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("ao")
+          .single("aq")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -188,7 +182,7 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save("ao", record.key, target["handle"])
+            .save("aq", record.key, target["handle"])
             .then((res) => {
               console.log(res);
             })
