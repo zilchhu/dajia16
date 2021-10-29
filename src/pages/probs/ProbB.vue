@@ -42,11 +42,12 @@ div
       columns() {
         return [
           {
-            title: "门店id",
+            title: 'ID',
             dataIndex: "shop_id",
             width: 90,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.shop_id == value,
+            sorter: (a, b) => this.toNum(a.shop_id) - this.toNum(b.shop_id),
           },
           {
             title: "门店",
@@ -87,13 +88,13 @@ div
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
             onFilter: (value, record) => (record.leader ?? "") == value,
           },
-          {
-            title: "新店责任人",
-            dataIndex: "new_person",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.new_person ?? "") == value,
-          },
+          // {
+          //   title: "新店责任人",
+          //   dataIndex: "new_person",
+          //   width: 110,
+          //   slots: { filterDropdown: "filterDropdown" },
+          //   onFilter: (value, record) => (record.new_person ?? "") == value,
+          // },
           {
             title: "分类",
             dataIndex: "分类",

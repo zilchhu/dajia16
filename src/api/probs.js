@@ -18,4 +18,16 @@ export default class Probs {
   editAn(body) {
     return instance.post(urls.probs.editAn, { ...body })
   }
+
+  addSss(body) {
+    return instance.post('/probs/_shs/add', { ...body })
+  }
+
+  editSss(body) {
+    return instance.post('/probs/_shs/edit', { ...body })
+  }
+
+  delSss(body) {
+    return instance.post('/probs/_shs/del', { ...body })
+  }
 }

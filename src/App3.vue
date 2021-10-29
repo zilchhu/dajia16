@@ -111,6 +111,7 @@ div
           { name: "tools-add-dada", title: "达达录入" },
           { name: "tools-add-shunfeng", title: "顺丰录入" },
           { name: "tools-add-myt", title: "麦芽田录入" },
+          { name: "tools-add-sss", title: "闪时送录入" },
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food-mt", title: "美团改价" },

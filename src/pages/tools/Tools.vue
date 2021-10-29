@@ -34,6 +34,7 @@
               { title: "达达", to: { name: "tools-add-dada" } },
               { title: "麦芽田", to: { name: "tools-add-myt" } },
               { title: "顺丰", to: { name: "tools-add-shunfeng" } },
+              { title: "闪时送", to: { name: "tools-add-sss" } },
             ],
           },
           {

@@ -1,9 +1,24 @@
 <template lang="pug">
 div(ref="date")
-  a-table(:columns="tableCols" :data-source="table" rowKey="shop_id" :row-selection="rowSelection" :loading="tableLoading" @expand="expand" :expandRowByClick="true" 
-    :expandIconAsCell="false" :expandIconColumnIndex="-1" :pagination="{showSizeChanger: true, defaultPageSize, total: table.length, showTotal: total => `共${total}条`}"
-    @change="table_change" size="small" :scroll="{x: scrollX, y: scrollY}" :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)")
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
+  a-table(
+    :columns="tableCols",
+    :data-source="table",
+    rowKey="shop_id",
+    :row-selection="rowSelection",
+    :loading="tableLoading",
+    @expand="expand",
+    :expandRowByClick="true",
+    :expandIconAsCell="false",
+    :expandIconColumnIndex="-1",
+    :pagination="{ showSizeChanger: true, defaultPageSize, total: table.length, showTotal: (total) => `共${total}条` }",
+    @change="table_change",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)"
+  )
+    template(
+      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
       //- a-row(type="flex")
       //-   a-col(flex="auto")
       //-     a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width}px;`")
@@ -12,90 +27,191 @@ div(ref="date")
       //-     a-button(type="link" @click="confirm") confirm
       //-     br
       //-     a-button(type="link" @click="clearFilters") reset
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-       :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
+      table-select(
+        :style="`min-width: 160px; width: ${column.width + 50 || 220}px;`",
+        :filterOptions="getColFilters(column.dataIndex)",
+        :selectedList="selectedKeys",
+        @select-change="setSelectedKeys",
+        @confirm="confirm",
+        @reset="clearFilters"
+      )
 
     //- 染色
-    template(#shop_id="{text, record}")
+    template(#shop_id="{ text, record }")
       .copy-cell
-        router-link(:to="{name: 'shop', params: {shopid: text}, query: {name: record.shop_name}}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
+        router-link(
+          :to="{ name: 'shop', params: { shopid: text }, query: { name: record.shop_name } }",
+          style="color: rgba(0, 0, 0, 0.65)"
+        ) {{ text }}
         .copy-icon(@click.stop="() => copy(text, `id${record.shop_id}`)")
-          a-tooltip(title="copied" :visible="shopNameCopyShows[`id${record.shop_id}`]")
+          a-tooltip(
+            title="copied",
+            :visible="shopNameCopyShows[`id${record.shop_id}`]"
+          )
             CopyOutlined
-    template(#shop_name="{text, record}")
+    template(#shop_name="{ text, record }")
       .copy-cell
-        div {{text}}
+        div {{ text }}
         .copy-icon(@click.stop="() => copy(text, `name${record.shop_id}`)")
-          a-tooltip(title="copied" :visible="shopNameCopyShows[`name${record.shop_id}`]")
+          a-tooltip(
+            title="copied",
+            :visible="shopNameCopyShows[`name${record.shop_id}`]"
+          )
             CopyOutlined
-    template(#income="{text, record}")
-      .cell(:class="{unsatisfied: isIncome(text, record)}" @click="copy") {{text}}
-    template(#consume_ratio="{text, record}")
-      .cell(:class="{unsatisfied: isConsumeRatio(text, record)}") {{text}}
-    template(#settlea_30="{text, record}")
-      .cell(:class="{unsatisfied: isSettlea30(text)}") {{text}}
-    template(#person="{text, record}")
-      a-tooltip(v-if="record.new_person" :title="`新店 : ${record.new_person}`")
-        router-link.cell(:to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
-      router-link.cell(v-else :to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
-    template(#cost_ratio="{text, record}")
-      .cell(:class="{unsatisfied: isCostRatio(text, record)}" @click.stop="() => costRatioClick(text, record)" style="cursor: pointer;") {{text}}
-    template(#rating="{text, record}")
-      .cell(@click.stop="() => ratingClick(record)" :class="{unsatisfied: text < record.rating_last}" style="cursor: pointer;") {{text}}
+    template(#income="{ text, record }")
+      .cell(:class="{ unsatisfied: isIncome(text, record) }", @click="copy") {{ text }}
+    template(#consume_ratio="{ text, record }")
+      .cell(:class="{ unsatisfied: isConsumeRatio(text, record) }") {{ text }}
+    template(#settlea_30="{ text, record }")
+      .cell(:class="{ unsatisfied: isSettlea30(text) }") {{ text }}
+    template(#person="{ text, record }")
+      a-tooltip(v-if="record.new_person", :title="`新店 : ${record.new_person}`")
+        router-link.cell(
+          :to="{ name: 'user', params: { username: text || '-', date: 0 } }",
+          style="color: rgba(0, 0, 0, 0.65)"
+        ) {{ text }}
+      router-link.cell(
+        v-else,
+        :to="{ name: 'user', params: { username: text || '-', date: 0 } }",
+        style="color: rgba(0, 0, 0, 0.65)"
+      ) {{ text }}
+    template(#cost_ratio="{ text, record }")
+      .cell(
+        :class="{ unsatisfied: isCostRatio(text, record) }",
+        @click.stop="() => costRatioClick(text, record)",
+        style="cursor: pointer"
+      ) {{ text }}
+    template(#rating="{ text, record }")
+      .cell(
+        @click.stop="() => ratingClick(record)",
+        :class="{ unsatisfied: text < record.rating_last }",
+        style="cursor: pointer"
+      ) {{ text }}
 
-    template(#expandedRowRender="{record}")
-      a-collapse(v-model:activeKey="collapseKey" :bordered="false")
-        a-collapse-panel(:key="`${record.id}-a`" style="border: none;")
+    template(#expandedRowRender="{ record }")
+      a-collapse(v-model:activeKey="collapseKey", :bordered="false")
+        a-collapse-panel(:key="`${record.id}-a`", style="border: none")
           template(#header)
             span.small 昨日
-          a-card(style="width: 100vw;" size="small")
-            a-tooltip(v-for="key in Object.keys(record).filter(v=>!['a','comments'].includes(v))" :key="key")
+          a-card(style="width: 100vw", size="small")
+            a-tooltip(
+              v-for="key in Object.keys(record).filter((v) => !['a', 'comments'].includes(v))",
+              :key="key"
+            )
               template(#title)
-                .tip {{`${record[key]}${thresholdSuffix(key, record.platform)}`}}
-              a-card-grid(style="width: 130px; padding: 4px;")
-                a-statistic(:title="en2zh.get(key)" :value="record[key]" valueStyle="font-size: 1em;")
-                  template(v-if="ruleIdx.includes(key)" #formatter="{value}")
-                    p.truncate(:class="{unsatisfied: rules2fn[record.platform][key](value)}") {{emptyVal(value)}}
+                .tip {{ `${record[key]}${thresholdSuffix(key, record.platform)}` }}
+              a-card-grid(style="width: 130px; padding: 4px")
+                a-statistic(
+                  :title="en2zh.get(key)",
+                  :value="record[key]",
+                  valueStyle="font-size: 1em;"
+                )
+                  template(
+                    v-if="ruleIdx.includes(key)",
+                    #formatter="{ value }"
+                  )
+                    p.truncate(
+                      :class="{ unsatisfied: rules2fn[record.platform][key](value) }"
+                    ) {{ emptyVal(value) }}
                     //- template(v-else-if="key == 'score'")
                     //-   p.truncate(:class="{success: value == 100}") {{value}}
-                  template(v-else #formatter="{value}")
-                    p.truncate {{emptyVal(value)}}
-          hello-form2(:record="record" @save="onSave")
+                  template(v-else, #formatter="{ value }")
+                    p.truncate {{ emptyVal(value) }}
+          hello-form2(:record="record", @save="onSave")
         //- a-tab-pane(key="1" tab="1") 1
-        a-collapse-panel(:key="`${record.id}-b`" style="border: none;") 
+        a-collapse-panel(:key="`${record.id}-b`", style="border: none") 
           template(#header)
             span.small 往日
-          a-table(:columns="shopTableCols" :data-source="tablesByShop.get(record.shop_id)" rowKey="date" :loading="tablesByShopLoading.has(record.shop_id)" :expandRowByClick="true" :pagination="{showSizeChanger: true, defaultPageSize: 10}" size="small" :scroll="{x: shopScrollX}" style="width: calc(100vw - 80px);")
+          a-table(
+            :columns="shopTableCols",
+            :data-source="tablesByShop.get(record.shop_id)",
+            rowKey="date",
+            :loading="tablesByShopLoading.has(record.shop_id)",
+            :expandRowByClick="true",
+            :pagination="{ showSizeChanger: true, defaultPageSize: 10 }",
+            size="small",
+            :scroll="{ x: shopScrollX }",
+            style="width: calc(100vw - 80px)"
+          )
             //- 染色
-            template(v-for="col in ruleIdx" #[col]="{text, record}")
-              .cell(:class="{unsatisfied: rules2fn[record.platform][col](text)}") {{text}}
+            template(v-for="col in ruleIdx", #[col]="{ text, record }")
+              .cell(
+                :class="{ unsatisfied: rules2fn[record.platform][col](text) }"
+              ) {{ text }}
 
-            template(#expandedRowRender="{record}")
+            template(#expandedRowRender="{ record }")
               a-tabs(size="small")
-                a-tab-pane(:key="`${record.id}`-1" tab="详情" size="small")
+                a-tab-pane(:key="`${record.id}` - 1", tab="详情", size="small")
                   a-card(size="small")
-                    a-tooltip(v-for="key in Object.keys(record).filter(v=>!['a','comments'].includes(v))" :key="key")
+                    a-tooltip(
+                      v-for="key in Object.keys(record).filter((v) => !['a', 'comments'].includes(v))",
+                      :key="key"
+                    )
                       template(#title)
-                        .tip {{`${record[key]}${thresholdSuffix(key, record.platform)}`}}
-                      a-card-grid(style="width: 130px; padding: 4px;")
-                        a-statistic(:title="en2zh.get(key)" :value="record[key]" valueStyle="font-size: 1em;")
-                          template(v-if="ruleIdx.includes(key)" #formatter="{value}")
-                            p.truncate(:class="{unsatisfied: rules2fn[record.platform][key](value)}") {{emptyVal(value)}}
-                          template(v-else #formatter="{value}")
-                            p.truncate {{emptyVal(value)}}
-                a-tab-pane(:key="`${record.id}`-2" tab="优化" size="small")
-                  hello-form2(:record="record" @save="onSave")
-  a-modal(v-model:visible="editRowKeysModal" :footer="null" centered :width="540")
-    a-textarea(v-model:value="editedRowKeys" placeholder="导入门店ID（慎用）" :autoSize="{minRows: 10, maxRows: 10}")
+                        .tip {{ `${record[key]}${thresholdSuffix(key, record.platform)}` }}
+                      a-card-grid(style="width: 130px; padding: 4px")
+                        a-statistic(
+                          :title="en2zh.get(key)",
+                          :value="record[key]",
+                          valueStyle="font-size: 1em;"
+                        )
+                          template(
+                            v-if="ruleIdx.includes(key)",
+                            #formatter="{ value }"
+                          )
+                            p.truncate(
+                              :class="{ unsatisfied: rules2fn[record.platform][key](value) }"
+                            ) {{ emptyVal(value) }}
+                          template(v-else, #formatter="{ value }")
+                            p.truncate {{ emptyVal(value) }}
+                a-tab-pane(:key="`${record.id}` - 2", tab="优化", size="small")
+                  hello-form2(:record="record", @save="onSave")
+  a-modal(
+    v-model:visible="editRowKeysModal",
+    :footer="null",
+    centered,
+    :width="540"
+  )
+    a-textarea(
+      v-model:value="editedRowKeys",
+      placeholder="导入门店ID（慎用）",
+      :autoSize="{ minRows: 10, maxRows: 10 }"
+    )
     all-shop-form(:shop_metas="selectedShopMetas")
 
-  a-modal(v-model:visible="probClickModal" :footer="null" centered :width="1280")
+  a-modal(
+    v-model:visible="probClickModal",
+    :footer="null",
+    centered,
+    :width="1280"
+  )
     shop-problem(:shop_meta="shop_meta")
 
-  a-modal(v-model:visible="ratesClickModal" :footer="null" centered :width="800")
+  a-modal(
+    v-model:visible="ratesClickModal",
+    :footer="null",
+    centered,
+    :width="800"
+  )
     shop-indices(:shop_meta="shop_meta_rates")
-        
-  a.expo(:href="`http://192.168.3.3:9040/营推表${yesterday}.xlsx`" target="_blank") export
+
+  a.expo(
+    :href="`http://192.168.3.3:9040/营推表${yesterday}.xlsx`",
+    target="_blank"
+  ) export
+
+  .left-bottom-div(v-show="!tableLoading", style="left: 80px; bottom: 10px")
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 下载
 </template>
 
 <script>
@@ -104,6 +220,7 @@ div(ref="date")
   import { getTableByDate, getTableByShop } from "../../api";
   import dayjs from "dayjs";
   import mcopy from "modern-copy";
+  import app from "apprun";
   import HelloForm2 from "../../components/HelloForm2";
   import AllShopForm from "../../components/shop/AllShopForm";
   import ShopProblem from "../../components/shop/ShopProblem";
@@ -144,6 +261,8 @@ div(ref="date")
         shop_meta: { shopId: null, platform: null },
         shop_meta_rates: { shopId: null, platform: null },
         shopNameCopyShows: {},
+        exporting: false,
+        tableUrl: null,
       };
     },
     components: {
@@ -178,14 +297,14 @@ div(ref="date")
             dataIndex: "person",
             width: 60,
             slots: { customRender: "person", filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.person || '') == value,
+            onFilter: (value, record) => (record.person || "") == value,
           },
           {
             title: "组长",
             dataIndex: "leader",
             width: 60,
             slots: { customRender: "person", filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.leader || '') == value,
+            onFilter: (value, record) => (record.leader || "") == value,
           },
           {
             title: "物理店",
@@ -252,6 +371,30 @@ div(ref="date")
             align: "right",
             width: 60,
             sorter: (a, b) => this.toNum(a.third_send) - this.toNum(b.third_send),
+          },
+          {
+            title: "单均配送",
+            dataIndex: "ship_fee_avg",
+            align: "right",
+            width: 60,
+            sorter: (a, b) =>
+              this.toNum(a.ship_fee_avg) - this.toNum(b.ship_fee_avg),
+          },
+          {
+            title: "单均扣点",
+            dataIndex: "platform_fee_avg",
+            align: "right",
+            width: 60,
+            sorter: (a, b) =>
+              this.toNum(a.platform_fee_avg) - this.toNum(b.platform_fee_avg),
+          },
+          {
+            title: "起送价",
+            dataIndex: "ship_fee_min",
+            align: "right",
+            width: 60,
+            sorter: (a, b) =>
+              this.toNum(a.ship_fee_min) - this.toNum(b.ship_fee_min),
           },
           {
             title: "订单",
@@ -449,6 +592,8 @@ div(ref="date")
         map.set("rating_last", "上次评分");
         map.set("third_send", "三方配送");
         map.set("ship_fee_avg", "单均配送");
+        map.set("platform_fee_avg", "单均扣点");
+        map.set("ship_fee_min", "起送价");
         map.set("unit_price", "单价");
         map.set("orders", "订单");
         map.set("income", "收入");
@@ -459,8 +604,8 @@ div(ref="date")
         map.set("cost_sum", "总成本");
         map.set("cost_ratio", "成本比例");
         map.set("cost_sum_ratio", "总成本比例");
-        map.set('wait_for_improve_cost', '待优化成本'),
-        map.set("consume", "推广");
+        map.set("wait_for_improve_cost", "待优化成本"),
+          map.set("consume", "推广");
         map.set("consume_avg", "平均推广");
         map.set("consume_sum", "总推广");
         map.set("consume_ratio", "推广比例");
@@ -480,11 +625,11 @@ div(ref="date")
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-                              let v = 0
-                              try {
-                                v = parseFloat(val)
-                              } catch (e) { console.error(e) }
-                              return v ${r[1]} ${r[2]}`;
+                                        let v = 0
+                                        try {
+                                          v = parseFloat(val)
+                                        } catch (e) { console.error(e) }
+                                        return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -600,9 +745,7 @@ div(ref="date")
         return this.toNum(text) < 1500;
       },
       isConsumeRatio(text, record) {
-        return (
-          this.toNum(text) > 6 && record.income > 300
-        );
+        return this.toNum(text) > 6 && record.income > 300;
       },
       isCostRatio(text, record) {
         return this.toNum(text) > 53 && record.income > 300;
@@ -655,11 +798,59 @@ div(ref="date")
         };
         this.ratesClickModal = true;
       },
+      transformTable() {
+        console.log(this.table);
+        return this.table
+          .map((row) =>
+            Object.entries(row)
+              .map(([k, v]) => {
+                return [this.en2zh.has(k) ? this.en2zh.get(k) : k, v];
+              })
+              .reduce((p, c) => ({ ...p, [c[0]]: c[1] }), {})
+          )
+          .map((row) => {
+            let sa = (
+              JSON.parse(row.a) ?? [
+                { q: "低收入", a: "" },
+                { q: "高推广", a: "" },
+                { q: "高成本", a: "" },
+                { q: "严重超跌", a: "" },
+                { q: "自定义", a: "" },
+                { q: "发现问题", a: "" },
+                { q: "解决问题", a: "" },
+                { q: "举一反三", a: "" },
+              ]
+            )
+              .map((r) => ({
+                q: r.q,
+                a: r.a == "" ? null : `${r.a}\n(${r.name} ${r.time})`,
+              }))
+              .reduce((p, v) => ({ ...p, [v.q]: v.a }), {});
+
+            return {
+              ...row,
+              ...sa,
+            };
+          });
+      },
+      exportTable() {
+        this.exporting = true;
+        app.run("ws://", "@export-table", {
+          json: this.transformTable(),
+        });
+      },
     },
     created() {
       this.scrollY = document.body.clientHeight - 168;
       this.defaultPageSize = +localStorage.getItem("date/defaultPageSize") || 30;
       this.getTableByDate();
+    },
+    mounted() {
+      app.on("@export-table", (state) => {
+        console.log(state);
+        this.exporting = false;
+        this.tableUrl = state.path;
+      });
     },
     watch: {
       $route(route) {

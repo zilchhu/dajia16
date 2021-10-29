@@ -25,6 +25,10 @@ export default class Shop {
     return instance.get(urls.shop.real2)
   }
 
+  all() {
+    return instance.get('/shops/all')
+  }
+
   addNewShop(data) {
     return instance.post(urls.shop.addNewShop, data)
   }
