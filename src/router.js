@@ -14,6 +14,7 @@ import ToolsAddDada from './pages/tools/ToolsAddDada'
 import ToolsAddShunfeng from './pages/tools/ToolsAddShunfeng'
 import ToolsAddMyt from './pages/tools/ToolsAddMyt'
 import ToolsAddSss from './pages/tools/ToolsAddSss'
+import ToolsAddZps from './pages/tools/ToolsAddZps'
 import ToolsFreshMt from './pages/tools/ToolsFreshMt'
 import ToolsFreshElm from './pages/tools/ToolsFreshElm'
 import ToolsTests from './pages/tools/ToolsTests'
@@ -54,6 +55,7 @@ export const routes = [
   { path: '/tools/add/shunfeng', name: 'tools-add-shunfeng', component: ToolsAddShunfeng },
   { path: '/tools/add/myt', name: 'tools-add-myt', component: ToolsAddMyt },
   { path: '/tools/add/sss', name: 'tools-add-sss', component: ToolsAddSss },
+  { path: '/tools/add/zps', name: 'tools-add-zps', component: ToolsAddZps },
   { path: '/tools/fresh/mt', name: 'tools-fresh-mt', component: ToolsFreshMt },
   { path: '/tools/fresh/elm', name: 'tools-fresh-elm', component: ToolsFreshElm },
   { path: '/tools/food/mt', name: 'tools-food-mt', component: ToolsFoodMt },

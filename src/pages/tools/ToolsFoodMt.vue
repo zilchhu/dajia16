@@ -1,7 +1,7 @@
 <template lang="pug">
 .tools-food-mt
   div(style="display: flex; align-items: center; justify-content: center; column-gap: 0.75rem")
-    a(href="/美团折扣商品涨原价表格模板v2.xlsx", target="_blank") 下载模板v2
+    a(:href="templateUrl", target="_blank") 下载模板v2
     a-upload(
       v-model:file-list="fileList",
       action="http://192.168.3.3:9005/upload",
@@ -68,6 +68,7 @@
         scrollY: 900,
         loading: false,
         tableName: "",
+        templateUrl: 'http://192.168.3.3:9007/美团折扣商品涨原价表格模板v2.xlsx'
       };
     },
     computed: {

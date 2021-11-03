@@ -1,7 +1,7 @@
 <template lang="pug">
 .tools-food-elm
   div(style="display: flex; align-items: center; column-gap: 0.75rem")
-    a(href="/美团折扣商品涨原价表格模板.xlsx", target="_blank") 下载模板
+    a(:href="templateUrl", target="_blank") 下载模板
     a-upload(
       v-model:file-list="fileList",
       action="http://192.168.3.3:9005/upload",
@@ -65,6 +65,7 @@
         jsonTable: [],
         table: [],
         scrollY: 900,
+        templateUrl: 'http://192.168.3.3:9007/饿了么折扣商品涨原价表格模板.xlsx'
       };
     },
     computed: {

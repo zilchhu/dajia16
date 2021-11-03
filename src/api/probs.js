@@ -30,4 +30,12 @@ export default class Probs {
   delSss(body) {
     return instance.post('/probs/_shs/del', { ...body })
   }
+  
+  addZps(body) {
+    return instance.post('/probs/_zps/add', { ...body })
+  }
+
+  editZps(body) {
+    return instance.post('/probs/_zps/edit', { ...body })
+  }
 }

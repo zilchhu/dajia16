@@ -7,7 +7,7 @@ div
     :loading="loading",
     :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
     size="small",
-    :scroll="{ y: scrollY }",
+    :scroll="{ y: scrollY, x: scrollX }",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
@@ -42,7 +42,7 @@ div
     title="添加条目",
     :footer="null",
     centered,
-    :width="600"
+    :width="850"
   )
     a-form(
       ref="addForm",
@@ -55,7 +55,7 @@ div
       //-   a-input(v-model:value="addModel.a")
       a-form-item(label="门店ID")
         a-select(
-          v-model:value="addModel.c",
+          v-model:value="addModel.shop_id",
           :filterOption="onShopFilter",
           @select="(value) => onShopSelect(value, 'add')",
           show-search
@@ -65,11 +65,34 @@ div
             :key="s.shop_id",
             :xshop="s",
             :value="s.shop_id"
-          ) {{ s.shop_name }}
-      a-form-item(label="闪时送名称")
-        a-input(v-model:value="addModel.b")
-      //- a-form-item(label="闪时送密码")
-      //-   a-input(v-model:value="addModel.d")
+          ) {{ s.shop_name }} {{s.platform}}
+      
+      .form-acct-items
+        a-form-item(label="达达账号")
+          a-input(v-model:value="addModel.dd_acct")
+        a-form-item(label="达达密码")
+          a-input(v-model:value="addModel.dd_pw")
+        a-form-item(label="蜂鸟账号")
+          a-input(v-model:value="addModel.fn_acct")
+        a-form-item(label="蜂鸟密码")
+          a-input(v-model:value="addModel.fn_pw")
+        a-form-item(label="顺丰账号")
+          a-input(v-model:value="addModel.sf_acct")
+        a-form-item(label="顺丰密码")
+          a-input(v-model:value="addModel.sf_pw")
+        a-form-item(label="闪时送账号")
+          a-input(v-model:value="addModel.sss_acct")
+        a-form-item(label="闪时送密码")
+          a-input(v-model:value="addModel.sss_pw")
+        a-form-item(label="外卖邦账号")
+          a-input(v-model:value="addModel.wmb_acct")
+        a-form-item(label="外卖邦密码")
+          a-input(v-model:value="addModel.wmb_pw")
+        a-form-item(label="麦芽田账号")
+          a-input(v-model:value="addModel.myt_acct")
+        a-form-item(label="麦芽田密码")
+          a-input(v-model:value="addModel.myt_pw")
+
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
 
@@ -78,7 +101,7 @@ div
     title="编辑条目",
     :footer="null",
     centered,
-    :width="600"
+    :width="850"
   )
     a-form(
       ref="editForm",
@@ -91,7 +114,7 @@ div
       //-   a-input(v-model:value="editModel.a")
       a-form-item(label="门店ID")
         a-select(
-          v-model:value="editModel.c",
+          v-model:value="editModel.shop_id",
           show-search,
           :filterOption="onShopFilter"
         )
@@ -100,13 +123,35 @@ div
             :key="s.shop_id",
             :xshop="s",
             :value="s.shop_id"
-          ) {{ s.shop_name }}
-      a-form-item(label="闪时送名称")
-        a-input(v-model:value="editModel.b")
-      //- a-form-item(label="闪时送密码")
-      //-   a-input(v-model:value="editModel.d")
+          ) {{ s.shop_name }} {{ s.platform }}
+      .form-acct-items
+        a-form-item(label="达达账号")
+          a-input(v-model:value="editModel.dd_acct")
+        a-form-item(label="达达密码")
+          a-input(v-model:value="editModel.dd_pw")
+        a-form-item(label="蜂鸟账号")
+          a-input(v-model:value="editModel.fn_acct")
+        a-form-item(label="蜂鸟密码")
+          a-input(v-model:value="editModel.fn_pw")
+        a-form-item(label="顺丰账号")
+          a-input(v-model:value="editModel.sf_acct")
+        a-form-item(label="顺丰密码")
+          a-input(v-model:value="editModel.sf_pw")
+        a-form-item(label="闪时送账号")
+          a-input(v-model:value="editModel.sss_acct")
+        a-form-item(label="闪时送密码")
+          a-input(v-model:value="editModel.sss_pw")
+        a-form-item(label="外卖邦账号")
+          a-input(v-model:value="editModel.wmb_acct")
+        a-form-item(label="外卖邦密码")
+          a-input(v-model:value="editModel.wmb_pw")
+        a-form-item(label="麦芽田账号")
+          a-input(v-model:value="editModel.myt_acct")
+        a-form-item(label="麦芽田密码")
+          a-input(v-model:value="editModel.myt_pw")
+
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
-        a-button(type="primary", html-type="submit") 提交
+          a-button(type="primary", html-type="submit") 提交
 
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="addRecord") 新增
@@ -132,7 +177,7 @@ div
   import app from "apprun";
 
   export default {
-    name: "tools-add-sss",
+    name: "tools-add-zps",
     components: {
       TableSelect,
     },
@@ -148,57 +193,99 @@ div
         isEditModalVis: false,
         shops: [],
         addModel: {
-          a: "-",
-          b: "",
-          c: "",
-          d: "-",
+          shop_id: "",
+          dd_acct: "",
+          dd_pw: "",
+          fn_acct: "",
+          fn_pw: "",
+          sf_acct: "",
+          sf_pw: "",
+          sss_acct: "",
+          sss_pw: "",
+          wmb_acct: "",
+          wmb_pw: "",
+          myt_acct: "",
+          myt_pw: "",
         },
         editModel: {
-          id: 0,
-          a: "-",
-          b: "",
-          c: "",
-          d: "-",
+          shop_id: "",
+          dd_acct: "",
+          dd_pw: "",
+          fn_acct: "",
+          fn_pw: "",
+          sf_acct: "",
+          sf_pw: "",
+          sss_acct: "",
+          sss_pw: "",
+          wmb_acct: "",
+          wmb_pw: "",
+          myt_acct: "",
+          myt_pw: "",
         },
       };
     },
     computed: {
       columns() {
-        // 日期	物理店名	组员	组长	门店人数	老板是否好沟通	老板的诉求	门店的问题
-        return [
-          // {
-          //   title: "闪时送ID",
-          //   dataIndex: "shs_id",
-          //   // width: 90,
-          //   slots: { filterDropdown: "filterDropdown" },
-          //   onFilter: (value, record) => (record.shs_id ?? "") == value,
-          // },
-          {
-            title: "闪时送名称",
-            dataIndex: "shs_name",
-            // width: 80,
+        // shop_id	shop_name	城市	物理店	person	配送方式	platform	dd账号	dd密码	fn账号	fn密码	sf账号	sf密码	闪时送账号	闪时送密码	外卖邦账号	外卖邦密码	麦芽田账号	麦芽田密码
+        let column_names = [
+          "店铺ID",
+          "店铺名称",
+          "城市",
+          "物理店",
+          "负责人",
+          "平台",
+          "配送方式",
+          "达达账号",
+          "达达密码",
+          "蜂鸟账号",
+          "蜂鸟密码",
+          "顺丰账号",
+          "顺丰密码",
+          "闪时送账号",
+          "闪时送密码",
+          "外卖邦账号",
+          "外卖邦密码",
+          "麦芽田账号",
+          "麦芽田密码",
+        ];
+
+        let base_columns = column_names.map((name) => {
+          let config = {
+            title: name,
+            dataIndex: name,
+            width: 100,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shs_name ?? "") == value,
-          },
-          {
-            title: "门店ID",
-            dataIndex: "shop_id",
-            // width: 80,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shop_id ?? "") == value,
-          },
-          // {
-          //   title: "密码",
-          //   dataIndex: "pw",
-          //   // width: 100,
-          //   onFilter: (value, record) => (record.pw ?? "") == value,
-          // },
+            onFilter: (value, record) => (record[name] ?? "") == value,
+          };
+          if (name == "店铺ID")
+            return {
+              ...config,
+              fixed: "left",
+            };
+          if (name == "店铺名称")
+            return {
+              ...config,
+              fixed: "left",
+              width: 180,
+            };
+          return config;
+        });
+
+        let columns = [
+          ...base_columns,
           {
             title: "操作",
             dataIndex: "key",
             slots: { customRender: "operation" },
           },
         ];
+
+        return columns;
+      },
+      scrollX() {
+        return this.columns
+          .map((col) => col.width ?? 100)
+          .reduce((p, v) => p + v, 50);
       },
     },
     methods: {
@@ -220,7 +307,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("_shs")
+          .single("_zps")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -234,7 +321,10 @@ div
         new Shop()
           .all()
           .then((res) => {
-            this.shops = res;
+            this.shops = res.map((it) => ({
+              ...it,
+              platform: it.platform == 1 ? "美团" : "饿了么",
+            }));
           })
           .catch((err) => {
             console.error(err);
@@ -250,21 +340,29 @@ div
       addRecord() {
         this.isAddModalVis = true;
       },
-      editRecord(record) {
-        console.log(record);
+      editRecord(rec) {
+        console.log(rec);
         this.editModel = {
-          id: record.id,
-          a: '-',
-          b: record.shs_name,
-          c: record.shop_id,
-          d: '-',
+          shop_id: rec.店铺ID,
+          dd_acct: rec.达达账号,
+          dd_pw: rec.达达密码,
+          fn_acct: rec.蜂鸟账号,
+          fn_pw: rec.蜂鸟密码,
+          sf_acct: rec.顺丰账号,
+          sf_pw: rec.顺丰密码,
+          sss_acct: rec.闪时送账号,
+          sss_pw: rec.闪时送密码,
+          wmb_acct: rec.外卖邦账号,
+          wmb_pw: rec.外卖邦密码,
+          myt_acct: rec.麦芽田账号,
+          myt_pw: rec.麦芽田密码,
         };
         this.isEditModalVis = true;
       },
       handleAddSubmit() {
         console.log(this.addModel);
         new Probs()
-          .addSss(this.addModel)
+          .addZps(this.addModel)
           .then((res) => {
             message.success(res);
             this.isAddModalVis = false;
@@ -291,7 +389,7 @@ div
       handleEditSubmit() {
         console.log(this.editModel);
         new Probs()
-          .editSss(this.editModel)
+          .editZps(this.editModel)
           .then((res) => {
             message.success(res);
             this.isEditModalVis = false;
@@ -316,12 +414,7 @@ div
         console.log(checks);
       },
       transformTable() {
-        return this.table.map((row) =>
-          this.columns.reduce(
-            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
-            {}
-          )
-        );
+        return this.table
       },
       exportTable() {
         this.exporting = true;
@@ -345,3 +438,9 @@ div
     },
   };
 </script>
+
+
+<style lang="sass" scoped>
+.form-acct-items
+  columns: 2
+</style>

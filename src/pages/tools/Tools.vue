@@ -29,6 +29,7 @@
           {
             title: "信息录入",
             items: [
+              { title: "自配送", to: { name: "tools-add-zps" } },
               { title: "新店", to: { name: "tools-add-fresh" } },
               { title: "蜂鸟", to: { name: "tools-add-fengniao" } },
               { title: "达达", to: { name: "tools-add-dada" } },

@@ -59,8 +59,8 @@ div
     a-sub-menu
       template(#title)
         span 新人培训
-      a-menu-item(v-for="name in 新人培训", :key="name")
-        a(:href="`http://192.168.3.3:8080/${name}`", target="_blank") {{ name.replace(/\..*/, '') }}
+      a-menu-item(v-for="item in trainingIndex", :key="item.url")
+        a(:href="item.url", target="_blank") {{ item.title }}
 
     a-menu-item(key="notes")
       router-link(:to="{ name: 'note' }") notes
@@ -75,27 +75,14 @@ div
   import User from "./api/user";
   import dayjs from "dayjs";
   import moment from "moment";
+  import query from "./api/query";
 
   export default {
     data() {
       return {
         menu_keys: [],
         all_names: [],
-        新人培训: [
-          "订单缺陷率.html",
-          "评价管理.html",
-          "刷单操作手册.html",
-          "新店工作安排.html",
-          "新员工培训流程.html",
-          "运营工作优化.html",
-          "运营思维.html",
-          "低业绩影响因素.html",
-          "外卖优化方向.pdf",
-          "外卖培训.pdf",
-          "自配送工作总结.pdf",
-          "【三顾冒菜】专享会.pdf",
-          "饿了么新商户上线操作.pdf",
-        ],
+        trainingIndex: [],
         routes: [],
         lastRoute: { title: "" },
         routeNames: [
@@ -112,6 +99,7 @@ div
           { name: "tools-add-shunfeng", title: "顺丰录入" },
           { name: "tools-add-myt", title: "麦芽田录入" },
           { name: "tools-add-sss", title: "闪时送录入" },
+          { name: "tools-add-zps", title: "自配送录入" },
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food-mt", title: "美团改价" },
@@ -142,6 +130,11 @@ div
           .then((res) => {
             this.all_names = res;
           })
+          .catch((err) => console.error(err));
+      },
+      fetchTrainingIndex() {
+        query("get-training-index")
+          .then((res) => (this.trainingIndex = res))
           .catch((err) => console.error(err));
       },
       date_change(date, date_str) {
@@ -218,6 +211,9 @@ div
       this.fetch_all_names();
       // localStorage.removeItem("routes");
       this.getRoutes();
+    },
+    mounted() {
+      this.fetchTrainingIndex()
     },
     watch: {
       $route(route, oldRoute) {
