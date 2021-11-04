@@ -35,7 +35,7 @@ div
     template(#operation="{ text, record }")
       div
         a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
-        a-button(type="link", size="small", @click="() => delRecord(record)") 删除
+        //- a-button(type="link", size="small", @click="() => delRecord(record)") 删除
 
   a-modal(
     v-model:visible="isAddModalVis",
@@ -54,19 +54,13 @@ div
       //- a-form-item(label="闪时送ID")
       //-   a-input(v-model:value="addModel.a")
       a-form-item(label="门店ID")
-        a-select(
+        a-auto-complete(
           v-model:value="addModel.shop_id",
-          :filterOption="onShopFilter",
-          @select="(value) => onShopSelect(value, 'add')",
-          show-search
+          :options="shop_options"
         )
-          a-select-option(
-            v-for="s in shops",
-            :key="s.shop_id",
-            :xshop="s",
-            :value="s.shop_id"
-          ) {{ s.shop_name }} {{s.platform}}
-      
+          template(#options="{ value, label }")
+            div {{ label }}
+
       .form-acct-items
         a-form-item(label="达达账号")
           a-input(v-model:value="addModel.dd_acct")
@@ -80,17 +74,27 @@ div
           a-input(v-model:value="addModel.sf_acct")
         a-form-item(label="顺丰密码")
           a-input(v-model:value="addModel.sf_pw")
+        a-form-item(label="顺丰ID")
+          a-input(v-model:value="addModel.sf_id")
         a-form-item(label="闪时送账号")
           a-input(v-model:value="addModel.sss_acct")
         a-form-item(label="闪时送密码")
           a-input(v-model:value="addModel.sss_pw")
-        a-form-item(label="外卖邦账号")
-          a-input(v-model:value="addModel.wmb_acct")
-        a-form-item(label="外卖邦密码")
-          a-input(v-model:value="addModel.wmb_pw")
+        //- a-form-item(label="外卖邦账号")
+        //-   a-input(v-model:value="addModel.wmb_acct")
+        //- a-form-item(label="外卖邦密码")
+        //-   a-input(v-model:value="addModel.wmb_pw")
         a-form-item(label="麦芽田账号")
           a-input(v-model:value="addModel.myt_acct")
         a-form-item(label="麦芽田密码")
+          a-input(v-model:value="addModel.myt_pw")
+        a-form-item(label="闪送账号")
+          a-input(v-model:value="addModel.myt_acct")
+        a-form-item(label="闪送密码")
+          a-input(v-model:value="addModel.myt_pw")
+        a-form-item(label="UU账号")
+          a-input(v-model:value="addModel.myt_acct")
+        a-form-item(label="UU密码")
           a-input(v-model:value="addModel.myt_pw")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
@@ -110,20 +114,14 @@ div
       :wrapper-col="{ span: 16 }",
       @submit="handleEditSubmit"
     )
-      //- a-form-item(label="闪时送ID")
-      //-   a-input(v-model:value="editModel.a")
       a-form-item(label="门店ID")
-        a-select(
+        a-auto-complete(
           v-model:value="editModel.shop_id",
-          show-search,
-          :filterOption="onShopFilter"
+          :disabled="true",
+          :options="shop_options"
         )
-          a-select-option(
-            v-for="s in shops",
-            :key="s.shop_id",
-            :xshop="s",
-            :value="s.shop_id"
-          ) {{ s.shop_name }} {{ s.platform }}
+          template(#options="{ value, label }")
+            div {{ label }}
       .form-acct-items
         a-form-item(label="达达账号")
           a-input(v-model:value="editModel.dd_acct")
@@ -137,21 +135,31 @@ div
           a-input(v-model:value="editModel.sf_acct")
         a-form-item(label="顺丰密码")
           a-input(v-model:value="editModel.sf_pw")
+        a-form-item(label="顺丰ID")
+          a-input(v-model:value="editModel.sf_id")
         a-form-item(label="闪时送账号")
           a-input(v-model:value="editModel.sss_acct")
         a-form-item(label="闪时送密码")
           a-input(v-model:value="editModel.sss_pw")
-        a-form-item(label="外卖邦账号")
-          a-input(v-model:value="editModel.wmb_acct")
-        a-form-item(label="外卖邦密码")
-          a-input(v-model:value="editModel.wmb_pw")
+        //- a-form-item(label="外卖邦账号")
+        //-   a-input(v-model:value="editModel.wmb_acct")
+        //- a-form-item(label="外卖邦密码")
+        //-   a-input(v-model:value="editModel.wmb_pw")
         a-form-item(label="麦芽田账号")
           a-input(v-model:value="editModel.myt_acct")
         a-form-item(label="麦芽田密码")
           a-input(v-model:value="editModel.myt_pw")
+        a-form-item(label="闪送账号")
+          a-input(v-model:value="editModel.myt_acct")
+        a-form-item(label="闪送密码")
+          a-input(v-model:value="editModel.myt_pw")
+        a-form-item(label="UU账号")
+          a-input(v-model:value="editModel.myt_acct")
+        a-form-item(label="UU密码")
+          a-input(v-model:value="editModel.myt_pw")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
-          a-button(type="primary", html-type="submit") 提交
+        a-button(type="primary", html-type="submit") 提交
 
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="addRecord") 新增
@@ -200,12 +208,17 @@ div
           fn_pw: "",
           sf_acct: "",
           sf_pw: "",
+          sf_id: "",
           sss_acct: "",
           sss_pw: "",
-          wmb_acct: "",
-          wmb_pw: "",
+          // wmb_acct: "",
+          // wmb_pw: "",
           myt_acct: "",
           myt_pw: "",
+          ss_acct: "",
+          ss_pw: "",
+          uu_acct: "",
+          uu_pw: "",
         },
         editModel: {
           shop_id: "",
@@ -215,12 +228,17 @@ div
           fn_pw: "",
           sf_acct: "",
           sf_pw: "",
+          sf_id: "",
           sss_acct: "",
           sss_pw: "",
-          wmb_acct: "",
-          wmb_pw: "",
+          // wmb_acct: "",
+          // wmb_pw: "",
           myt_acct: "",
           myt_pw: "",
+          ss_acct: "",
+          ss_pw: "",
+          uu_acct: "",
+          uu_pw: "",
         },
       };
     },
@@ -241,19 +259,22 @@ div
           "蜂鸟密码",
           "顺丰账号",
           "顺丰密码",
+          "顺丰ID",
           "闪时送账号",
           "闪时送密码",
-          "外卖邦账号",
-          "外卖邦密码",
           "麦芽田账号",
           "麦芽田密码",
+          "闪送账号",
+          "闪送密码",
+          "UU账号",
+          "UU密码",
         ];
 
         let base_columns = column_names.map((name) => {
           let config = {
             title: name,
             dataIndex: name,
-            width: 100,
+            width: 70,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => (record[name] ?? "") == value,
           };
@@ -266,18 +287,27 @@ div
             return {
               ...config,
               fixed: "left",
-              width: 180,
+              width: 120,
             };
+          if (name == "物理店")
+            return {
+              ...config,
+              width: 90,
+              sorter: (a, b) => a.物理店?.localeCompare(b.物理店),
+            };
+          if (name.match(/城市|负责人|平台/)) return { ...config, width: 70 };
           return config;
         });
 
         let columns = [
-          ...base_columns,
           {
             title: "操作",
             dataIndex: "key",
+            width: 60,
+            fixed: "left",
             slots: { customRender: "operation" },
           },
+          ...base_columns,
         ];
 
         return columns;
@@ -286,6 +316,17 @@ div
         return this.columns
           .map((col) => col.width ?? 100)
           .reduce((p, v) => p + v, 50);
+      },
+      shop_options() {
+        let options = this.shops
+          .map((s) => ({
+            value: String(s.shop_id),
+            label: `${s.shop_name} ${s.platform == 1 ? "美团" : "饿了么"}`,
+            id_name: `${s.shop_id} ${s.shop_name}`,
+          }))
+          .filter((s) => s.id_name.includes(this.addModel.shop_id));
+        // console.log(options)
+        return options
       },
     },
     methods: {
@@ -321,10 +362,7 @@ div
         new Shop()
           .all()
           .then((res) => {
-            this.shops = res.map((it) => ({
-              ...it,
-              platform: it.platform == 1 ? "美团" : "饿了么",
-            }));
+            this.shops = res;
           })
           .catch((err) => {
             console.error(err);
@@ -343,19 +381,24 @@ div
       editRecord(rec) {
         console.log(rec);
         this.editModel = {
-          shop_id: rec.店铺ID,
+          shop_id: String(rec.店铺ID),
           dd_acct: rec.达达账号,
           dd_pw: rec.达达密码,
           fn_acct: rec.蜂鸟账号,
           fn_pw: rec.蜂鸟密码,
           sf_acct: rec.顺丰账号,
           sf_pw: rec.顺丰密码,
+          sf_id: rec.顺丰ID,
           sss_acct: rec.闪时送账号,
           sss_pw: rec.闪时送密码,
-          wmb_acct: rec.外卖邦账号,
-          wmb_pw: rec.外卖邦密码,
+          // wmb_acct: rec.外卖邦账号,
+          // wmb_pw: rec.外卖邦密码,
           myt_acct: rec.麦芽田账号,
           myt_pw: rec.麦芽田密码,
+          ss_acct: rec.闪送账号,
+          ss_pw: rec.闪送密码,
+          uu_acct: rec.UU账号,
+          uu_pw: rec.UU密码,
         };
         this.isEditModalVis = true;
       },
@@ -399,22 +442,22 @@ div
             message.error(err);
           });
       },
-      delRecord(record) {
-        new Probs()
-          .delSss({ id: record.id })
-          .then((res) => {
-            message.success(res);
-            this.fetchTable();
-          })
-          .catch((err) => {
-            message.error(err);
-          });
+      delRecord() {
+        // new Probs()
+        //   .delSss({ id: record.id })
+        //   .then((res) => {
+        //     message.success(res);
+        //     this.fetchTable();
+        //   })
+        //   .catch((err) => {
+        //     message.error(err);
+        //   });
       },
       onSelectChange(checks) {
         console.log(checks);
       },
       transformTable() {
-        return this.table
+        return this.table;
       },
       exportTable() {
         this.exporting = true;

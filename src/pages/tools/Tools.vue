@@ -29,13 +29,13 @@
           {
             title: "信息录入",
             items: [
-              { title: "自配送", to: { name: "tools-add-zps" } },
+              { title: "自配送账号", to: { name: "tools-add-zps" } },
+              { title: "闪时送门店关系", to: { name: "tools-add-sss" } },
               { title: "新店", to: { name: "tools-add-fresh" } },
-              { title: "蜂鸟", to: { name: "tools-add-fengniao" } },
-              { title: "达达", to: { name: "tools-add-dada" } },
-              { title: "麦芽田", to: { name: "tools-add-myt" } },
-              { title: "顺丰", to: { name: "tools-add-shunfeng" } },
-              { title: "闪时送", to: { name: "tools-add-sss" } },
+              // { title: "蜂鸟", to: { name: "tools-add-fengniao" } },
+              // { title: "达达", to: { name: "tools-add-dada" } },
+              // { title: "麦芽田", to: { name: "tools-add-myt" } },
+              // { title: "顺丰", to: { name: "tools-add-shunfeng" } },
             ],
           },
           {

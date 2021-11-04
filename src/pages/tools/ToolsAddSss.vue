@@ -53,21 +53,15 @@ div
     )
       //- a-form-item(label="闪时送ID")
       //-   a-input(v-model:value="addModel.a")
-      a-form-item(label="门店ID")
-        a-select(
-          v-model:value="addModel.c",
-          :filterOption="onShopFilter",
-          @select="(value) => onShopSelect(value, 'add')",
-          show-search
+      a-form-item(label="店铺ID")
+        a-auto-complete(
+          v-model:value="addModel.shop_id",
+          :options="shop_options"
         )
-          a-select-option(
-            v-for="s in shops",
-            :key="s.shop_id",
-            :xshop="s",
-            :value="s.shop_id"
-          ) {{ s.shop_name }}
+          template(#options="{ value, label }")
+            div {{ label }}
       a-form-item(label="闪时送名称")
-        a-input(v-model:value="addModel.b")
+        a-input(v-model:value="addModel.sss_name")
       //- a-form-item(label="闪时送密码")
       //-   a-input(v-model:value="addModel.d")
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
@@ -89,20 +83,16 @@ div
     )
       //- a-form-item(label="闪时送ID")
       //-   a-input(v-model:value="editModel.a")
-      a-form-item(label="门店ID")
-        a-select(
-          v-model:value="editModel.c",
-          show-search,
-          :filterOption="onShopFilter"
+      a-form-item(label="店铺ID")
+        a-auto-complete(
+          v-model:value="editModel.shop_id",
+          :disabled="true"
+          :options="shop_options"
         )
-          a-select-option(
-            v-for="s in shops",
-            :key="s.shop_id",
-            :xshop="s",
-            :value="s.shop_id"
-          ) {{ s.shop_name }}
+          template(#options="{ value, label }")
+            div {{ label }}
       a-form-item(label="闪时送名称")
-        a-input(v-model:value="editModel.b")
+        a-input(v-model:value="editModel.sss_name")
       //- a-form-item(label="闪时送密码")
       //-   a-input(v-model:value="editModel.d")
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
@@ -148,17 +138,12 @@ div
         isEditModalVis: false,
         shops: [],
         addModel: {
-          a: "-",
-          b: "",
-          c: "",
-          d: "-",
+          shop_id: "",
+          sss_name: "",
         },
         editModel: {
-          id: 0,
-          a: "-",
-          b: "",
-          c: "",
-          d: "-",
+          shop_id: "",
+          sss_name: "",
         },
       };
     },
@@ -166,39 +151,47 @@ div
       columns() {
         // 日期	物理店名	组员	组长	门店人数	老板是否好沟通	老板的诉求	门店的问题
         return [
-          // {
-          //   title: "闪时送ID",
-          //   dataIndex: "shs_id",
-          //   // width: 90,
-          //   slots: { filterDropdown: "filterDropdown" },
-          //   onFilter: (value, record) => (record.shs_id ?? "") == value,
-          // },
+          {
+            title: "店铺ID",
+            dataIndex: "店铺ID",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.店铺ID ?? "") == value,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.店铺名称 ?? "") == value,
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.平台 ?? "") == value,
+          },
           {
             title: "闪时送名称",
-            dataIndex: "shs_name",
-            // width: 80,
+            dataIndex: "闪时送名称",
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shs_name ?? "") == value,
+            onFilter: (value, record) => (record.闪时送名称 ?? "") == value,
           },
-          {
-            title: "门店ID",
-            dataIndex: "shop_id",
-            // width: 80,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shop_id ?? "") == value,
-          },
-          // {
-          //   title: "密码",
-          //   dataIndex: "pw",
-          //   // width: 100,
-          //   onFilter: (value, record) => (record.pw ?? "") == value,
-          // },
           {
             title: "操作",
             dataIndex: "key",
             slots: { customRender: "operation" },
           },
         ];
+      },
+      shop_options() {
+        let options = this.shops
+          .map((s) => ({
+            value: String(s.shop_id),
+            label: `${s.shop_name} ${s.platform == 1 ? "美团" : "饿了么"}`,
+            id_name: `${s.shop_id} ${s.shop_name}`,
+          }))
+          .filter((s) => s.id_name.includes(this.addModel.shop_id));
+        // console.log(options)
+        return options
       },
     },
     methods: {
@@ -220,7 +213,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("_shs")
+          .single("_sss")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -250,14 +243,11 @@ div
       addRecord() {
         this.isAddModalVis = true;
       },
-      editRecord(record) {
-        console.log(record);
+      editRecord(rec) {
+        console.log(rec);
         this.editModel = {
-          id: record.id,
-          a: '-',
-          b: record.shs_name,
-          c: record.shop_id,
-          d: '-',
+          shop_id: String(rec.店铺ID),
+          sss_name: rec.闪时送名称,
         };
         this.isEditModalVis = true;
       },

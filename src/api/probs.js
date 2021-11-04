@@ -20,11 +20,11 @@ export default class Probs {
   }
 
   addSss(body) {
-    return instance.post('/probs/_shs/add', { ...body })
+    return instance.post('/probs/_sss/add', { ...body })
   }
 
   editSss(body) {
-    return instance.post('/probs/_shs/edit', { ...body })
+    return instance.post('/probs/_sss/edit', { ...body })
   }
 
   delSss(body) {

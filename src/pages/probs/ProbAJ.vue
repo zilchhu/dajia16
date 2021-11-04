@@ -73,20 +73,6 @@ div
             onFilter: (value, record) => (record.责任人 ?? "") == value,
           },
           {
-            title: "组长",
-            dataIndex: "组长",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.组长 ?? "") == value,
-          },
-          {
-            title: "新店责任人",
-            dataIndex: "新店责任人",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.新店责任人 ?? "") == value,
-          },
-          {
             title: "物理店",
             dataIndex: "物理店",
             width: 100,
@@ -94,8 +80,15 @@ div
             onFilter: (value, record) => record.物理店 == value,
           },
           {
+            title: "问题",
+            dataIndex: "问题",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.问题 == value,
+          },
+          {
             title: "到期时间",
             dataIndex: "到期时间",
+            width: 100,
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) => record.到期时间 == value,
           },
