@@ -10,7 +10,7 @@
   a-spin(:spinning="indexLoading")
     .task-list
       .task-list-item(v-for="item in index", :key="item.filename") 
-        a(:href="item.url" target="_blank") {{ item.title }}
+        a(:href="item.url", target="_blank") {{ item.title }}
 </template>
 
 
@@ -37,7 +37,7 @@
           .then((res) => (this.index = res))
           .catch((err) => message.error(err))
           .finally(() => (this.indexLoading = false));
-      },
+      }
     },
     mounted() {
       this.fetchLogIndex();
@@ -60,7 +60,7 @@
   transform: scale(.82)
 
 .task-list
-  columns: 2
+  columns: 4
 
 .task-list-item
   padding: 2px 0

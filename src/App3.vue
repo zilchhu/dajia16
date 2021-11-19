@@ -1,5 +1,5 @@
 <template lang="pug">
-div
+div(style="position: relative")
   .tag-container
     a-tag(
       v-for="route in routes",
@@ -10,6 +10,28 @@ div
     ) 
       span(@click="changeRoute(route)") 
         router-link(:to="{ path: route.path }") {{ route.title }}
+
+  .user-info(style="position: absolute; top: 4px; right: 10px; cursor: pointer")
+    div(v-if="!user_account", @click="login") 未登录
+    div(v-else)
+      a-dropdown(placement="bottomLeft")
+        div {{ user_account }}
+        template(#overlay)
+          a-menu
+            a-menu-item
+              div(@click="logout") 退出登录
+            a-menu-item
+              div(@click="login") 重新登录
+
+  a-modal(
+    v-model:visible="login_modal_show",
+    :title="null",
+    :footer="null",
+    centered,
+    :width="650"
+  )
+    Login(@login-success="onLoginSuccess")
+
   a-menu(v-model:selectedKeys="menu_keys", theme="light", mode="horizontal")
     a-sub-menu
       template(#title)
@@ -72,10 +94,13 @@ div
 </template>
 
 <script>
-  import User from "./api/user";
   import dayjs from "dayjs";
   import moment from "moment";
+  import { message } from "ant-design-vue";
+  import User from "./api/user";
   import query from "./api/query";
+  import ins from "./api/base4";
+  import Login from "./components/user/Login";
 
   export default {
     data() {
@@ -104,6 +129,7 @@ div
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food-mt", title: "美团改价" },
           { name: "tools-food-sub-mt", title: "美团替换" },
+          { name: "tools-delivery", title: "减配送费" },
           { name: "tools-food-elm", title: "饿了么改价" },
           { name: "tools-pic-mt", title: "美团图片" },
           { name: "tools-pic-elm", title: "饿了么图片" },
@@ -121,7 +147,12 @@ div
           { name: "records", title: "优化指标" },
         ],
         selected_date: moment().subtract(1, "days"),
+        user_account: "未登录",
+        login_modal_show: false,
       };
+    },
+    components: {
+      Login,
     },
     methods: {
       fetch_all_names() {
@@ -206,14 +237,41 @@ div
         return this.routeNames.find((v) => v.name == r.name)?.title ?? "-";
         // return "-";
       },
+      initUserAccount() {
+        this.user_account = localStorage.getItem("account");
+      },
+      logout() {
+        const token = localStorage.getItem("token");
+        ins({
+          data: {
+            event: "logout",
+            account: this.user_account,
+            token,
+          },
+        })
+          .then((res) => {
+            message.success("退出登录成功");
+            this.user_account = null
+            localStorage.removeItem("user_account")
+            localStorage.removeItem('token')
+          })
+          .catch((err) => message.error(err));
+      },
+      login() {
+        this.login_modal_show = true;
+      },
+      onLoginSuccess(account, token) {
+        this.user_account = account
+        this.login_modal_show = false
+      }
     },
     created() {
       this.fetch_all_names();
-      // localStorage.removeItem("routes");
       this.getRoutes();
+      this.initUserAccount();
     },
     mounted() {
-      this.fetchTrainingIndex()
+      this.fetchTrainingIndex();
     },
     watch: {
       $route(route, oldRoute) {

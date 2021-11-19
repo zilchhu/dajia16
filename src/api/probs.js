@@ -1,7 +1,7 @@
-import instance, { urls } from './base'
+import instance, { urls } from "./base"
 
 export default class Probs {
-  constructor() { }
+  constructor() {}
 
   single(key) {
     return instance.get(urls.probs.base(key))
@@ -20,22 +20,26 @@ export default class Probs {
   }
 
   addSss(body) {
-    return instance.post('/probs/_sss/add', { ...body })
+    return instance.post("/probs/_shs/add", { ...body })
   }
 
   editSss(body) {
-    return instance.post('/probs/_sss/edit', { ...body })
+    return instance.post("/probs/_shs/edit", { ...body })
   }
 
   delSss(body) {
-    return instance.post('/probs/_shs/del', { ...body })
+    return instance.post("/probs/_shs/del", { ...body })
   }
-  
+
   addZps(body) {
-    return instance.post('/probs/_zps/add', { ...body })
+    return instance.post("/probs/_zps/add", { ...body })
   }
 
   editZps(body) {
-    return instance.post('/probs/_zps/edit', { ...body })
+    return instance.post("/probs/_zps/edit", { ...body })
+  }
+
+  remarkZps(body) {
+    return instance.post("/probs/_zps/remark", { ...body })
   }
 }

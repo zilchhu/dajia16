@@ -8,7 +8,8 @@ div
     :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
     size="small",
     :scroll="{ y: scrollY, x: scrollX }",
-    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)",
+    @change="onTableChange"
   )
     template(
       #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
@@ -26,6 +27,13 @@ div
       a-input(
         :value="text",
         @change="(e) => handleChange(e.target.value, record)",
+        size="small"
+      )
+
+    template(#remark="{ text, record }")
+      a-input(
+        :value="text",
+        @change="(e) => remarkRecord(e.target.value, record)",
         size="small"
       )
 
@@ -52,7 +60,7 @@ div
       @submit="handleAddSubmit"
     )
       //- a-form-item(label="闪时送ID")
-      //-   a-input(v-model:value="addModel.a")
+      //- a-input(v-model:value="addModel.a")
       a-form-item(label="门店ID")
         a-auto-complete(
           v-model:value="addModel.shop_id",
@@ -76,26 +84,28 @@ div
           a-input(v-model:value="addModel.sf_pw")
         a-form-item(label="顺丰ID")
           a-input(v-model:value="addModel.sf_id")
+        a-form-item(label="顺丰配送经理")
+          a-input(v-model:value="addModel.sf_manager")
         a-form-item(label="闪时送账号")
           a-input(v-model:value="addModel.sss_acct")
         a-form-item(label="闪时送密码")
           a-input(v-model:value="addModel.sss_pw")
         //- a-form-item(label="外卖邦账号")
-        //-   a-input(v-model:value="addModel.wmb_acct")
+        //- a-input(v-model:value="addModel.wmb_acct")
         //- a-form-item(label="外卖邦密码")
-        //-   a-input(v-model:value="addModel.wmb_pw")
+        //- a-input(v-model:value="addModel.wmb_pw")
         a-form-item(label="麦芽田账号")
           a-input(v-model:value="addModel.myt_acct")
         a-form-item(label="麦芽田密码")
           a-input(v-model:value="addModel.myt_pw")
         a-form-item(label="闪送账号")
-          a-input(v-model:value="addModel.myt_acct")
+          a-input(v-model:value="addModel.ss_acct")
         a-form-item(label="闪送密码")
-          a-input(v-model:value="addModel.myt_pw")
+          a-input(v-model:value="addModel.ss_pw")
         a-form-item(label="UU账号")
-          a-input(v-model:value="addModel.myt_acct")
+          a-input(v-model:value="addModel.uu_acct")
         a-form-item(label="UU密码")
-          a-input(v-model:value="addModel.myt_pw")
+          a-input(v-model:value="addModel.uu_pw")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
@@ -137,33 +147,45 @@ div
           a-input(v-model:value="editModel.sf_pw")
         a-form-item(label="顺丰ID")
           a-input(v-model:value="editModel.sf_id")
+        a-form-item(label="顺丰配送经理")
+          a-input(v-model:value="editModel.sf_manager")
         a-form-item(label="闪时送账号")
           a-input(v-model:value="editModel.sss_acct")
         a-form-item(label="闪时送密码")
           a-input(v-model:value="editModel.sss_pw")
         //- a-form-item(label="外卖邦账号")
-        //-   a-input(v-model:value="editModel.wmb_acct")
+        //- a-input(v-model:value="editModel.wmb_acct")
         //- a-form-item(label="外卖邦密码")
-        //-   a-input(v-model:value="editModel.wmb_pw")
+        //- a-input(v-model:value="editModel.wmb_pw")
         a-form-item(label="麦芽田账号")
           a-input(v-model:value="editModel.myt_acct")
         a-form-item(label="麦芽田密码")
           a-input(v-model:value="editModel.myt_pw")
         a-form-item(label="闪送账号")
-          a-input(v-model:value="editModel.myt_acct")
+          a-input(v-model:value="editModel.ss_acct")
         a-form-item(label="闪送密码")
-          a-input(v-model:value="editModel.myt_pw")
+          a-input(v-model:value="editModel.ss_pw")
         a-form-item(label="UU账号")
-          a-input(v-model:value="editModel.myt_acct")
+          a-input(v-model:value="editModel.uu_acct")
         a-form-item(label="UU密码")
-          a-input(v-model:value="editModel.myt_pw")
+          a-input(v-model:value="editModel.uu_pw")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
 
+  a-modal(
+    v-model:visible="logs_modal_show",
+    :title="null",
+    :footer="null",
+    centered,
+    :width="modalX"
+  )
+    tools-zps-logs
+
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="addRecord") 新增
     a-button(type="link", size="small", @click="fetchTable") 刷新
+    a-button(type="link", size="small", @click="showLogs") 记录
     a-button(
       type="link",
       size="small",
@@ -178,22 +200,27 @@ div
 </template>
 
 <script>
+  import app from "apprun";
+  import { message } from "ant-design-vue";
   import Probs from "../../api/probs";
   import Shop from "../../api/shop";
-  import { message } from "ant-design-vue";
+  import ins from "../../api/base4";
   import TableSelect from "../../components/TableSelect";
-  import app from "apprun";
+  import ToolsZpsLogs from "../../components/zps/ToolsZpsLogs";
 
   export default {
     name: "tools-add-zps",
     components: {
       TableSelect,
+      ToolsZpsLogs,
     },
     data() {
       return {
         table: [],
+        table_len: 0,
         loading: false,
         scrollY: 900,
+        modalX: 850,
         debounce_save: null,
         exporting: false,
         tableUrl: null,
@@ -209,6 +236,7 @@ div
           sf_acct: "",
           sf_pw: "",
           sf_id: "",
+          sf_manager: "",
           sss_acct: "",
           sss_pw: "",
           // wmb_acct: "",
@@ -219,6 +247,7 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          remark: "",
         },
         editModel: {
           shop_id: "",
@@ -229,6 +258,7 @@ div
           sf_acct: "",
           sf_pw: "",
           sf_id: "",
+          sf_manager: "",
           sss_acct: "",
           sss_pw: "",
           // wmb_acct: "",
@@ -239,12 +269,16 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          remark: "",
         },
+        debounceRemark: null,
+        logs: [],
+        logs_modal_show: false,
       };
     },
     computed: {
       columns() {
-        // shop_id	shop_name	城市	物理店	person	配送方式	platform	dd账号	dd密码	fn账号	fn密码	sf账号	sf密码	闪时送账号	闪时送密码	外卖邦账号	外卖邦密码	麦芽田账号	麦芽田密码
+        // shop_id shop_name 城市 物理店 person 配送方式 platform dd账号 dd密码 fn账号 fn密码 sf账号 sf密码 闪时送账号 闪时送密码 外卖邦账号 外卖邦密码 麦芽田账号 麦芽田密码
         let column_names = [
           "店铺ID",
           "店铺名称",
@@ -252,6 +286,7 @@ div
           "物理店",
           "负责人",
           "平台",
+          "备注",
           "配送方式",
           "达达账号",
           "达达密码",
@@ -260,6 +295,7 @@ div
           "顺丰账号",
           "顺丰密码",
           "顺丰ID",
+          "配送经理",
           "闪时送账号",
           "闪时送密码",
           "麦芽田账号",
@@ -295,6 +331,13 @@ div
               width: 90,
               sorter: (a, b) => a.物理店?.localeCompare(b.物理店),
             };
+          if (name == "备注")
+            return {
+              ...config,
+              width: 140,
+              slots: { customRender: "remark", filterDropdown: "filterDropdown" },
+              onFilter: (value, record) => (record.备注 ?? "") == value,
+            };
           if (name.match(/城市|负责人|平台/)) return { ...config, width: 70 };
           return config;
         });
@@ -326,7 +369,7 @@ div
           }))
           .filter((s) => s.id_name.includes(this.addModel.shop_id));
         // console.log(options)
-        return options
+        return options;
       },
     },
     methods: {
@@ -358,6 +401,9 @@ div
             this.loading = false;
           });
       },
+      onTableChange(_1, _2, _3, { currentDataSource }) {
+        console.log(currentDataSource);
+      },
       fetchShops() {
         new Shop()
           .all()
@@ -372,7 +418,7 @@ div
         let timeout = null;
         return function () {
           clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+          timeout = setTimeout(() => fn.apply(this, arguments), 900);
         };
       },
       addRecord() {
@@ -389,6 +435,7 @@ div
           sf_acct: rec.顺丰账号,
           sf_pw: rec.顺丰密码,
           sf_id: rec.顺丰ID,
+          sf_manager: rec.配送经理,
           sss_acct: rec.闪时送账号,
           sss_pw: rec.闪时送密码,
           // wmb_acct: rec.外卖邦账号,
@@ -399,21 +446,89 @@ div
           ss_pw: rec.闪送密码,
           uu_acct: rec.UU账号,
           uu_pw: rec.UU密码,
+          remark: rec.备注,
         };
         this.isEditModalVis = true;
       },
+      remarkRecord(value, record) {
+        const target = this.table.filter((item) => record.key === item.key)[0];
+        if (target) {
+          target["备注"] = value;
+          this.debounceRemark(record);
+        }
+      },
+      handleRemarkSubmit(rec) {
+        const account = localStorage.getItem("account");
+        const token = localStorage.getItem("token");
+        if (!account) {
+          message.error("请先登录");
+          return;
+        }
+        const target = this.table.filter((item) => rec.key === item.key)[0];
+        if (target) {
+          ins({
+            data: {
+              event: "remark-zps",
+              shop_id: String(rec.店铺ID),
+              remark: target["备注"],
+              meta: {
+                account,
+                token,
+              },
+            },
+          })
+            .then((res) => {
+              message.success("更新成功");
+            })
+            .catch((err) => message.error(err));
+
+          // new Probs()
+          // .remarkZps({ shop_id: String(rec.店铺ID), remark: target["备注"] })
+          // .then((res) => {
+          // console.log(res);
+          // message.success(res);
+          // })
+          // .catch((err) => {
+          // message.error(err);
+          // });
+        }
+      },
       handleAddSubmit() {
         console.log(this.addModel);
-        new Probs()
-          .addZps(this.addModel)
+        const account = localStorage.getItem("account");
+        const token = localStorage.getItem("token");
+        if (!account) {
+          message.error("请先登录");
+          return;
+        }
+
+        ins({
+          data: {
+            event: "add-zps",
+            ...this.addModel,
+            meta: {
+              account,
+              token,
+            },
+          },
+        })
           .then((res) => {
-            message.success(res);
+            message.success("新建成功");
             this.isAddModalVis = false;
             this.fetchTable();
           })
-          .catch((err) => {
-            message.error(err);
-          });
+          .catch((err) => message.error(err));
+
+        // new Probs()
+        // .addZps(this.addModel)
+        // .then((res) => {
+        // message.success(res);
+        // this.isAddModalVis = false;
+        // this.fetchTable();
+        // })
+        // .catch((err) => {
+        // message.error(err);
+        // });
       },
       onShopFilter(inp, opt) {
         return Boolean(
@@ -431,30 +546,46 @@ div
       },
       handleEditSubmit() {
         console.log(this.editModel);
-        new Probs()
-          .editZps(this.editModel)
+        const account = localStorage.getItem("account");
+        const token = localStorage.getItem("token");
+        if (!account) {
+          message.error("请先登录");
+          return;
+        }
+
+        ins({
+          data: {
+            event: "edit-zps",
+            ...this.editModel,
+            meta: {
+              account,
+              token,
+            },
+          },
+        })
           .then((res) => {
-            message.success(res);
+            message.success("更新成功");
             this.isEditModalVis = false;
             this.fetchTable();
           })
-          .catch((err) => {
-            message.error(err);
-          });
+          .catch((err) => message.error(err));
       },
       delRecord() {
         // new Probs()
-        //   .delSss({ id: record.id })
-        //   .then((res) => {
-        //     message.success(res);
-        //     this.fetchTable();
-        //   })
-        //   .catch((err) => {
-        //     message.error(err);
-        //   });
+        // .delSss({ id: record.id })
+        // .then((res) => {
+        // message.success(res);
+        // this.fetchTable();
+        // })
+        // .catch((err) => {
+        // message.error(err);
+        // });
       },
       onSelectChange(checks) {
         console.log(checks);
+      },
+      showLogs() {
+        this.logs_modal_show = true;
       },
       transformTable() {
         return this.table;
@@ -467,12 +598,13 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 204;
-      this.debounce_save = this.debounce(this.save);
+      this.debounceRemark = this.debounce(this.handleRemarkSubmit);
       this.fetchShops();
       this.fetchTable();
     },
     mounted() {
+      this.modalX = Math.min(1000, Math.floor(document.body.clientWidth * 0.8));
+      this.scrollY = document.body.clientHeight - 204;
       app.on("@export-table", (state) => {
         console.log(state);
         this.exporting = false;

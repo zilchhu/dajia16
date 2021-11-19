@@ -46,6 +46,12 @@
             ],
           },
           {
+            title: "减配送费",
+            items: [
+              { title: "美团", to: { name: "tools-delivery" } },
+            ],
+          },
+          {
             title: "商品替换",
             items: [{ title: "美团", to: { name: "tools-food-sub-mt" } }],
           },

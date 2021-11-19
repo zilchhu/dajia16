@@ -19,14 +19,18 @@ div
 
 <script>
   import Probs from "../../api/probs";
+  import TableSelect from '../../components/TableSelect'
   import { message } from "ant-design-vue";
   import app from "apprun";
 
   export default {
     name: "ProbY",
+    components: {
+      TableSelect
+    },
     data() {
       return {
-        table: [],
+        table: [],   
         loading: false,
         scrollY: 900,
         debounce_save: null,
@@ -95,6 +99,8 @@ div
             dataIndex: "点金0曝光时间",
             align: "right",
             width: 150,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.点金0曝光时间 ?? "") == value,
             sorter: (a, b) =>
               this.toNum(a.点金0曝光时间) - this.toNum(b.点金0曝光时间),
           },
