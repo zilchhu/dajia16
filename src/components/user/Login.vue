@@ -98,9 +98,9 @@ div
         })
           .then((res) => {
             message.success("登录成功");
-            localStorage.setItem("account", this.login_model.account);
-            localStorage.setItem("token", res.token);
-            this.$emit("login-success", this.login_model.account, res.token);
+            this.$store.commit("setAccount", this.login_model.account);
+            this.$store.commit("setToken", res.token);
+            this.$emit("login-success");
           })
           .catch((err) => message.error(err));
       },
@@ -117,7 +117,7 @@ div
         })
           .then((res) => {
             message.success("注册成功");
-            this.active_tab = "register";
+            this.active_tab = "login";
           })
           .catch((err) => message.error(err));
       },
@@ -128,7 +128,7 @@ div
           },
         })
           .then((res) => {
-            this.available_user_names = res.names
+            this.available_user_names = res.names;
           })
           .catch((err) => console.error(err));
       },

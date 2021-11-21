@@ -290,6 +290,9 @@ export default {
   font-size: 0.886em
   color: #2c363c
 
+.ant-table-change .ant-select-item .ant-select-item-option, .ant-table-change .ant-select-selection-item
+  font-size: 0.886em
+
 .ant-table-change svg[data-icon="filter"] 
   width: 10px
   height: 10px

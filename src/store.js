@@ -1,12 +1,12 @@
-import { createStore } from 'vuex'
-import { getTable } from './api'
-import dayjs from 'dayjs'
+import { createStore } from "vuex"
+import { getTable } from "./api"
+import dayjs from "dayjs"
 
 const store = createStore({
   state() {
     return {
       table: null,
-      user_active_key: '1'
+      user_active_key: "1",
     }
   },
   getters: {
@@ -17,7 +17,7 @@ const store = createStore({
       if (!table || table.err || !table.data) return []
       let distinctPersons = Array.from(new Set(table.data.map(v => v.person)))
       return distinctPersons.map(value => ({ value }))
-    }
+    },
   },
   mutations: {
     initTable(state, payload) {
@@ -32,28 +32,47 @@ const store = createStore({
     },
     saveUserActiveKey(state, payload) {
       state.user_active_key = payload
-    }
+    },
   },
   actions: {
     async initTable({ commit }) {
       const getTableRes = await getTable()
-      commit('initTable', getTableRes)
-    }
-  }
+      commit("initTable", getTableRes)
+    },
+  },
+})
+
+export const userStore = createStore({
+  state: {
+    account: null,
+    token: null,
+  },
+  mutations: {
+    setAccount(state, account) {
+      if (account == null) localStorage.removeItem("account")
+      else localStorage.setItem("account", account)
+      state.account = account
+    },
+    setToken(state, token) {
+      if (token == null) localStorage.removeItem("token")
+      else localStorage.setItem("token", token)
+      state.token = token
+    },
+  },
 })
 
 function percent(num) {
-  if (typeof num === 'string') num = parseFloat(num)
+  if (typeof num === "string") num = parseFloat(num)
   return `${(num * 100).toFixed(2)}%`
 }
 
 function fixed2(num) {
-  if (typeof num === 'string') num = parseFloat(num)
+  if (typeof num === "string") num = parseFloat(num)
   return num.toFixed(2)
 }
 
 function empty(str) {
-  if(str == null) return ""
+  if (str == null) return ""
   else return str
 }
 
@@ -89,8 +108,8 @@ export function formatTable(table) {
       income_score: fixed2(v.income_score),
       cost_score: fixed2(v.cost_score),
       consume_score: fixed2(v.consume_score),
-      score: fixed2(v.score)
-    }))
+      score: fixed2(v.score),
+    })),
   }
 }
 
@@ -100,9 +119,9 @@ export function formatTable2(table) {
     ...table,
     data: table.data.map(v => ({
       ...v,
-      created_at: dayjs(v.created_at).format('YYYY/MM/DD HH:mm:ss')
-    }))
+      created_at: dayjs(v.created_at).format("YYYY/MM/DD HH:mm:ss"),
+    })),
   }
 }
 
-export default store
+export default userStore

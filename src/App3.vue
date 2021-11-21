@@ -11,11 +11,13 @@ div(style="position: relative")
       span(@click="changeRoute(route)") 
         router-link(:to="{ path: route.path }") {{ route.title }}
 
-  .user-info(style="position: absolute; top: 4px; right: 10px; cursor: pointer")
-    div(v-if="!user_account", @click="login") 未登录
+  .user-info(
+    style="position: absolute; top: 4px; right: 10px; cursor: pointer"
+  )
+    div(v-if="!account", @click="login") 未登录
     div(v-else)
       a-dropdown(placement="bottomLeft")
-        div {{ user_account }}
+        div {{ account }}
         template(#overlay)
           a-menu
             a-menu-item
@@ -103,6 +105,9 @@ div(style="position: relative")
   import Login from "./components/user/Login";
 
   export default {
+    components: {
+      Login,
+    },
     data() {
       return {
         menu_keys: [],
@@ -147,12 +152,16 @@ div(style="position: relative")
           { name: "records", title: "优化指标" },
         ],
         selected_date: moment().subtract(1, "days"),
-        user_account: "未登录",
         login_modal_show: false,
       };
     },
-    components: {
-      Login,
+    computed: {
+      account() {
+        return this.$store.state.account ?? localStorage.getItem("account")
+      },
+      token() {
+        return this.$store.state.token ?? localStorage.getItem("token")
+      }
     },
     methods: {
       fetch_all_names() {
@@ -245,25 +254,23 @@ div(style="position: relative")
         ins({
           data: {
             event: "logout",
-            account: this.user_account,
+            account: this.account,
             token,
           },
         })
           .then((res) => {
             message.success("退出登录成功");
-            this.user_account = null
-            localStorage.removeItem("user_account")
-            localStorage.removeItem('token')
+            this.$store.commit('setAccount', null)
+            this.$store.commit('token', null)
           })
           .catch((err) => message.error(err));
       },
       login() {
         this.login_modal_show = true;
       },
-      onLoginSuccess(account, token) {
-        this.user_account = account
-        this.login_modal_show = false
-      }
+      onLoginSuccess() {
+        this.login_modal_show = false;
+      },
     },
     created() {
       this.fetch_all_names();

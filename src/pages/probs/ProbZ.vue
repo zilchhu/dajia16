@@ -31,42 +31,49 @@ export default {
     columns() {
        return [
         {
-          title: '门店id',
-          dataIndex: 'shop_id',
+          title: '店铺ID',
+          dataIndex: '店铺ID',
           width: 90,
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.shop_id == value
+          onFilter: (value, record) => record.店铺ID == value
         },
         {
-          title: '门店',
-          dataIndex: 'shop_name',
+          title: '店铺名称',
+          dataIndex: '店铺名称',
           slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.shop_name == value
+          onFilter: (value, record) => record.店铺名称 == value
         },
         {
           title: '平台',
-          dataIndex: 'platform',
+          dataIndex: '平台',
           width: 70,
           filters: [
             { text: '美团', value: '美团' },
             { text: '饿了么', value: '饿了么' }
           ],
           filterMultiple: true,
-          onFilter: (value, record) => record.platform == value
+          onFilter: (value, record) => record.平台 == value
         },
         {
-          title: '负责',
-          dataIndex: 'person',
+          title: '负责人',
+          dataIndex: '负责人',
           width: 70,
           slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.person == value
+          onFilter: (value, record) => record.负责人 == value
         },
         {
-          title: 'chg',
-          dataIndex: 'chg',
+          title: '物理店',
+          dataIndex: '物理店',
+          width: 70,
+          slots: { filterDropdown: 'filterDropdown' },
+          onFilter: (value, record) => record.物理店 == value
+        },
+        {
+          title: '变化范围/平方千米',
+          dataIndex: '变化范围/平方千米',
           align: 'right',
           width: 150,
-          sorter: (a, b) => this.toNum(a.chg) - this.toNum(b.chg)
+          sorter: (a, b) => this.toNum(a['变化范围/平方千米']) - this.toNum(b['变化范围/平方千米'])
         }
       ]
     }

@@ -31,10 +31,13 @@ div
       )
 
     template(#remark="{ text, record }")
-      a-input(
+      a-select(
         :value="text",
-        @change="(e) => remarkRecord(e.target.value, record)",
-        size="small"
+        :options="remark_options",
+        placeholder="text",
+        size="small",
+        @select="(value) => remarkRecord(value, record)",
+        style="width: 130px"
       )
 
     template(#date="{ text, record }")
@@ -44,6 +47,15 @@ div
       div
         a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
         //- a-button(type="link", size="small", @click="() => delRecord(record)") 删除
+
+  a-modal(
+    v-model:visible="login_modal_show",
+    :title="null",
+    :footer="null",
+    centered,
+    :width="650"
+  )
+    Login(@login-success="onLoginSuccess")
 
   a-modal(
     v-model:visible="isAddModalVis",
@@ -106,6 +118,12 @@ div
           a-input(v-model:value="addModel.uu_acct")
         a-form-item(label="UU密码")
           a-input(v-model:value="addModel.uu_pw")
+        a-form-item(label="店铺账号")
+          a-input(v-model:value="addModel.shop_account")
+        a-form-item(label="店铺密码")
+          a-input(v-model:value="addModel.shop_password")
+        a-form-item(label="绑定电话")
+          a-input(v-model:value="addModel.shop_phone")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
@@ -169,6 +187,12 @@ div
           a-input(v-model:value="editModel.uu_acct")
         a-form-item(label="UU密码")
           a-input(v-model:value="editModel.uu_pw")
+        a-form-item(label="店铺账号")
+          a-input(v-model:value="editModel.shop_account")
+        a-form-item(label="店铺密码")
+          a-input(v-model:value="editModel.shop_password")
+        a-form-item(label="绑定电话")
+          a-input(v-model:value="editModel.shop_phone")
 
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
@@ -207,12 +231,25 @@ div
   import ins from "../../api/base4";
   import TableSelect from "../../components/TableSelect";
   import ToolsZpsLogs from "../../components/zps/ToolsZpsLogs";
+  import Login from "../../components/user/Login";
+
+  function keepBy(item, keys) {
+    return keys.reduce((acc, key) => ({ ...acc, [key]: item[key] }), {});
+  }
+
+  function omitBy(item, keys) {
+    return keepBy(
+      item,
+      Object.keys(item).filter((k) => !keys.includes(k))
+    );
+  }
 
   export default {
     name: "tools-add-zps",
     components: {
       TableSelect,
       ToolsZpsLogs,
+      Login,
     },
     data() {
       return {
@@ -247,6 +284,9 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          shop_account: "",
+          shop_password: "",
+          shop_phone: "",
           remark: "",
         },
         editModel: {
@@ -269,11 +309,22 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          shop_account: "",
+          shop_password: "",
+          shop_phone: "",
           remark: "",
         },
         debounceRemark: null,
+        remark_options: [
+          { value: "已申请（门店负责人）" },
+          { value: "已提交（自配送）" },
+          { value: "已批复（BD批下来）" },
+          { value: "不自配" },
+          { value: "需和老板沟通" },
+        ],
         logs: [],
         logs_modal_show: false,
+        login_modal_show: false,
       };
     },
     computed: {
@@ -304,6 +355,9 @@ div
           "闪送密码",
           "UU账号",
           "UU密码",
+          "店铺账号",
+          "店铺密码",
+          "绑定电话",
         ];
 
         let base_columns = column_names.map((name) => {
@@ -370,6 +424,12 @@ div
           .filter((s) => s.id_name.includes(this.addModel.shop_id));
         // console.log(options)
         return options;
+      },
+      account() {
+        return this.$store.state.account ?? localStorage.getItem("account");
+      },
+      token() {
+        return this.$store.state.token ?? localStorage.getItem("token");
       },
     },
     methods: {
@@ -446,6 +506,9 @@ div
           ss_pw: rec.闪送密码,
           uu_acct: rec.UU账号,
           uu_pw: rec.UU密码,
+          shop_account: rec.店铺账号,
+          shop_password: rec.店铺密码,
+          shop_phone: rec.绑定电话,
           remark: rec.备注,
         };
         this.isEditModalVis = true;
@@ -457,11 +520,13 @@ div
           this.debounceRemark(record);
         }
       },
+      onLoginSuccess() {
+        this.login_modal_show = false;
+      },
       handleRemarkSubmit(rec) {
-        const account = localStorage.getItem("account");
-        const token = localStorage.getItem("token");
-        if (!account) {
+        if (!this.account) {
           message.error("请先登录");
+          this.login_modal_show = true;
           return;
         }
         const target = this.table.filter((item) => rec.key === item.key)[0];
@@ -472,8 +537,8 @@ div
               shop_id: String(rec.店铺ID),
               remark: target["备注"],
               meta: {
-                account,
-                token,
+                account: this.account,
+                token: this.token,
               },
             },
           })
@@ -495,25 +560,46 @@ div
       },
       handleAddSubmit() {
         console.log(this.addModel);
-        const account = localStorage.getItem("account");
-        const token = localStorage.getItem("token");
-        if (!account) {
+        if (!this.account) {
           message.error("请先登录");
+          this.login_modal_show = true;
           return;
         }
 
         ins({
           data: {
             event: "add-zps",
-            ...this.addModel,
+            ...omitBy(this.addModel, [
+              "shop_account",
+              "shop_password",
+              "shop_phone",
+              "remark",
+            ]),
             meta: {
-              account,
-              token,
+              account: this.account,
+              token: this.token,
             },
           },
         })
           .then((res) => {
-            message.success("新建成功");
+            return ins({
+              data: {
+                event: "edit-zps-shop",
+                ...keepBy(this.addModel, [
+                  "shop_id",
+                  "shop_account",
+                  "shop_password",
+                  "shop_phone",
+                ]),
+                meta: {
+                  account: this.account,
+                  token: this.token,
+                },
+              },
+            });
+          })
+          .then((res) => {
+            message.success("修改成功");
             this.isAddModalVis = false;
             this.fetchTable();
           })
@@ -546,25 +632,46 @@ div
       },
       handleEditSubmit() {
         console.log(this.editModel);
-        const account = localStorage.getItem("account");
-        const token = localStorage.getItem("token");
-        if (!account) {
+        if (!this.account) {
           message.error("请先登录");
+          this.login_modal_show = true;
           return;
         }
 
         ins({
           data: {
             event: "edit-zps",
-            ...this.editModel,
+            ...omitBy(this.editModel, [
+              "shop_account",
+              "shop_password",
+              "shop_phone",
+              "remark",
+            ]),
             meta: {
-              account,
-              token,
+              account: this.account,
+              token: this.token,
             },
           },
         })
           .then((res) => {
-            message.success("更新成功");
+            return ins({
+              data: {
+                event: "edit-zps-shop",
+                ...keepBy(this.editModel, [
+                  "shop_id",
+                  "shop_account",
+                  "shop_password",
+                  "shop_phone",
+                ]),
+                meta: {
+                  account: this.account,
+                  token: this.token,
+                },
+              },
+            });
+          })
+          .then((res) => {
+            message.success("修改成功");
             this.isEditModalVis = false;
             this.fetchTable();
           })
@@ -603,7 +710,7 @@ div
       this.fetchTable();
     },
     mounted() {
-      this.modalX = Math.min(1000, Math.floor(document.body.clientWidth * 0.8));
+      this.modalX = Math.min(1100, Math.floor(document.body.clientWidth * 0.8));
       this.scrollY = document.body.clientHeight - 204;
       app.on("@export-table", (state) => {
         console.log(state);
@@ -613,7 +720,6 @@ div
     },
   };
 </script>
-
 
 <style lang="sass" scoped>
 .form-acct-items

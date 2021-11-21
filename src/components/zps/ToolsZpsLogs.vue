@@ -1,5 +1,5 @@
 <template lang="pug">
-div
+div(style="padding-right: 10px")
   a-table.ant-table-change(
     :columns="columns",
     :data-source="table",
@@ -14,7 +14,7 @@ div
       #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
+        :style="`min-width: 160px; width: ${column.filterWidth || column.width || 220}px;`",
         :filterOptions="getColFilters(column.dataIndex)",
         :selectedList="selectedKeys",
         @select-change="setSelectedKeys",
@@ -33,6 +33,7 @@ div
 </template>
 
 <script>
+  import dayjs from "dayjs";
   import { message } from "ant-design-vue";
   import ins from "../../api/base4";
   import TableSelect from "../TableSelect";
@@ -59,9 +60,21 @@ div
     },
     methods: {
       getColFilters(colName) {
-        return Array.from(
+        let distincts = Array.from(
           new Set(this.table.map((row) => row[colName] ?? ""))
-        ).map((col) => ({
+        );
+
+        if (colName == "时间") {
+          distincts = Array.from(
+            new Set(
+              this.table.map((row) =>
+                row[colName] ? dayjs(row[colName]).format("YYYY-MM-DD") : ""
+              )
+            )
+          );
+        }
+
+        return distincts.map((col) => ({
           label: col || "",
           value: col || "",
         }));
@@ -82,11 +95,19 @@ div
           }
 
           if (name == "店铺") {
-            return { ...column, width: 120 };
+            return { ...column, width: 140, filterWidth: 300 };
           }
 
           if (name == "时间") {
-            return { ...column, width: 120 };
+            return {
+              ...column,
+              width: 120,
+              onFilter: (value, record) =>
+                record[name]
+                  ? dayjs(record[name]).isSame(dayjs(value), "day")
+                  : "" == value,
+              sorter: (a, b) => (dayjs(a.时间).isBefore(dayjs(b.时间)) ? -1 : 1),
+            };
           }
 
           return column;
@@ -108,7 +129,7 @@ div
       },
     },
     mounted() {
-      this.scrollY = document.body.clientHeight - 500;
+      this.scrollY = document.body.clientHeight - 340;
       this.initColumns();
       this.initTable();
     },
@@ -119,7 +140,7 @@ div
 .detail-list
   display: flex
   flex-direction: column
-  max-width: 200px
+  max-width: 300px
   row-gap: 2px
 
 .detail-item
