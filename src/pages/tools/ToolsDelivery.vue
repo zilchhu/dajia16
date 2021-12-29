@@ -12,18 +12,22 @@
       a-button(size="small")
         UploadOutlined
         span 上传表格
-    a-button(@click="run", size="small", :loading="loading") 运行
 
     a-auto-complete(
       v-model:value="auth",
       :filterOption="onFilterAuth",
-      placeholder="暂不支持输入Cookie",
+      placeholder="输入Cookie",
       size="small",
       style="width: 400px"
     )
       template(#dataSource)
         a-select-option(v-for="au in auths", :key="`${au.shopId}||${au.auth}`") {{ au.shopId }} {{ au.shopName }}
 
+    a-button(@click="run", size="small", :loading="loading") 运行
+    a-time-picker(v-model:value="run_at")
+    a-button(@click="delayRun", size="small", :loading="delay_run_loading") 定时运行
+
+    
   a-divider
 
   a-table.ant-table-change(
@@ -64,6 +68,7 @@
   import Shop from "../../api/shop";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
+  import moment from 'moment'
 
   export default {
     name: "tools-delivery",
@@ -84,6 +89,8 @@
         loading: false,
         tableName: "",
         templateUrl: "http://192.168.3.3:9007/减配送费.xlsx",
+        run_at: moment('23:00:00', 'HH:mm:ss'),
+        delay_run_loading: false
       };
     },
     computed: {
@@ -170,6 +177,29 @@
         });
 
         this.loading = true;
+      },
+      delayRun() {
+        let file = this.fileList.find((v) => v.status == "done");
+
+        if (!file) {
+          message.error("please upload a file");
+          return;
+        }
+
+        if (this.auth.length == 0) {
+          message.error("please input cookie");
+          return;
+        }
+
+        app.run("ws://", "update-delivery-act", {
+          auth: this.auth.split("||")[1] || this.auth,
+          platform: 1,
+          at: +this.run_at,
+          jsonTable: this.jsonTable,
+        });
+
+        message.success("任务添加成功");
+        // this.loading = true;
       },
       onFileChange({ file }) {
         if (file.status == "done" && file?.response?.res?.filename) {

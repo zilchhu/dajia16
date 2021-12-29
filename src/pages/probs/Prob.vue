@@ -40,7 +40,7 @@ import ProbAE from './ProbAE'
 import ProbAF from './ProbAF'
 import ProbAG from './ProbAG'
 import ProbAH from './ProbAH'
-import ProbAI from './ProbAI'
+import ProbAI2 from './ProbAI2'
 import ProbAJ from './ProbAJ'
 import ProbAK from './ProbAK'
 import ProbAL from './ProbAL'
@@ -50,6 +50,7 @@ import ProbAO from './ProbAO'
 import ProbAP from './ProbAP'
 import ProbAQ from './ProbAQ'
 import ProbAR from './ProbAR'
+import ProbAS from './ProbAS'
 
 export default {
   name: 'Prob',
@@ -88,7 +89,7 @@ export default {
     ProbAF,
     ProbAG,
     ProbAH,
-    ProbAI,
+    ProbAI2,
     ProbAJ,
     ProbAK,
     ProbAL,
@@ -98,19 +99,21 @@ export default {
     ProbAP,
     ProbAQ,
     ProbAR,
+    ProbAS,
   },
   data() {
     return {
       tabs: [
+        { key: 45, tab: '折扣6.9单品多份起购', comp: 'ProbAS' },
         { key: 44, tab: '美团其它活动', comp: 'ProbAR' },
         { key: 43, tab: '饿了么其它活动', comp: 'ProbAQ' },
         { key: 42, tab: '单产品满减', comp: 'ProbAP' },
         { key: 41, tab: '百亿补贴', comp: 'ProbAO' },
-        { key: 40, tab: '门店沟通', comp: 'ProbAN' },
+        // { key: 40, tab: '门店沟通', comp: 'ProbAN' },
         { key: 39, tab: '起送价变化', comp: 'ProbAM' },
         { key: 37, tab: '折扣起购错误', comp: 'ProbAK' },
         { key: 38, tab: '折扣限购错误', comp: 'ProbAL' },
-        { key: 35, tab: '差评', comp: 'ProbAI' },
+        { key: 35, tab: '差评', comp: 'ProbAI2' },
         { key: 31, tab: '满减活动检查', comp: 'ProbAE' },
         { key: 29, tab: '减配活动检查', comp: 'ProbAC' },
         { key: 36, tab: '合作方案到期', comp: 'ProbAJ' },

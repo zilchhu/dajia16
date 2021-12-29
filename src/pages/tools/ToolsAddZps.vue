@@ -34,7 +34,7 @@ div
       a-select(
         :value="text",
         :options="remark_options",
-        placeholder="text",
+        :placeholder="text",
         size="small",
         @select="(value) => remarkRecord(value, record)",
         style="width: 130px"
@@ -73,15 +73,16 @@ div
     )
       //- a-form-item(label="闪时送ID")
       //- a-input(v-model:value="addModel.a")
-      a-form-item(label="门店ID")
-        a-auto-complete(
-          v-model:value="addModel.shop_id",
-          :options="shop_options"
-        )
-          template(#options="{ value, label }")
-            div {{ label }}
-
       .form-acct-items
+        a-form-item(label="门店ID")
+          a-auto-complete(
+            v-model:value="addModel.shop_id",
+            :options="shop_options"
+          )
+            template(#options="{ value, label }")
+              div {{ label }}
+        a-form-item(label="店铺名称")
+          a-input(v-model:value="addModel.shop_name")
         a-form-item(label="达达账号")
           a-input(v-model:value="addModel.dd_acct")
         a-form-item(label="达达密码")
@@ -118,6 +119,10 @@ div
           a-input(v-model:value="addModel.uu_acct")
         a-form-item(label="UU密码")
           a-input(v-model:value="addModel.uu_pw")
+        a-form-item(label="送件侠账号")
+          a-input(v-model:value="addModel.sjx_acct")
+        a-form-item(label="超级验证码")
+          a-input(v-model:value="addModel.sjx_code")
         a-form-item(label="店铺账号")
           a-input(v-model:value="addModel.shop_account")
         a-form-item(label="店铺密码")
@@ -142,15 +147,17 @@ div
       :wrapper-col="{ span: 16 }",
       @submit="handleEditSubmit"
     )
-      a-form-item(label="门店ID")
-        a-auto-complete(
-          v-model:value="editModel.shop_id",
-          :disabled="true",
-          :options="shop_options"
-        )
-          template(#options="{ value, label }")
-            div {{ label }}
       .form-acct-items
+        a-form-item(label="门店ID")
+          a-auto-complete(
+            v-model:value="editModel.shop_id",
+            :disabled="true",
+            :options="shop_options"
+          )
+            template(#options="{ value, label }")
+              div {{ label }}
+        a-form-item(label="店铺名称")
+          a-input(v-model:value="editModel.shop_name")
         a-form-item(label="达达账号")
           a-input(v-model:value="editModel.dd_acct")
         a-form-item(label="达达密码")
@@ -187,6 +194,10 @@ div
           a-input(v-model:value="editModel.uu_acct")
         a-form-item(label="UU密码")
           a-input(v-model:value="editModel.uu_pw")
+        a-form-item(label="送件侠账号")
+          a-input(v-model:value="editModel.sjx_acct")
+        a-form-item(label="超级验证码")
+          a-input(v-model:value="editModel.sjx_code")
         a-form-item(label="店铺账号")
           a-input(v-model:value="editModel.shop_account")
         a-form-item(label="店铺密码")
@@ -206,10 +217,21 @@ div
   )
     tools-zps-logs
 
+  a-modal(
+    v-model:visible="batch_modal_show",
+    :title="null",
+    :footer="null",
+    centered,
+    :width="modalX"
+  )
+    tools-zps-shop-upd
+
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="addRecord") 新增
+    a-button(type="link", size="small", @click="showShopUpd") 批量更新
     a-button(type="link", size="small", @click="fetchTable") 刷新
     a-button(type="link", size="small", @click="showLogs") 记录
+
     a-button(
       type="link",
       size="small",
@@ -231,6 +253,7 @@ div
   import ins from "../../api/base4";
   import TableSelect from "../../components/TableSelect";
   import ToolsZpsLogs from "../../components/zps/ToolsZpsLogs";
+  import ToolsZpsShopUpd from "../../components/zps/ToolsZpsShopUpd";
   import Login from "../../components/user/Login";
 
   function keepBy(item, keys) {
@@ -249,6 +272,7 @@ div
     components: {
       TableSelect,
       ToolsZpsLogs,
+      ToolsZpsShopUpd,
       Login,
     },
     data() {
@@ -266,6 +290,7 @@ div
         shops: [],
         addModel: {
           shop_id: "",
+          shop_name: "",
           dd_acct: "",
           dd_pw: "",
           fn_acct: "",
@@ -284,6 +309,8 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          sjx_acct: "",
+          sjx_code: "",
           shop_account: "",
           shop_password: "",
           shop_phone: "",
@@ -291,6 +318,7 @@ div
         },
         editModel: {
           shop_id: "",
+          shop_name: "",
           dd_acct: "",
           dd_pw: "",
           fn_acct: "",
@@ -309,6 +337,8 @@ div
           ss_pw: "",
           uu_acct: "",
           uu_pw: "",
+          sjx_acct: "",
+          sjx_code: "",
           shop_account: "",
           shop_password: "",
           shop_phone: "",
@@ -321,10 +351,13 @@ div
           { value: "已批复（BD批下来）" },
           { value: "不自配" },
           { value: "需和老板沟通" },
+          { value: "已登记" },
+          { value: "已自配" },
         ],
         logs: [],
         logs_modal_show: false,
         login_modal_show: false,
+        batch_modal_show: false,
       };
     },
     computed: {
@@ -347,6 +380,9 @@ div
           "顺丰密码",
           "顺丰ID",
           "配送经理",
+          "店铺账号",
+          "店铺密码",
+          "绑定电话",
           "闪时送账号",
           "闪时送密码",
           "麦芽田账号",
@@ -355,9 +391,8 @@ div
           "闪送密码",
           "UU账号",
           "UU密码",
-          "店铺账号",
-          "店铺密码",
-          "绑定电话",
+          "送件侠账号",
+          "超级验证码",
         ];
 
         let base_columns = column_names.map((name) => {
@@ -371,12 +406,12 @@ div
           if (name == "店铺ID")
             return {
               ...config,
-              fixed: "left",
+              // fixed: "left",
             };
           if (name == "店铺名称")
             return {
               ...config,
-              fixed: "left",
+              // fixed: "left",
               width: 120,
             };
           if (name == "物理店")
@@ -401,7 +436,7 @@ div
             title: "操作",
             dataIndex: "key",
             width: 60,
-            fixed: "left",
+            // fixed: "left",
             slots: { customRender: "operation" },
           },
           ...base_columns,
@@ -450,10 +485,13 @@ div
       },
       fetchTable() {
         this.loading = true;
-        new Probs()
-          .single("_zps")
+        ins({
+          data: {
+            event: "get-zps",
+          },
+        })
           .then((res) => {
-            this.table = res;
+            this.table = res.zps;
             this.loading = false;
           })
           .catch((err) => {
@@ -488,6 +526,7 @@ div
         console.log(rec);
         this.editModel = {
           shop_id: String(rec.店铺ID),
+          shop_name: rec.店铺名称,
           dd_acct: rec.达达账号,
           dd_pw: rec.达达密码,
           fn_acct: rec.蜂鸟账号,
@@ -506,6 +545,8 @@ div
           ss_pw: rec.闪送密码,
           uu_acct: rec.UU账号,
           uu_pw: rec.UU密码,
+          sjx_acct: rec.送件侠账号,
+          sjx_code: rec.超级验证码,
           shop_account: rec.店铺账号,
           shop_password: rec.店铺密码,
           shop_phone: rec.绑定电话,
@@ -570,6 +611,7 @@ div
           data: {
             event: "add-zps",
             ...omitBy(this.addModel, [
+              "shop_name",
               "shop_account",
               "shop_password",
               "shop_phone",
@@ -587,6 +629,7 @@ div
                 event: "edit-zps-shop",
                 ...keepBy(this.addModel, [
                   "shop_id",
+                  "shop_name",
                   "shop_account",
                   "shop_password",
                   "shop_phone",
@@ -642,6 +685,7 @@ div
           data: {
             event: "edit-zps",
             ...omitBy(this.editModel, [
+              "shop_name",
               "shop_account",
               "shop_password",
               "shop_phone",
@@ -659,6 +703,7 @@ div
                 event: "edit-zps-shop",
                 ...keepBy(this.editModel, [
                   "shop_id",
+                  "shop_name",
                   "shop_account",
                   "shop_password",
                   "shop_phone",
@@ -694,6 +739,9 @@ div
       showLogs() {
         this.logs_modal_show = true;
       },
+      showShopUpd() {
+        this.batch_modal_show = true;
+      },
       transformTable() {
         return this.table;
       },
@@ -705,6 +753,12 @@ div
       },
     },
     created() {
+      app.on("@export-table", (state) => {
+        console.log(state);
+        this.exporting = false;
+        this.tableUrl = state.path;
+      });
+
       this.debounceRemark = this.debounce(this.handleRemarkSubmit);
       this.fetchShops();
       this.fetchTable();
@@ -712,11 +766,6 @@ div
     mounted() {
       this.modalX = Math.min(1100, Math.floor(document.body.clientWidth * 0.8));
       this.scrollY = document.body.clientHeight - 204;
-      app.on("@export-table", (state) => {
-        console.log(state);
-        this.exporting = false;
-        this.tableUrl = state.path;
-      });
     },
   };
 </script>

@@ -1,6 +1,7 @@
 <template lang="pug">
 .tools-food-elm
-  div(style="display: flex; align-items: center; column-gap: 0.75rem")
+  //- h3 饿了么改价
+  div(style="display: flex; justify-content: center; align-items: center; column-gap: 0.75rem")
     a(:href="templateUrl", target="_blank") 下载模板
     a-upload(
       v-model:file-list="fileList",
@@ -25,19 +26,35 @@
 
   a-divider
 
-  a-table.ant-table-change(v-show="table.length > 0" :columns="columns" :data-source="table" rowKey="_i" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+  a-table.ant-table-change(
+    v-show="table.length > 0",
+    :columns="columns",
+    :data-source="table",
+    rowKey="_i",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    size="small",
+    :scroll="{ y: scrollY, x: scrollX }",
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+  )
+    template(
+      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :style="`min-width: 160px; width: ${column.width || 220}px;`",
+        :filterOptions="getColFilters(column.dataIndex)",
+        :selectedList="selectedKeys",
+        @select-change="setSelectedKeys",
+        @confirm="confirm",
+        @reset="clearFilters"
+      )
 
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#tooltip="{text, record}")
+    template(#tooltip="{ text, record }")
       a-tooltip
         template(#title)
-          div(style="white-space: pre-wrap;") {{record?._res?.code == 0 ? record?._res?.data : record?._res?.err}}
-        div(:class="[{'succ-text': record?._res?.code == 0}, {'error-text': record?._res?.code == 1}]" ) {{text}}
+          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+        div(
+          :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+        ) {{ text }}
   //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
 </template>
 
@@ -53,7 +70,7 @@
     name: "tools-food-elm",
     components: {
       UploadOutlined,
-      TableSelect
+      TableSelect,
     },
     data() {
       return {
@@ -65,7 +82,7 @@
         jsonTable: [],
         table: [],
         scrollY: 900,
-        templateUrl: 'http://192.168.3.3:9007/饿了么折扣商品涨原价表格模板.xlsx'
+        templateUrl: "http://192.168.3.3:9007/饿了么折扣商品涨原价表格模板.xlsx",
       };
     },
     computed: {
@@ -134,7 +151,74 @@
             width: 100,
             sorter: (a, b) => this.toNum(a.折扣限购) - this.toNum(b.折扣限购),
           },
+          {
+            title: "删除商品",
+            dataIndex: "删除商品",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.删除商品 == value,
+          },
+          {
+            title: "新商品名",
+            dataIndex: "新商品名",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.新商品名 == value,
+          },
+          {
+            title: "新分类名",
+            dataIndex: "新分类名",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.新分类名 == value,
+          },
+          {
+            title: "分类描述",
+            dataIndex: "分类描述",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.分类描述 == value,
+          },
+          {
+            title: "开启置顶",
+            dataIndex: "开启置顶",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.开启置顶 == value,
+          },
+          {
+            title: "关闭置顶",
+            dataIndex: "关闭置顶",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.关闭置顶 == value,
+          },
+          {
+            title: "置顶时段",
+            dataIndex: "置顶时段",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.置顶时段 == value,
+          },
+          {
+            title: "分类排序",
+            dataIndex: "分类排序",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.分类排序 == value,
+          },
         ];
+      },
+      scrollX() {
+        return this.reduceWidth(this.columns);
       },
     },
     methods: {
@@ -152,6 +236,13 @@
         } catch (error) {
           return 0;
         }
+      },
+      reduceWidth(nodes) {
+        return nodes.reduce((sw, c) => {
+          if (c.width) return sw + c.width;
+          if (c.children) return sw + this.reduceWidth(c.children);
+          return sw;
+        }, 10);
       },
       run() {
         let file = this.fileList.find((v) => v.status == "done");
@@ -248,7 +339,7 @@
 
 <style lang="sass" scoped>
 .tools-food-elm
-  width: 960px
+  padding: 0 50px
   margin: 20px auto
 
 .succ-text

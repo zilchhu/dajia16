@@ -1,6 +1,8 @@
 <template lang="pug">
 .tools-food-mt
-  div(style="display: flex; align-items: center; justify-content: center; column-gap: 0.75rem")
+  div(
+    style="display: flex; align-items: center; justify-content: center; column-gap: 0.75rem"
+  )
     a(:href="templateUrl", target="_blank") 下载模板v2
     a-upload(
       v-model:file-list="fileList",
@@ -10,11 +12,10 @@
       a-button(size="small")
         UploadOutlined
         span 上传表格
-    a-button(@click="run", size="small", :loading="loading") 运行
 
     a-auto-complete(
       v-model:value="auth",
-      :filterOption="onFilterAuth"
+      :filterOption="onFilterAuth",
       placeholder="请输入Cookie",
       size="small",
       style="width: 400px"
@@ -22,24 +23,41 @@
       template(#dataSource)
         a-select-option(v-for="au in auths", :key="`${au.shopId}||${au.auth}`") {{ au.shopId }} {{ au.shopName }}
 
+    a-button(@click="run", size="small", :loading="loading") 立即运行
+    a-time-picker(v-model:value="run_at")
+    a-button(@click="delayRun", size="small", :loading="delay_run_loading") 定时运行
+
   a-divider
 
-  a-table.ant-table-change(v-show="table.length > 0" :columns="columns" :data-source="table" rowKey="_i" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY, x: scrollX}" :rowClassName="(record, index) => record?._res?.code == 0 ? 'row-succ': (record?._res?.code == 1 ? 'row-error' : '')")
+  a-table.ant-table-change(
+    v-show="table.length > 0",
+    :columns="columns",
+    :data-source="table",
+    rowKey="_i",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    size="small",
+    :scroll="{ y: scrollY, x: scrollX }",
+    :rowClassName="(record, index) => (record?._res?.code == 0 ? 'row-succ' : record?._res?.code == 1 ? 'row-error' : '')"
+  )
+    template(
+      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :style="`min-width: 160px; width: ${column.width || 220}px;`",
+        :filterOptions="getColFilters(column.dataIndex)",
+        :selectedList="selectedKeys",
+        @select-change="setSelectedKeys",
+        @confirm="confirm",
+        @reset="clearFilters"
+      )
 
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#tooltip="{text, record}")
+    template(#tooltip="{ text, record }")
       a-tooltip
         template(#title)
-          div(style="white-space: pre-wrap;") {{record?._res?.code == 0 ? record?._res?.data : record?._res?.err}}
-        div {{text}}
+          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+        div {{ text }}
 
   //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
-
 </template>
 
 <script>
@@ -49,6 +67,7 @@
   import Shop from "../../api/shop";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
+  import moment from "moment";
 
   export default {
     name: "tools-food-mt",
@@ -68,7 +87,9 @@
         scrollY: 900,
         loading: false,
         tableName: "",
-        templateUrl: 'http://192.168.3.3:9007/美团折扣商品涨原价表格模板v2.xlsx'
+        templateUrl: "http://192.168.3.3:9007/美团折扣商品涨原价表格模板v2.xlsx",
+        run_at: moment("23:00:00", "HH:mm:ss"),
+        delay_run_loading: false,
       };
     },
     computed: {
@@ -94,6 +115,13 @@
             width: 200,
             slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
             onFilter: (value, record) => record.商品名称 == value,
+          },
+          {
+            title: "商品id",
+            dataIndex: "商品id",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            onFilter: (value, record) => record.商品id == value,
           },
           {
             title: "规格名称",
@@ -169,10 +197,58 @@
           {
             title: "新商品名",
             dataIndex: "新商品名",
-            width: 90,
+            width: 200,
             slots: { filterDropdown: "filterDropdown" },
             ellipsis: true,
             onFilter: (value, record) => record.新商品名 == value,
+          },
+          {
+            title: "新分类名",
+            dataIndex: "新分类名",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.新分类名 == value,
+          },
+          {
+            title: "分类描述",
+            dataIndex: "分类描述",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.分类描述 == value,
+          },
+          {
+            title: "开启置顶",
+            dataIndex: "开启置顶",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.开启置顶 == value,
+          },
+          {
+            title: "关闭置顶",
+            dataIndex: "关闭置顶",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.关闭置顶 == value,
+          },
+          {
+            title: "置顶时段",
+            dataIndex: "置顶时段",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.置顶时段 == value,
+          },
+          {
+            title: "分类排序",
+            dataIndex: "分类排序",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.分类排序 == value,
           },
           {
             title: "属性",
@@ -190,11 +266,35 @@
             ellipsis: true,
             onFilter: (value, record) => record.描述 == value,
           },
+          {
+            title: "上架商品",
+            dataIndex: "上架商品",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.上架商品 == value,
+          },
+          {
+            title: "下架商品",
+            dataIndex: "下架商品",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.下架商品 == value,
+          },
+          {
+            title: "删除商品",
+            dataIndex: "删除商品",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            ellipsis: true,
+            onFilter: (value, record) => record.删除商品 == value,
+          },
         ];
       },
       scrollX() {
-        return this.reduceWidth(this.columns)
-      }
+        return this.reduceWidth(this.columns);
+      },
     },
     methods: {
       getColFilters(colName) {
@@ -250,6 +350,29 @@
         });
 
         this.loading = true;
+      },
+      delayRun() {
+        let file = this.fileList.find((v) => v.status == "done");
+
+        if (!file) {
+          message.error("please upload a file");
+          return;
+        }
+
+        if (this.auth.length == 0) {
+          message.error("please input cookie");
+          return;
+        }
+
+        app.run("ws://", "@update-food", {
+          auth: this.auth.split("||")[1] || this.auth,
+          platform: 1,
+          at: +this.run_at,
+          jsonTable: this.jsonTable,
+        });
+
+        message.success("任务添加成功");
+        // this.loading = true;
       },
       onFileChange({ file }) {
         if (file.status == "done" && file?.response?.res?.filename) {

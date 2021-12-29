@@ -88,13 +88,6 @@ div
             onFilter: (value, record) => (record.leader ?? "") == value,
           },
           {
-            title: "新店责任人",
-            dataIndex: "new_person",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.new_person ?? "") == value,
-          },
-          {
             title: "分类名",
             dataIndex: "category_name",
             width: 140,

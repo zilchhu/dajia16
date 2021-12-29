@@ -84,7 +84,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.person == value,
+            onFilter: (value, record) => (record.person ?? '') == value,
           },
           {
             title: "组长",
@@ -94,7 +94,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.leader == value,
+            onFilter: (value, record) => (record.leader ?? '') == value,
           },
           {
             title: "物理店",

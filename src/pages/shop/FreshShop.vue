@@ -52,7 +52,9 @@ div
   a-modal(v-model:visible="isChartModalVis" :footer="null" centered :width="800" forceRender)
     v-chart(class="chart" :option="option")
 
-  a.expo(:href="`http://192.168.3.3:9040/新店表${yesterday}.xlsx`" target="_blank") export
+  .left-bottom-div(v-show="!spinning")
+    a-button(type="link" size="small" @click="fetch_fresh_shop") refresh
+    a(:href="`http://192.168.3.3:9040/新店表${yesterday}.xlsx`" target="_blank") export
 </template>
 
 <script>

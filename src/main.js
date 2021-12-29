@@ -3,6 +3,7 @@ import { createApp } from "vue"
 import App from "./App3.vue"
 import Antd from "ant-design-vue"
 import "ant-design-vue/dist/antd.css"
+import '@surely-vue/table/dist/index.css'
 
 import store from "./store"
 import router from "./router"

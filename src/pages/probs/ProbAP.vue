@@ -1,27 +1,53 @@
 <template lang="pug">
 div
-  a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+  a-table.ant-table-change(
+    :columns="columns",
+    :data-source="table",
+    rowKey="key",
+    :loading="loading",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    size="small",
+    :scroll="{ y: scrollY, x: scrollX }",
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+  )
+    template(
+      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :style="`min-width: 160px; width: ${column.width + 50 || 350}px;`",
+        :filterOptions="getColFilters(column.dataIndex)",
+        :selectedList="selectedKeys",
+        @select-change="setSelectedKeys",
+        @confirm="confirm",
+        @reset="clearFilters"
+      )
 
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 350}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#handle="{text, record}")
-      a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+    template(#handle="{ text, record }")
+      a-input(
+        :value="text",
+        @change="(e) => handleChange(e.target.value, record)",
+        size="small"
+      )
 
   .left-bottom-div
-    a-button(type="link" size="small" @click="fetchTable") 
+    a-button(type="link", size="small", @click="fetchTable") 
       SyncOutlined
-      span(style="margin-left: 4px;") 刷新
-    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 
+      span(style="margin-left: 4px") 刷新
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 
       ExportOutlined
-      span(style="margin-left: 4px;") 导出
-    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 
+      span(style="margin-left: 4px") 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 
       DownloadOutlined
       span 下载
-    
 </template>
 
 <script>
@@ -57,96 +83,129 @@ div
       columns() {
         return [
           {
-            title: "店铺id",
-            dataIndex: "shop_id",
+            title: "店铺ID",
+            dataIndex: "店铺ID",
             width: 90,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.shop_id == value,
+            onFilter: (value, record) => record.店铺ID == value,
           },
           {
-            title: "店名",
-            dataIndex: "shop_name",
+            title: "店铺名",
+            dataIndex: "店铺名",
             width: 250,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.shop_name == value,
+            onFilter: (value, record) => record.店铺名 == value,
           },
           {
             title: "城市",
-            dataIndex: "city",
+            dataIndex: "城市",
             width: 100,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.city == value,
+            onFilter: (value, record) => record.城市 == value,
           },
           {
             title: "平台",
-            dataIndex: "platform",
+            dataIndex: "平台",
             width: 70,
             filters: [
               { text: "美团", value: "美团" },
               { text: "饿了么", value: "饿了么" },
             ],
             filterMultiple: true,
-            onFilter: (value, record) => record.platform == value,
+            onFilter: (value, record) => record.平台 == value,
           },
           {
             title: "物理店",
-            dataIndex: "real_shop_name",
+            dataIndex: "物理店",
             width: 100,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.real_shop_name == value,
+            onFilter: (value, record) => record.物理店 == value,
           },
           {
-            title: "责任人",
-            dataIndex: "person",
+            title: "负责人",
+            dataIndex: "负责人",
             width: 80,
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.person ?? "") == value,
-          },
-          {
-            title: "组长",
-            dataIndex: "leader",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.leader ?? "") == value,
+            onFilter: (value, record) => (record.负责人 ?? "") == value,
           },
           {
             title: "分类",
-            dataIndex: "tagName",
+            dataIndex: "分类",
             width: 180,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.tagName == value,
+            onFilter: (value, record) => record.分类 == value,
           },
           {
             title: "商品",
-            dataIndex: "name",
+            dataIndex: "商品",
             width: 250,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.name == value,
+            onFilter: (value, record) => record.商品 == value,
           },
           {
-            title: "价格",
-            dataIndex: "price",
+            title: "原价",
+            dataIndex: "原价",
             width: 100,
-            sorter: (a, b) => this.toNum(a.price) - this.toNum(b.price),
+            sorter: (a, b) => this.toNum(a.原价) - this.toNum(b.原价),
           },
           {
             title: "餐盒费",
-            dataIndex: "boxPrice",
+            dataIndex: "餐盒费",
             width: 100,
-            sorter: (a, b) => this.toNum(a.boxPrice) - this.toNum(b.boxPrice),
+            sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费),
           },
           {
-            title: "最小起购",
-            dataIndex: "minOrderCount",
+            title: "起购量",
+            dataIndex: "起购量",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.起购量) - this.toNum(b.起购量),
+          },
+          {
+            title: "折扣价",
+            dataIndex: "折扣价",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价),
+          },
+          {
+            title: "折扣限购",
+            dataIndex: "折扣限购",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣限购) - this.toNum(b.折扣限购),
+          },
+          {
+            title: "上下架",
+            dataIndex: "上下架",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.上下架 == value,
+          },
+          {
+            title: "10以上的最小满减门槛",
+            dataIndex: "10以上的最小满减门槛",
             width: 100,
             sorter: (a, b) =>
-              this.toNum(a.minOrderCount) - this.toNum(b.minOrderCount),
+              this.toNum(a["10以上的最小满减门槛"]) -
+              this.toNum(b["10以上的最小满减门槛"]),
           },
           {
-            title: "满减",
-            dataIndex: "detail",
+            title: "满减力度",
+            dataIndex: "满减力度",
             width: 100,
-            sorter: (a, b) => this.toNum(a.detail) - this.toNum(b.detail),
+            sorter: (a, b) => this.toNum(a.满减力度) - this.toNum(b.满减力度),
+          },
+          {
+            title: "起购折扣价格",
+            dataIndex: "起购折扣价格",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.起购折扣价格) - this.toNum(b.起购折扣价格),
+          },
+          {
+            title: "起购满减价格",
+            dataIndex: "起购满减价格",
+            width: 100,
+            sorter: (a, b) =>
+              this.toNum(a.起购满减价格) - this.toNum(b.起购满减价格),
           },
           {
             title: "处理",
@@ -161,6 +220,9 @@ div
               (record?.handle == null) == Boolean(value),
           },
         ];
+      },
+      scrollX() {
+        return this.columns.reduce((sum, { width }) => sum + (width ?? 300) + 10, 50);
       },
     },
     methods: {

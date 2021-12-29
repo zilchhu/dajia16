@@ -1,20 +1,47 @@
 <template lang="pug">
 div
-  a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+  a-table.ant-table-change(
+    :columns="columns",
+    :data-source="table",
+    rowKey="key",
+    :loading="loading",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    size="small",
+    :scroll="{ y: scrollY }",
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+  )
+    template(
+      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :style="`min-width: 160px; width: ${column.width + 50 || 350}px;`",
+        :filterOptions="getColFilters(column.dataIndex)",
+        :selectedList="selectedKeys",
+        @select-change="setSelectedKeys",
+        @confirm="confirm",
+        @reset="clearFilters"
+      )
 
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 350}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#handle="{text, record}")
-      a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+    template(#handle="{ text, record }")
+      a-input(
+        :value="text",
+        @change="(e) => handleChange(e.target.value, record)",
+        size="small"
+      )
 
   .left-bottom-div(v-show="!loading")
-    a-button(type="link" size="small" @click="fetchTable") 刷新
-    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
-    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
+    a-button(type="link", size="small", @click="fetchTable") 刷新
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 下载
 </template>
 
 <script>
@@ -42,95 +69,110 @@ div
       columns() {
         return [
           {
-            title: "门店id",
-            dataIndex: "shop_id",
+            title: "店铺ID",
+            dataIndex: "店铺ID",
             width: 90,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.shop_id == value,
+            onFilter: (value, record) => record.店铺ID == value,
           },
           {
-            title: "门店",
-            dataIndex: "shop_name",
+            title: "店铺名称",
+            dataIndex: "店铺名称",
             width: 250,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.shop_name ?? "") == value,
+            onFilter: (value, record) => (record.店铺名称 ?? "") == value,
           },
           {
             title: "平台",
-            dataIndex: "platform",
+            dataIndex: "平台",
             width: 70,
             filters: [
               { text: "美团", value: "美团" },
               { text: "饿了么", value: "饿了么" },
             ],
             filterMultiple: true,
-            onFilter: (value, record) => record.platform == value,
+            onFilter: (value, record) => record.平台 == value,
           },
           {
             title: "物理店",
-            dataIndex: "real_shop_name",
+            dataIndex: "物理店",
             width: 90,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.real_shop_name ?? "") == value,
+            onFilter: (value, record) => (record.物理店 ?? "") == value,
           },
           {
-            title: "负责",
-            dataIndex: "person",
+            title: "责任人",
+            dataIndex: "责任人",
             width: 80,
             slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.person ?? "") == value,
+            onFilter: (value, record) => (record.责任人 ?? "") == value,
           },
           {
-            title: "组长",
-            dataIndex: "leader",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.leader ?? "") == value,
-          },
-          {
-            title: "新店责任人",
-            dataIndex: "new_person",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.new_person ?? "") == value,
-          },
-          {
-            title: "分类",
-            dataIndex: "category_name",
+            title: "门店起送",
+            dataIndex: "门店起送",
             width: 140,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.category_name ?? "") == value,
+            onFilter: (value, record) => (record.门店起送 ?? "") == value,
+            sorter: (a, b) => this.toNum(a.门店起送) - this.toNum(b.门店起送),
           },
           {
-            title: "品名",
-            dataIndex: "name",
-            width: 300,
+            title: "分类名称",
+            dataIndex: "分类名称",
+            width: 140,
             slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.name ?? "") == value,
+            onFilter: (value, record) => (record.分类名称 ?? "") == value,
+          },
+          {
+            title: "商品名称",
+            dataIndex: "商品名称",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.商品名称 ?? "") == value,
           },
           {
             title: "原价",
-            dataIndex: "originalPrice",
+            dataIndex: "原价",
             align: "right",
             width: 100,
             sorter: (a, b) =>
-              this.toNum(a.originalPrice) - this.toNum(b.originalPrice),
-          },
-          {
-            title: "折扣价",
-            dataIndex: "activi_price",
-            align: "right",
-            width: 100,
-            sorter: (a, b) =>
-              this.toNum(a.activi_price) - this.toNum(b.activi_price),
+              this.toNum(a.原价) - this.toNum(b.原价),
           },
           {
             title: "餐盒费",
-            dataIndex: "package_fee",
+            dataIndex: "餐盒费",
             align: "right",
             width: 100,
-            sorter: (a, b) =>
-              this.toNum(a.package_fee) - this.toNum(b.package_fee),
+            sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费),
+          },
+          {
+            title: "起购数量",
+            dataIndex: "起购数量",
+            align: "right",
+            width: 140,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => (record.起购数量 ?? "") == value,
+            sorter: (a, b) => this.toNum(a.起购数量) - this.toNum(b.起购数量),
+          },
+          {
+            title: "折扣价",
+            dataIndex: "折扣价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价),
+          },
+          {
+            title: "折扣限购",
+            dataIndex: "折扣限购",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣限购) - this.toNum(b.折扣限购),
+          },
+          {
+            title: "加购原价",
+            dataIndex: "加购原价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.加购原价) - this.toNum(b.加购原价),
           },
           {
             title: "处理",

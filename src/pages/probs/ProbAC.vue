@@ -75,13 +75,6 @@ div
             onFilter: (value, record) => (record.组员 ?? "") == value,
           },
           {
-            title: "组长",
-            dataIndex: "组长",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.组长 ?? "") == value,
-          },
-          {
             title: "生效时段",
             dataIndex: "生效时段",
             slots: { filterDropdown: "filterDropdown" },

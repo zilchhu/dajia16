@@ -85,7 +85,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.person == value,
+            onFilter: (value, record) => (record.person ?? '') == value,
           },
           {
             title: "组长",
@@ -95,7 +95,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
             slots: { filterDropdown: "filterDropdown" },
             filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.leader == value,
+            onFilter: (value, record) => (record.leader ?? '') == value,
           },
           {
             title: "物理店",
@@ -126,7 +126,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
               dataIndex: `consume_sum_${v}`,
               key: `consume_sum_${v}`,
               align: "right",
-              width: 60,
+              width: 80,
               sorter: (a, b) =>
                 this.toNum(a[`consume_sum_${v}`]) -
                 this.toNum(b[`consume_sum_${v}`]),
@@ -215,7 +215,7 @@ a-table(:columns="sum_columns" :data-source="sum_data.shops" rowKey="real_shop" 
               dataIndex: `profit_${v}`,
               key: `profit_${v}`,
               align: "right",
-              width: 70,
+              width: 80,
               sorter: (a, b) =>
                 this.toNum(a[`profit_${v}`]) - this.toNum(b[`profit_${v}`]),
             },

@@ -121,11 +121,11 @@ div
             onFilter: (value, record) => (record.集点返券 ?? "") == value,
           },
           {
-            title: "新客立减（平台）",
-            dataIndex: "新客立减（平台）",
+            title: "平台新客立减",
+            dataIndex: "平台新客立减",
             slots: { filterDropdown: "filterDropdown" },
             onFilter: (value, record) =>
-              (record["新客立减（平台）"] ?? "") == value,
+              (record["平台新客立减"] ?? "") == value,
           },
           {
             title: "店外发券",

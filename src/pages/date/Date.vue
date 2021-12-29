@@ -407,7 +407,7 @@ div(ref="date")
             title: "收入",
             dataIndex: "income",
             align: "right",
-            width: 60,
+            width: 70,
             slots: { customRender: "income" },
             sorter: (a, b) => this.toNum(a.income) - this.toNum(b.income),
           },
@@ -461,7 +461,7 @@ div(ref="date")
             title: "总分",
             dataIndex: "score",
             align: "right",
-            width: 50,
+            width: 70,
             sorter: (a, b) => this.toNum(a.score) - this.toNum(b.score),
           },
           {
@@ -625,11 +625,11 @@ div(ref="date")
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-                                        let v = 0
-                                        try {
-                                          v = parseFloat(val)
-                                        } catch (e) { console.error(e) }
-                                        return v ${r[1]} ${r[2]}`;
+                                          let v = 0
+                                          try {
+                                            v = parseFloat(val)
+                                          } catch (e) { console.error(e) }
+                                          return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -684,6 +684,19 @@ div(ref="date")
       },
     },
     methods: {
+      withPersonName(rec) {
+        if (rec.person == "于松民") {
+          let suffix = "";
+          if (
+            rec.real_shop.match(/^白石洲|爱联|狮岭|龙华|大岭山|白石厦|福州$/)
+          )
+            suffix = "-小廖";
+          if (rec.real_shop.match(/^长安沙头|东城|龙归|富士康|坪地|石牌|杨浦|横岗$/))
+            suffix = "-朋飞";
+          return { ...rec, person: '于' + suffix };
+        }
+        return rec;
+      },
       getTableByDate() {
         this.tableLoading = true;
         getTableByDate(this.day)
