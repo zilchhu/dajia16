@@ -1,32 +1,32 @@
 <template lang="pug">
-div(style="padding-right: 10px")
+div
   a-table.ant-table-change(
     :columns="columns",
     :data-source="table",
     rowKey="key",
     :loading="loading",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 50, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
     size="small",
-    :scroll="{ y: scrollY, x: scrollX }",
+    :scroll="{ y: scrollY }",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.filterWidth || column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#detail="{ text, record }")
-      .detail-list
-        .detail-item(v-for="prop in text", :key="prop.label") 
-          span {{ prop.label }}
-          span {{ prop.value }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '详情'")
+        .detail-list
+          .detail-item(v-for="prop in text", :key="prop.label") 
+            span {{ prop.label }}
+            span {{ prop.value }}
 
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="initTable") 刷新
@@ -86,26 +86,26 @@ div(style="padding-right: 10px")
             title: name,
             dataIndex: name,
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record[name] ?? "") == value,
           };
 
           if (name == "详情") {
-            return { ...column, width: 200, slots: { customRender: "detail" } };
+            return { ...column, width: 200 };
           }
 
           if (name == "店铺") {
-            return { ...column, width: 140, filterWidth: 300 };
+            return { ...column, width: 140 };
           }
 
           if (name == "时间") {
             return {
               ...column,
               width: 120,
-              onFilter: (value, record) =>
-                record[name]
-                  ? dayjs(record[name]).isSame(dayjs(value), "day")
-                  : "" == value,
+              // onFilter: (value, record) =>
+              //   record[name]
+              //     ? dayjs(record[name]).isSame(dayjs(value), "day")
+              //     : "" == value,
               sorter: (a, b) => (dayjs(a.时间).isBefore(dayjs(b.时间)) ? -1 : 1),
             };
           }

@@ -40,22 +40,24 @@
     :rowClassName="(record, index) => (record?._res?.code == 0 ? 'row-succ' : record?._res?.code == 1 ? 'row-error' : '')"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#tooltip="{ text, record }")
-      a-tooltip
-        template(#title)
-          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
-        div {{ text }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '门店ID'")
+        a-tooltip
+          template(#title)
+            div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+          div(
+            :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+          ) {{ text }}
 
   .left-bottom-div(v-show="table.length > 0")
     a-button(
@@ -113,21 +115,21 @@
             title: "门店ID",
             dataIndex: "门店ID",
             width: 90,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.门店ID == value,
           },
           {
             title: "门店名称",
             dataIndex: "门店名称",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.门店名称 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.门店名称 ?? "") == value,
           },
           {
             title: "满减",
             dataIndex: "满减",
             width: 200,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.满减 == value,
           },
         ];

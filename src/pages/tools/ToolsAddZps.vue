@@ -5,46 +5,33 @@ div
     :data-source="table",
     rowKey="key",
     :loading="loading",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 50, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
     size="small",
     :scroll="{ y: scrollY, x: scrollX }",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)",
-    @change="onTableChange"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#handle="{ text, record }")
-      a-input(
-        :value="text",
-        @change="(e) => handleChange(e.target.value, record)",
-        size="small"
-      )
-
-    template(#remark="{ text, record }")
-      a-select(
-        :value="text",
-        :options="remark_options",
-        :placeholder="text",
-        size="small",
-        @select="(value) => remarkRecord(value, record)",
-        style="width: 130px"
-      )
-
-    template(#date="{ text, record }")
-      .pre-wrap {{ text?.replace('T', '\n')?.replace(/\.\d{3}Z/, '') }}
-
-    template(#operation="{ text, record }")
-      div
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '备注'")
+        a-select(
+          :value="text",
+          :options="remark_options",
+          :placeholder="text",
+          size="small",
+          @select="(value) => remarkRecord(value, record)",
+          style="width: 130px"
+        )
+      template(v-else-if="column.dataIndex == 'key'")
         a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
         //- a-button(type="link", size="small", @click="() => delRecord(record)") 删除
 
@@ -215,7 +202,8 @@ div
     centered,
     :width="modalX"
   )
-    tools-zps-logs
+    .modal
+      tools-zps-logs
 
   a-modal(
     v-model:visible="batch_modal_show",
@@ -224,7 +212,8 @@ div
     centered,
     :width="modalX"
   )
-    tools-zps-shop-upd
+    .modal
+      tools-zps-shop-upd
 
   .left-bottom-div(v-show="!loading", style="bottom: 10px")
     a-button(type="link", size="small", @click="addRecord") 新增
@@ -400,7 +389,7 @@ div
             title: name,
             dataIndex: name,
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record[name] ?? "") == value,
           };
           if (name == "店铺ID")
@@ -424,8 +413,6 @@ div
             return {
               ...config,
               width: 140,
-              slots: { customRender: "remark", filterDropdown: "filterDropdown" },
-              onFilter: (value, record) => (record.备注 ?? "") == value,
             };
           if (name.match(/城市|负责人|平台/)) return { ...config, width: 70 };
           return config;
@@ -437,7 +424,6 @@ div
             dataIndex: "key",
             width: 60,
             // fixed: "left",
-            slots: { customRender: "operation" },
           },
           ...base_columns,
         ];
@@ -498,9 +484,6 @@ div
             message.error(err);
             this.loading = false;
           });
-      },
-      onTableChange(_1, _2, _3, { currentDataSource }) {
-        console.log(currentDataSource);
       },
       fetchShops() {
         new Shop()
@@ -765,12 +748,15 @@ div
     },
     mounted() {
       this.modalX = Math.min(1100, Math.floor(document.body.clientWidth * 0.8));
-      this.scrollY = document.body.clientHeight - 204;
+      this.scrollY = document.body.clientHeight - 160;
     },
   };
 </script>
 
 <style lang="sass" scoped>
+.modal
+  padding-right: 60px
+
 .form-acct-items
   columns: 2
 </style>

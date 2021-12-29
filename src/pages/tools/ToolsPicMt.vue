@@ -33,28 +33,51 @@
         span 上传图片文件夹
 
   div(style="flex-grow: 1")
-    div(v-if="table.length>0")
-      a-button(type="link" size="small" @click="exportPicTable" :loading="exporting" style="color: black;") 导出
-      a(v-show="picTableUrl" :href="`http://192.168.3.3:9005/${picTableUrl}`" target="_blank") 下载
+    div(v-if="table.length > 0")
+      a-button(
+        type="link",
+        size="small",
+        @click="exportPicTable",
+        :loading="exporting",
+        style="color: black"
+      ) 导出
+      a(
+        v-show="picTableUrl",
+        :href="`http://192.168.3.3:9005/${picTableUrl}`",
+        target="_blank"
+      ) 下载
 
-    a-table.ant-table-change(v-show="table.length > 0" :columns="columns" :data-source="table" rowKey="_i" 
-      :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-      size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
-
-      template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-        table-select(:style="`min-width: 160px; width: ${column.width || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-          :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-      template(#tooltip="{text, record}")
-        a-tooltip
-          template(#title)
-            div(style="white-space: pre-wrap;") {{record?._res?.code == 0 ? record?._res?.data : record?._res?.err}}
-          div(:class="[{'succ-text': record?._res?.code == 0}, {'error-text': record?._res?.code == 1}]" ) {{text}}
-
-      template(#pic="{text, record}")
-        a-image(:width="100" :src="text")
-
-  //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
+    a-table.ant-table-change(
+      v-show="table.length > 0",
+      :columns="columns",
+      :data-source="table",
+      rowKey="_i",
+      :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+      size="small",
+      :scroll="{ y: scrollY }",
+      :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+    )
+      template(
+        #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      )
+        table-select(
+          :columnTitle="column.title",
+          :columnIndex="column.dataIndex",
+          :tableData="table",
+          @select-change="setSelectedKeys",
+          @confirm="confirm()",
+          @reset="clearFilters()"
+        )
+      template(#bodyCell="{ column, text, record }")
+        template(v-if="column.dataIndex == '商品名称'")
+          a-tooltip
+            template(#title)
+              div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+            div(
+              :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+            ) {{ text }}
+        template(v-else-if="column.title == '图片'")
+          a-image(:width="100", :src="record.图片链接")
 </template>
 
 <script>
@@ -95,21 +118,20 @@
             title: "商品名称",
             dataIndex: "商品名称",
             width: 200,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
-            onFilter: (value, record) => record.商品名称 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.商品名称 ?? '') == value,
           },
           {
             title: "图片",
             dataIndex: "图片链接",
             width: 120,
-            slots: { customRender: "pic" },
           },
           {
             title: "图片链接",
             dataIndex: "图片链接",
             width: 300,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.图片链接 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.图片链接 ?? '') == value,
           },
         ];
       },
@@ -234,8 +256,8 @@
       allFileList(n) {
         console.log(n);
         this.table = n.map((v) => ({
-          商品名称: v.name.slice(0, v.name.lastIndexOf('.')),
-          图片链接: "", 
+          商品名称: v.name.slice(0, v.name.lastIndexOf(".")),
+          图片链接: "",
           _i: v.uid,
         }));
         console.log("table", this.table);

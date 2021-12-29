@@ -40,22 +40,24 @@
     :rowClassName="(record, index) => (record?._res?.code == 0 ? 'row-succ' : record?._res?.code == 1 ? 'row-error' : '')"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#tooltip="{ text, record }")
-      a-tooltip
-        template(#title)
-          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
-        div {{ text }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '门店ID'")
+        a-tooltip
+          template(#title)
+            div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+          div(
+            :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+          ) {{ text }}
 
   //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
 </template>
@@ -99,50 +101,50 @@
             title: "门店ID",
             dataIndex: "门店ID",
             width: 90,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.门店ID == value,
           },
           {
             title: "门店名称",
             dataIndex: "门店名称",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.门店名称 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.门店名称 ?? "") == value,
           },
           {
             title: "满?元可用",
             dataIndex: "满?元可用",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record["满?元可用"] == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record["满?元可用"] ?? "") == value,
           },
           {
             title: "代金券金额",
             dataIndex: "代金券金额",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.代金券金额 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.代金券金额 ?? "") == value,
           },
           {
             title: "订单满?元返券",
             dataIndex: "订单满?元返券",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record["订单满?元返券"] == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record["订单满?元返券"] ?? "") == value,
           },
           {
             title: "使用有效期",
             dataIndex: "使用有效期",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.使用有效期 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.使用有效期 ?? "") == value,
           },
           {
             title: "删除活动",
             dataIndex: "删除活动",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.删除活动 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.删除活动 ?? "") == value,
           },
         ];
       },

@@ -1,114 +1,51 @@
 <template lang="pug">
-a-table(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-  :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-  size="small" :scroll="{y: scrollY}")
-
-  template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-    a-row(type="flex")
-      a-col(flex="auto")
-        a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width || 220}px;`")
-          a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      a-col(flex="60px")
-        a-button(type="link" @click="confirm") confirm
-        br
-        a-button(type="link" @click="clearFilters") reset
+ProbBase(probType="z", :columns="columns")
 </template>
 
 <script>
-import Probs from '../../api/probs'
-import { message } from 'ant-design-vue'
+  import ProbBase from "./ProbBaseS.vue";
 
-export default {
-  name: 'ProbZ',
-  data() {
-    return {
-      table: [],
-      loading: false,
-      scrollY: 900
-    }
-  },
-  computed: {
-    columns() {
-       return [
-        {
-          title: '店铺ID',
-          dataIndex: '店铺ID',
-          width: 90,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.店铺ID == value
-        },
-        {
-          title: '店铺名称',
-          dataIndex: '店铺名称',
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.店铺名称 == value
-        },
-        {
-          title: '平台',
-          dataIndex: '平台',
-          width: 70,
-          filters: [
-            { text: '美团', value: '美团' },
-            { text: '饿了么', value: '饿了么' }
-          ],
-          filterMultiple: true,
-          onFilter: (value, record) => record.平台 == value
-        },
-        {
-          title: '负责人',
-          dataIndex: '负责人',
-          width: 70,
-          slots: { filterDropdown: 'filterDropdown', customRender: 'person' },
-          onFilter: (value, record) => record.负责人 == value
-        },
-        {
-          title: '物理店',
-          dataIndex: '物理店',
-          width: 70,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.物理店 == value
-        },
-        {
-          title: '变化范围/平方千米',
-          dataIndex: '变化范围/平方千米',
-          align: 'right',
-          width: 150,
-          sorter: (a, b) => this.toNum(a['变化范围/平方千米']) - this.toNum(b['变化范围/平方千米'])
-        }
-      ]
-    }
-  },
-  methods: {
-    getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName]))).map(col => ({
-        text: col,
-        value: col
-      }))
+  export default {
+    name: "ProbZ",
+    components: {
+      ProbBase,
     },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
+    data() {
+      return {
+        columns: [
+          {
+            title: "店铺ID",
+            dataIndex: "店铺ID",
+            width: 90,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 260
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            width: 70,
+          },
+          {
+            title: "负责人",
+            dataIndex: "负责人",
+            width: 70,
+          },
+          {
+            title: "物理店",
+            dataIndex: "物理店",
+            width: 70,
+          },
+          {
+            title: "变化范围/平方千米",
+            dataIndex: "变化范围/平方千米",
+            align: "right",
+            _sort: true,
+          },
+        ],
+      };
     },
-    fetchTable() {
-      this.loading = true
-      new Probs()
-        .single('z')
-        .then(res => {
-          this.table = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 204
-    this.fetchTable()
-  }
-}
+  };
 </script>

@@ -1,23 +1,49 @@
 <template lang="pug">
 div
-  a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
-
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#rule="{text, record}")
-      span.pre {{text}}
-
-    template(#handle="{text, record}")
-      a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
+  a-table.ant-table-change(
+    :columns="columns",
+    :data-source="table",
+    rowKey="key",
+    :loading="loading",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    size="small",
+    :scroll="{ y: scrollY }",
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == 'handle'")
+        a-input(
+          :value="text",
+          @change="(e) => handleChange(e.target.value, record)",
+          size="small"
+        )
+      template(v-else-if="column.dataIndex == '活动规则'")
+        span.pre {{ text }}
 
   .left-bottom-div(v-show="!loading")
-    a-button(type="link" size="small" @click="fetchTable") 刷新
-    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
-    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
+    a-button(type="link", size="small", @click="fetchTable") 刷新
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 下载
 </template>
 
 <script>
@@ -49,66 +75,55 @@ div
             title: "店铺编号",
             dataIndex: "店铺编号",
             width: 110,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.店铺编号 == value,
           },
           {
             title: "店铺名称",
             dataIndex: "店铺名称",
             width: 250,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.店铺名称 == value,
           },
           {
             title: "平台",
             dataIndex: "平台",
             width: 70,
-            filters: [
-              { text: "美团", value: "美团" },
-              { text: "饿了么", value: "饿了么" },
-            ],
-            filterMultiple: true,
+            customFilterDropdown: true,
             onFilter: (value, record) => record.平台 == value,
           },
           {
             title: "物理店",
             dataIndex: "real_shop_name",
             width: 80,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.real_shop_name ?? "") == value,
           },
           {
             title: "责任人",
             dataIndex: "责任人",
             width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.责任人 ?? "") == value,
-          },
-          {
-            title: "组长",
-            dataIndex: "组长",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.组长 ?? "") == value,
           },
           {
             title: "活动类型",
             dataIndex: "活动类型",
             width: 130,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.活动类型 ?? "") == value,
           },
           {
             title: "活动规则",
             dataIndex: "活动规则",
-            slots: { filterDropdown: "filterDropdown", customRender: "rule" },
+            customFilterDropdown: false,
             onFilter: (value, record) => (record.活动规则 ?? "") == value,
           },
           {
             title: "结束时间",
             dataIndex: "结束时间",
             width: 200,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.结束时间 == value,
             sorter: (a, b) =>
               dayjs(a.结束时间).isBefore(dayjs(b.结束时间)) ? -1 : 1,
@@ -116,14 +131,8 @@ div
           {
             title: "处理",
             dataIndex: "handle",
-            filters: [
-              { text: "已处理", value: "" },
-              { text: "未处理", value: "1" },
-            ],
-            filterMultiple: true,
-            slots: { customRender: "handle" },
-            onFilter: (value, record) =>
-              (record?.handle == null) == Boolean(value),
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.handle ?? "") == value,
           },
         ];
       },

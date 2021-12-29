@@ -1,24 +1,32 @@
 <template lang="pug">
 div
-  a-table(:columns="perf_columns" :data-source="perfs" rowKey="key" :loading="spinning" 
-    :pagination="{showSizeChanger: true, defaultPageSize, pageSizeOptions: ['40', '80', '160', '320'], size: 'small'}" 
-    @change="table_change"
-    size="small" :scroll="{x: scrollX, y: scrollY}" bordered)
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      //- a-row(type="flex")
-      //-   a-col(flex="auto")
-      //-     a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${240}px;`")
-      //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      //-   a-col(flex="60px")
-      //-     a-button(type="link" @click="confirm") confirm
-      //-     br
-      //-     a-button(type="link" @click="clearFilters") reset
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#person="{text, record}")
-        router-link(:to="{ name: 'user', params: { username: text || '-', date: 0 }}" style="color: rgba(0, 0, 0, 0.65);") {{text}}
-
+  s-table.ant-table-change(
+    :columns="perf_columns",
+    :data-source="perfs",
+    rowKey="key",
+    :loading="spinning",
+    :pagination="false",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    bordered
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="perfs",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == 'person'")
+        router-link(
+          :to="{ name: 'user', params: { username: text || '-', date: 0 } }",
+          style="color: rgba(0, 0, 0, 0.65)"
+        ) {{ text }}
 </template>
 
 <script>
@@ -53,7 +61,7 @@ div
         spinning: false,
         scrollY: 900,
         defaultPageSize: 40,
-        last_perf_route: { path: "/perf2" }
+        last_perf_route: { path: "/perf2" },
       };
     },
     computed: {
@@ -63,75 +71,63 @@ div
             title: "级别",
             dataIndex: "级别",
             width: 80,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
-            // fixed: "left",
-            onFilter: (value, record) => record.级别 == value,
           },
           {
             title: "运营",
             dataIndex: "运营",
             width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            filterMultiple: true,
-            // fixed: "left",
-            onFilter: (value, record) => record.运营 == value,
           },
           {
             title: "收入",
             dataIndex: "收入",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.收入) - this.toNum(b.收入),
+            _sort: true,
           },
           {
             title: "推广比例",
             dataIndex: "推广比例",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.推广比例) - this.toNum(b.推广比例),
+            _sort: true,
           },
           {
             title: "成本比例",
             dataIndex: "成本比例",
             align: "right",
             width: 100,
-            sorter: (a, b) =>
-              this.toNum(a.成本比例) - this.toNum(b.成本比例),
+            _sort: true,
           },
           {
             title: "利润",
             dataIndex: "利润",
             align: "right",
             width: 120,
-            sorter: (a, b) =>
-              this.toNum(a.利润) - this.toNum(b.利润),
+            _sort: true,
           },
           {
             title: "提成",
             dataIndex: "提成",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.提成) - this.toNum(b.提成),
+            _sort: true,
           },
           {
             title: "月累计提成",
             dataIndex: "月累计提成",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.月累计提成) - this.toNum(b.月累计提成),
+            _sort: true,
           },
           {
             title: "日期",
             dataIndex: "日期",
             align: "right",
             fixed: "right",
-            slots: { filterDropdown: "filterDropdown" },
             width: 100,
-            onFilter: (value, record) => record.日期 == value,
           },
         ];
-        return [...fiexed_cols];
+        return [...fiexed_cols].map(this.extendColumn);
       },
       scrollX() {
         let x = this.reduce_width(this.perf_columns);
@@ -154,13 +150,32 @@ div
           return 0;
         }
       },
-      getColFilters(colName) {
-        return Array.from(new Set(this.perfs.map((row) => row[colName] ?? "")))
-          .sort()
-          .map((col) => ({
-            label: col,
-            value: col,
-          }));
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
       },
       fetch_perf() {
         this.spinning = true;
@@ -178,7 +193,7 @@ div
       },
       table_change(pagination) {
         localStorage.setItem("perf2/defaultPageSize", pagination.pageSize);
-      }
+      },
     },
     created() {
       this.scrollY = document.body.clientHeight - 144;

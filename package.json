@@ -10,9 +10,9 @@
   "dependencies": {
     "@ant-design/icons-vue": "^6.0.1",
     "@antv/g2plot": "^2.3.8",
-    "@surely-vue/table": "^2.0.5",
+    "@surely-vue/table": "2.0.5",
     "@vue/server-renderer": "^3.0.10",
-    "ant-design-vue": "^2.0.0-rc.3",
+    "ant-design-vue": "^3.0.0-alpha.16",
     "apprun": "^3.28.6",
     "calendar": "^0.1.1",
     "clipboardy": "^2.3.0",
@@ -29,7 +29,7 @@
     "socket.io-client": "^3.1.0",
     "sockjs-client": "^1.5.0",
     "uuid": "^8.3.2",
-    "vue": "^3.0.0",
+    "vue": "^3.2.26",
     "vue-echarts": "^6.0.0",
     "vue-router": "^4.0.1",
     "vuex": "^4.0.2"

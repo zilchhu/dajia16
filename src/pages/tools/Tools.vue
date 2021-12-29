@@ -39,10 +39,12 @@
             ],
           },
           {
-            title: "价格修改★",
+            title: "商品★",
             items: [
-              { title: "美团", to: { name: "tools-food-mt" } },
-              { title: "饿了么", to: { name: "tools-food-elm" } },
+              { title: "修改商品", to: { name: "tools-food" } },
+              { title: "美团图片上传", to: { name: "tools-pic-mt" } },
+              { title: "饿了么图片上传", to: { name: "tools-pic-elm" } },
+              { title: "美团测试产品", to: { name: "tools-tests" } },
             ],
           },
           {
@@ -51,25 +53,13 @@
               { title: "减配送费", to: { name: "tools-delivery" } },
               { title: "满减活动", to: { name: "tools-full-discount" } },
               { title: "下单返券", to: { name: "tools-order-coupon" } },
-              { title: "售卖代金券", to: { name: "tools-seal-full-discount-coupon" } },
+              {
+                title: "售卖代金券",
+                to: { name: "tools-seal-full-discount-coupon" },
+              },
               { title: "店内领券", to: { name: "tools-poi-inner-coupon" } },
               { title: "收藏领券", to: { name: "tools-collect-coupon" } },
             ],
-          },
-          {
-            title: "商品替换",
-            items: [{ title: "美团", to: { name: "tools-food-sub-mt" } }],
-          },
-          {
-            title: "图片上传",
-            items: [
-              { title: "美团", to: { name: "tools-pic-mt" } },
-              { title: "饿了么", to: { name: "tools-pic-elm" } },
-            ],
-          },
-          {
-            title: "测试产品",
-            items: [{ title: "美团", to: { name: "tools-tests" } }],
           },
         ],
       };

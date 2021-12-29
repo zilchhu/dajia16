@@ -46,38 +46,36 @@ s-table(
                 valueStyle="font-size: 1em;"
               )
                 template(v-if="key == 'income'", #formatter="{ value }")
-                  .ellipsis(:class="{ unsatisfied: isIncome(value, record) }") {{ emptyVal(value) }}
+                  .truncate(:class="{ unsatisfied: isIncome(value, record) }") {{ emptyVal(value) }}
                 template(
                   v-else-if="key == 'consume_ratio'",
                   #formatter="{ value }"
                 )
-                  .ellipsis(
+                  .truncate(
                     :class="{ unsatisfied: isConsumeRatio(value, record) }"
                   ) {{ emptyVal(value) }}
                 template(
                   v-else-if="key == 'settlea_30'",
                   #formatter="{ value }"
                 )
-                  .ellipsis(:class="{ unsatisfied: isSettlea30(value) }") {{ emptyVal(value) }}
+                  .truncate(:class="{ unsatisfied: isSettlea30(value) }") {{ emptyVal(value) }}
                 template(v-else, #formatter="{ value }")
-                  .ellipsis {{ emptyVal(value) }}
+                  .truncate {{ emptyVal(value) }}
       a-tab-pane(:key="`${record.id}-2`", tab="优化", size="small")
         hello-form2(:record="record")
 </template>
 
 <script>
-  import { message } from "ant-design-vue";
-  import TableSelect from "../TableSelect";
-  import HelloForm2 from "../HelloForm2";
-  import { getTableByShop } from "../../api";
+  import TableSelect from "../../components/TableSelect";
+  import HelloForm2 from "../../components/HelloForm2";
 
   export default {
-    name: "shop-history",
+    name: "date-shop",
     components: {
       TableSelect,
       HelloForm2,
     },
-    props: ["shopid"],
+    props: ["table"],
     data() {
       return {
         columns: [
@@ -170,12 +168,11 @@ s-table(
             dataIndex: "date",
             align: "left",
             width: 100,
-            fixed: "right",
+            fixed: 'right',
             _sort: true,
             _filter: true,
           },
         ].map(this.extendColumn),
-        table: [],
       };
     },
     computed: {
@@ -276,23 +273,6 @@ s-table(
       isSettlea30(text) {
         return this.toNum(text) < 80;
       },
-      fetchTable() {
-        getTableByShop(this.shopid)
-          .then((res) => {
-            this.table = res;
-          })
-          .catch((err) => {
-            message.error(err);
-          });
-      },
-    },
-    created() {
-      this.fetchTable();
-    },
-    watch: {
-      shopid() {
-        this.fetchTable();
-      },
     },
   };
 </script>
@@ -303,7 +283,7 @@ s-table(
   width: 100%
   text-align: right
 
-.ellipsis
+.truncate
   max-width: 100px
   white-space: nowrap
   overflow: hidden

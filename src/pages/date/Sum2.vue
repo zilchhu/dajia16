@@ -1,37 +1,42 @@
 <template lang="pug">
-a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop" :loading="spinning" 
-  :pagination="{showSizeChanger: true, defaultPageSize, pageSizeOptions: ['20', '40', '80', '160'], size: 'small'}" 
-  @change="table_change"
-  size="small" :scroll="{x: scrollX, y: scrollY}" bordered)
-  template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-    //- a-row(type="flex")
-    //-   a-col(flex="auto")
-    //-     a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width}px;`")
-    //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-    //-   a-col(flex="60px")
-    //-     a-button(type="link" @click="confirm") confirm
-    //-     br
-    //-     a-button(type="link" @click="clearFilters") reset
-    table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-      :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-  template(#consume_sum_ratio="{text, record}")
-    .cell(:class="{unsatisfied: text ? toNum(text) > 4.5 : false}") {{text}}
-
-  template(#cost_sum_ratio="{text, record}")
-    .cell(:class="{unsatisfied: text ? toNum(text) > 50 : false}") {{text}}
+s-table.ant-table-change(
+  :columns="sum2_columns",
+  :data-source="sum2_data.shops",
+  rowKey="real_shop",
+  :loading="spinning",
+  :pagination="false",
+  size="small",
+  :scroll="{ x: scrollX, y: scrollY }",
+  bordered
+)
+  template(
+    #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+  )
+    table-select(
+      :columnTitle="column.title",
+      :columnIndex="column.dataIndex",
+      :tableData="sum2_data.shops",
+      @select-change="setSelectedKeys",
+      @confirm="confirm()",
+      @reset="clearFilters()"
+    )
+  template(#bodyCell="{ column, text, record }")
+    template(v-if="column.dataIndex.startsWith('consume_sum_ratio_')")
+      .cell(:class="{ unsatisfied: text ? toNum(text) > 4.5 : false }") {{ text }}
+    template(v-else-if="column.dataIndex.startsWith('cost_sum_ratio_')")
+      .cell(:class="{ unsatisfied: text ? toNum(text) > 50 : false }") {{ text }}
 
   //- template(#real_shop="{text, record}")
   //-   router-link.cell(:to="{ name: 'date', params: { day: 1 }, query: {real_shop: text} }" style="color: rgba(0, 0, 0, 0.65);") {{text}}
 </template>
 
 <script>
-  import { message } from "ant-design-vue";
-  import Sum from "../../api/sum";
   import dayjs from "dayjs";
   import localeData from "dayjs/plugin/localeData";
   import weekday from "dayjs/plugin/weekday";
   import updateLocale from "dayjs/plugin/updateLocale";
+  import { message } from "ant-design-vue";
+  import Sum from "../../api/sum";
   import TableSelect from "../../components/TableSelect";
 
   import "dayjs/locale/zh-cn";
@@ -71,42 +76,34 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
             dataIndex: "city",
             key: "city",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.city == value,
           },
           {
             title: "负责",
             dataIndex: "person",
             key: "person",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => (record.person ?? '') == value,
           },
           {
             title: "组长",
             dataIndex: "leader",
             key: "leader",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => (record.leader ?? '') == value,
           },
           {
             title: "物理店",
             dataIndex: "real_shop",
             key: "real_shop",
             width: 120,
-            slots: { filterDropdown: "filterDropdown" },
             fixed: "left",
-            onFilter: (value, record) => record.real_shop == value,
-            sorter: (a, b) => (a.real_shop < b.real_shop ? -1 : 1),
+            ellipsis: true,
+            _sort: "str",
+            _filter: true,
           },
-        ];
+        ].map(this.extendColumn);
+
         let dates_cols = this.sum2_data.dates.map((v) => ({
           title: v,
           children: [
@@ -116,9 +113,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `income_sum_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`income_sum_month_${v}`]) -
-                this.toNum(b[`income_sum_month_${v}`]),
+              _sort: true,
             },
             {
               title: "推广费用",
@@ -126,9 +121,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `consume_sum_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`consume_sum_month_${v}`]) -
-                this.toNum(b[`consume_sum_month_${v}`]),
+              _sort: true,
             },
             {
               title: "推广比例",
@@ -136,10 +129,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `consume_sum_ratio_month_${v}`,
               align: "right",
               width: 100,
-              slots: { customRender: "consume_sum_ratio" },
-              sorter: (a, b) =>
-                this.toNum(a[`consume_sum_ratio_month_${v}`]) -
-                this.toNum(b[`consume_sum_ratio_month_${v}`]),
+              _sort: true,
             },
             {
               title: "成本",
@@ -147,9 +137,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `cost_sum_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`cost_sum_month_${v}`]) -
-                this.toNum(b[`cost_sum_month_${v}`]),
+              _sort: true,
             },
             {
               title: "成本比例",
@@ -157,10 +145,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `cost_sum_ratio_month_${v}`,
               align: "right",
               width: 100,
-              slots: { customRender: "cost_sum_ratio" },
-              sorter: (a, b) =>
-                this.toNum(a[`cost_sum_ratio_month_${v}`]) -
-                this.toNum(b[`cost_sum_ratio_month_${v}`]),
+              _sort: true,
             },
             {
               title: "房租成本",
@@ -168,9 +153,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `rent_cost_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`rent_cost_month_${v}`]) -
-                this.toNum(b[`rent_cost_month_${v}`]),
+              _sort: true,
             },
             {
               title: "人工成本",
@@ -178,9 +161,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `labor_cost_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`labor_cost_month_${v}`]) -
-                this.toNum(b[`labor_cost_month_${v}`]),
+              _sort: true,
             },
             {
               title: "水电成本",
@@ -188,9 +169,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `water_electr_cost_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`water_electr_cost_month_${v}`]) -
-                this.toNum(b[`water_electr_cost_month_${v}`]),
+              _sort: true,
             },
             {
               title: "好评返现",
@@ -198,9 +177,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `cashback_cost_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`cashback_cost_month_${v}`]) -
-                this.toNum(b[`cashback_cost_month_${v}`]),
+              _sort: true,
             },
             {
               title: "运营成本",
@@ -208,9 +185,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `oper_cost_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`oper_cost_month_${v}`]) -
-                this.toNum(b[`oper_cost_month_${v}`]),
+              _sort: true,
             },
             {
               title: "利润",
@@ -218,13 +193,11 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
               key: `profit_month_${v}`,
               align: "right",
               width: 100,
-              sorter: (a, b) =>
-                this.toNum(a[`profit_month_${v}`]) -
-                this.toNum(b[`profit_month_${v}`]),
+              _sort: true,
             },
-          ],
+          ].map(this.extendColumn),
         }));
-        console.log([...fiexed_cols, ...dates_cols]);
+
         return [...fiexed_cols, ...dates_cols];
       },
       scrollX() {
@@ -235,7 +208,7 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
     methods: {
       reduce_width(nodes) {
         return nodes.reduce((sw, c) => {
-          if (c.width) return sw + c.width;
+          if (c.width) return sw + c.width ?? 200;
           if (c.children) return sw + this.reduce_width(c.children);
           return sw;
         }, 10);
@@ -248,12 +221,32 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
           return 0;
         }
       },
-      getColFilters(colName) {
-        return Array.from(
-          new Set(this.sum2_data.shops.map((row) => row[colName] || ""))
-        )
-          .sort()
-          .map((col) => ({ label: col, value: col }));
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
       },
       fetch_sum2_single() {
         this.spinning = true;
@@ -269,20 +262,16 @@ a-table(:columns="sum2_columns" :data-source="sum2_data.shops" rowKey="real_shop
             this.spinning = false;
           });
       },
-      table_change(pagination) {
-        localStorage.setItem("sum2/defaultPageSize", pagination.pageSize);
-      },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 184;
-      this.defaultPageSize = +localStorage.getItem("sum2/defaultPageSize") || 40;
       this.fetch_sum2_single();
+    },
+    mounted() {
+      this.scrollY = document.body.clientHeight - 184;
     },
     watch: {
       $route(route) {
         if (route.name == "sum2") {
-          this.defaultPageSize =
-            +localStorage.getItem("sum2/defaultPageSize") || 40;
           if (route.path != this.last_sum2_route.path) {
             this.fetch_sum2_single();
           }

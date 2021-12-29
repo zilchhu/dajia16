@@ -29,33 +29,12 @@
 
   a-divider
 
-  a-table.ant-table-change(
-    v-show="table.length > 0",
+  s-table(
     :columns="columns",
     :data-source="table",
-    rowKey="_i",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    :pagination="false",
     size="small",
-    :scroll="{ y: scrollY, x: scrollX }",
-    :rowClassName="(record, index) => (record?._res?.code == 0 ? 'row-succ' : record?._res?.code == 1 ? 'row-error' : '')"
   )
-    template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
-    )
-      table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
-        @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
-      )
-
-    template(#tooltip="{ text, record }")
-      a-tooltip
-        template(#title)
-          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
-        div {{ text }}
 
   //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
 </template>
@@ -99,196 +78,43 @@
             title: "店铺id",
             dataIndex: "店铺id",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.店铺id == value,
+            // slots: { filterDropdown: "filterDropdown" },
+            // onFilter: (value, record) => record.店铺id == value,
           },
           {
             title: "分类名称",
             dataIndex: "分类名称",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.分类名称 == value,
+            // slots: { filterDropdown: "filterDropdown" },
+            // onFilter: (value, record) => record.分类名称 == value,
           },
           {
             title: "商品名称",
             dataIndex: "商品名称",
             width: 200,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
-            onFilter: (value, record) => record.商品名称 == value,
+            // slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            // onFilter: (value, record) => record.商品名称 == value,
           },
           {
             title: "商品id",
             dataIndex: "商品id",
             width: 90,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
-            onFilter: (value, record) => record.商品id == value,
+            // slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            // onFilter: (value, record) => record.商品id == value,
           },
           {
             title: "规格名称",
             dataIndex: "规格名称",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.规格名称 == value,
+            // slots: { filterDropdown: "filterDropdown" },
+            // onFilter: (value, record) => record.规格名称 == value,
           },
           {
             title: "价格",
             dataIndex: "价格",
             align: "right",
             width: 100,
-            sorter: (a, b) => this.toNum(a.价格) - this.toNum(b.价格),
-          },
-          {
-            title: "餐盒数量",
-            dataIndex: "餐盒数量",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.餐盒数量) - this.toNum(b.餐盒数量),
-          },
-          {
-            title: "餐盒价格",
-            dataIndex: "餐盒价格",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.餐盒价格) - this.toNum(b.餐盒价格),
-          },
-          {
-            title: "最小购买量",
-            dataIndex: "最小购买量",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.最小购买量) - this.toNum(b.最小购买量),
-          },
-          {
-            title: "折扣价格",
-            dataIndex: "折扣价格",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.折扣价格) - this.toNum(b.折扣价格),
-          },
-          {
-            title: "折扣限购",
-            dataIndex: "折扣限购",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.折扣限购) - this.toNum(b.折扣限购),
-          },
-          {
-            title: "数量",
-            dataIndex: "数量",
-            align: "right",
-            width: 100,
-            sorter: (a, b) => this.toNum(a.数量) - this.toNum(b.数量),
-          },
-          {
-            title: "数量单位",
-            dataIndex: "数量单位",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.数量单位 == value,
-          },
-          {
-            title: "图片",
-            dataIndex: "图片",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.图片 == value,
-          },
-          {
-            title: "新商品名",
-            dataIndex: "新商品名",
-            width: 200,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.新商品名 == value,
-          },
-          {
-            title: "新分类名",
-            dataIndex: "新分类名",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.新分类名 == value,
-          },
-          {
-            title: "分类描述",
-            dataIndex: "分类描述",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.分类描述 == value,
-          },
-          {
-            title: "开启置顶",
-            dataIndex: "开启置顶",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.开启置顶 == value,
-          },
-          {
-            title: "关闭置顶",
-            dataIndex: "关闭置顶",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.关闭置顶 == value,
-          },
-          {
-            title: "置顶时段",
-            dataIndex: "置顶时段",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.置顶时段 == value,
-          },
-          {
-            title: "分类排序",
-            dataIndex: "分类排序",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.分类排序 == value,
-          },
-          {
-            title: "属性",
-            dataIndex: "属性",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.属性 == value,
-          },
-          {
-            title: "描述",
-            dataIndex: "描述",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.描述 == value,
-          },
-          {
-            title: "上架商品",
-            dataIndex: "上架商品",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.上架商品 == value,
-          },
-          {
-            title: "下架商品",
-            dataIndex: "下架商品",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.下架商品 == value,
-          },
-          {
-            title: "删除商品",
-            dataIndex: "删除商品",
-            width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            ellipsis: true,
-            onFilter: (value, record) => record.删除商品 == value,
+            // sorter: (a, b) => this.toNum(a.价格) - this.toNum(b.价格),
           },
         ];
       },

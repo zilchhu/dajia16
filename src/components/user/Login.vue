@@ -4,7 +4,7 @@ div
     v-model:activeKey="active_tab",
     tab-position="top",
     size="small",
-    :tabBarGutter="0",
+    :tabBarGutter="20",
     :animated="{ inkBar: true, tabPane: true }"
   )
     a-tab-pane(key="login", tab="登录")

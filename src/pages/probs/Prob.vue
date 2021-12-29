@@ -1,5 +1,5 @@
 <template lang="pug">
-a-tabs(tab-position="top" size="small" :tabBarGutter="0" :animated="{inkBar: true, tabPane: false}")
+a-tabs(tab-position="top" size="small" :tabBarGutter="14" :animated="{inkBar: true, tabPane: false}")
   a-tab-pane(v-for="tab in tabs" :key="tab.key" :tab="tab.tab")
     keep-alive
       component(:is="tab.comp")

@@ -90,12 +90,12 @@ div(style="position: relative")
       router-link(:to="{ name: 'note' }") notes
 
   router-view(v-slot="{ Component }")
-    transition
-      keep-alive
-        component(:is="Component")
+    keep-alive
+      component(:is="Component")
 </template>
 
 <script>
+  import app from "apprun";
   import dayjs from "dayjs";
   import moment from "moment";
   import { message } from "ant-design-vue";
@@ -132,6 +132,7 @@ div(style="position: relative")
           { name: "tools-add-zps", title: "自配送录入" },
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
+          { name: "tools-food", title: "商品★" },
           { name: "tools-food-mt", title: "美团改价" },
           { name: "tools-food-sub-mt", title: "美团替换" },
           { name: "tools-delivery", title: "减配送费" },
@@ -156,17 +157,17 @@ div(style="position: relative")
           { name: "index", title: "首页" },
           { name: "records", title: "优化指标" },
         ],
-        selected_date: moment().subtract(1, "days"),
+        selected_date: dayjs().subtract(1, "day"),
         login_modal_show: false,
       };
     },
     computed: {
       account() {
-        return this.$store.state.account ?? localStorage.getItem("account")
+        return this.$store.state.account ?? localStorage.getItem("account");
       },
       token() {
-        return this.$store.state.token ?? localStorage.getItem("token")
-      }
+        return this.$store.state.token ?? localStorage.getItem("token");
+      },
     },
     methods: {
       fetch_all_names() {
@@ -186,7 +187,9 @@ div(style="position: relative")
         let date1 = dayjs()
           .startOf("day")
           .diff(dayjs(date_str).startOf("day"), "day");
+
         if (date1 <= 0) return;
+
         this.$router.replace({
           name: "date",
           params: { day: date1 },
@@ -218,10 +221,13 @@ div(style="position: relative")
         this.routes = this.routes.filter((v) => v.title != r.title);
         this.saveRoutes();
       },
+      removeRoutes(start, end) {
+        this.routes = this.routes.slice(start, end);
+        this.saveRoutes();
+      },
       updateRoute(r) {
         let i = this.routes.findIndex((v) => v.title == r.title);
         if (i >= 0) {
-          console.log(i);
           this.routes = this.routes.map((v) => ({ ...v, color: "default" }));
           this.routes[i].color = "blue";
         }
@@ -241,13 +247,13 @@ div(style="position: relative")
       },
       getRouteTitle(r) {
         // if (r.name == "date") return "主表" + r.params.day;
-        if (r.name == "user") return r.params?.username + r.params?.date;
+        if (r.name == "user") return r.params?.username;
         // if (r.name == "shop" && r.query?.name) {
         //   let suffix = r.query?.name?.match(/[（(](.*店)[）)]/);
         //   return suffix ? suffix[1] : r.query?.name;
         // }
-        if (r.name == "date")
-          return "主表" + (r.params?.day == 1 ? "(最新)" : r.params?.day);
+        if (r.name == "date") return "营推";
+        // return "主表" + (r.params?.day == 1 ? "(最新)" : r.params?.day);
         return this.routeNames.find((v) => v.name == r.name)?.title ?? "-";
         // return "-";
       },
@@ -265,8 +271,8 @@ div(style="position: relative")
         })
           .then((res) => {
             message.success("退出登录成功");
-            this.$store.commit('setAccount', null)
-            this.$store.commit('token', null)
+            this.$store.commit("setAccount", null);
+            this.$store.commit("token", null);
           })
           .catch((err) => message.error(err));
       },
@@ -276,14 +282,25 @@ div(style="position: relative")
       onLoginSuccess() {
         this.login_modal_show = false;
       },
+      onWsClose(state) {
+        message.error(state.error);
+      },
+      onWsOpen(state) {
+        message.success(state.result);
+      },
     },
     created() {
+      app.on("ws-open", this.onWsOpen);
+      app.on("ws-close", this.onWsClose);
+
       this.fetch_all_names();
+      this.fetchTrainingIndex();
       this.getRoutes();
       this.initUserAccount();
     },
-    mounted() {
-      this.fetchTrainingIndex();
+    unmounted() {
+      app.off("ws-open", this.onWsOpen);
+      app.off("ws-close", this.onWsClose);
     },
     watch: {
       $route(route, oldRoute) {
@@ -294,9 +311,9 @@ div(style="position: relative")
           this.updateRoute({ ...route, title });
           return;
         }
+        if (this.routes.length > 10) this.removeRoutes(this.routes.length - 10);
         this.routes = [...this.routes, { ...route, title, color: "default" }];
         this.updateRoute({ ...route, title });
-        console.log(this.routes);
       },
     },
   };

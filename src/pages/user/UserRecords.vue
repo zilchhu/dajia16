@@ -1,28 +1,33 @@
 <template lang="pug">
-div.user-records
-  div.range
+.user-records
+  .range
     .range-label 选择日期
-    a-range-picker(v-model:value="selected_dates" :allowClear="false" size="small")
-  a-table(:columns="records_columns" :data-source="records_data" rowKey="key" :loading="spinning" 
-    :pagination="false" 
-    size="small" :scroll="{x: scrollX, y: scrollY}" bordered)
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      //- a-row(type="flex")
-      //-   a-col(flex="auto")
-      //-     a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width}px;`")
-      //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      //-   a-col(flex="60px")
-      //-     a-button(type="link" @click="confirm") confirm
-      //-     br
-      //-     a-button(type="link" @click="clearFilters") reset
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 220}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
-
-    template(#consume_sum_ratio="{text, record}")
-      .cell(:class="{unsatisfied: text ? toNum(text) > 4.5 : false}") {{text}}
-
-    template(#cost_sum_ratio="{text, record}")
-      .cell(:class="{unsatisfied: text ? toNum(text) > 50 : false}") {{text}}
+    a-range-picker(
+      v-model:value="selected_dates",
+      :allowClear="false",
+      size="small"
+    )
+  s-table(
+    :columns="records_columns",
+    :data-source="records_data",
+    rowKey="key",
+    :loading="spinning",
+    :pagination="false",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    bordered
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="records_data",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
 
     //- template(#real_shop="{text, record}")
     //-   router-link.cell(:to="{ name: 'date', params: { day: 1 }, query: {real_shop: text} }" style="color: rgba(0, 0, 0, 0.65);") {{text}}
@@ -56,12 +61,9 @@ div.user-records
             title: "运营",
             dataIndex: "运营",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
             fixed: "left",
-            onFilter: (value, record) => record.运营 == value,
           },
-        ];
+        ].map(this.extendColumn);
 
         let high_cost_cols = {
           title: "高成本",
@@ -71,26 +73,23 @@ div.user-records
               dataIndex: `高成本问题`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高成本问题`]) - this.toNum(b[`高成本问题`]),
+              _sort: true,
             },
             {
               title: "优化",
               dataIndex: `高成本优化`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高成本优化`]) - this.toNum(b[`高成本优化`]),
+              _sort: true,
             },
             {
               title: "解决",
               dataIndex: `高成本解决`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高成本解决`]) - this.toNum(b[`高成本解决`]),
+              _sort: true,
             },
-          ],
+          ].map(this.extendColumn),
         };
 
         let high_consume_cols = {
@@ -101,26 +100,23 @@ div.user-records
               dataIndex: `高推广问题`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高推广问题`]) - this.toNum(b[`高推广问题`]),
+              _sort: true,
             },
             {
               title: "优化",
               dataIndex: `高推广优化`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高推广优化`]) - this.toNum(b[`高推广优化`]),
+              _sort: true,
             },
             {
               title: "解决",
               dataIndex: `高推广解决`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`高推广解决`]) - this.toNum(b[`高推广解决`]),
+              _sort: true,
             },
-          ],
+          ].map(this.extendColumn),
         };
 
         let slump_cols = {
@@ -131,26 +127,23 @@ div.user-records
               dataIndex: `超跌问题`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`超跌问题`]) - this.toNum(b[`超跌问题`]),
+              _sort: true,
             },
             {
               title: "优化",
               dataIndex: `超跌优化`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`超跌优化`]) - this.toNum(b[`超跌优化`]),
+              _sort: true,
             },
             {
               title: "解决",
               dataIndex: `超跌解决`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`超跌解决`]) - this.toNum(b[`超跌解决`]),
+              _sort: true,
             },
-          ],
+          ].map(this.extendColumn),
         };
 
         let low_income_cols = {
@@ -161,26 +154,23 @@ div.user-records
               dataIndex: `低业绩问题`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`低业绩问题`]) - this.toNum(b[`低业绩问题`]),
+              _sort: true,
             },
             {
               title: "优化",
               dataIndex: `低业绩优化`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`低业绩优化`]) - this.toNum(b[`低业绩优化`]),
+              _sort: true,
             },
             {
               title: "解决",
               dataIndex: `低业绩解决`,
               align: "right",
               width: 80,
-              sorter: (a, b) =>
-                this.toNum(a[`低业绩解决`]) - this.toNum(b[`低业绩解决`]),
+              _sort: true,
             },
-          ],
+          ].map(this.extendColumn),
         };
 
         let right_fixed_cols = [
@@ -189,24 +179,21 @@ div.user-records
             dataIndex: `问题总数`,
             align: "right",
             width: 90,
-            sorter: (a, b) =>
-              this.toNum(a[`问题总数`]) - this.toNum(b[`问题总数`]),
+            _sort: true,
           },
           {
             title: "优化总数",
             dataIndex: `优化总数`,
             align: "right",
             width: 90,
-            sorter: (a, b) =>
-              this.toNum(a[`优化总数`]) - this.toNum(b[`优化总数`]),
+            _sort: true,
           },
           {
             title: "解决总数",
             dataIndex: `解决总数`,
             align: "right",
             width: 90,
-            sorter: (a, b) =>
-              this.toNum(a[`解决总数`]) - this.toNum(b[`解决总数`]),
+            _sort: true,
           },
           {
             title: "优化率",
@@ -214,7 +201,7 @@ div.user-records
             align: "right",
             width: 80,
             fixed: "right",
-            sorter: (a, b) => this.toNum(a[`优化率`]) - this.toNum(b[`优化率`]),
+            _sort: true,
           },
           {
             title: "解决率",
@@ -222,9 +209,9 @@ div.user-records
             align: "right",
             width: 80,
             fixed: "right",
-            sorter: (a, b) => this.toNum(a[`解决率`]) - this.toNum(b[`解决率`]),
+            _sort: true,
           },
-        ];
+        ].map(this.extendColumn);
 
         return [
           ...left_fiexed_cols,
@@ -256,12 +243,32 @@ div.user-records
           return 0;
         }
       },
-      getColFilters(colName) {
-        return Array.from(
-          new Set(this.records_data.map((row) => row[colName] || ""))
-        )
-          .sort()
-          .map((col) => ({ label: col, value: col }));
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
       },
       fetch_records_indices() {
         if (this.selected_dates.length != 2) return;
@@ -284,14 +291,15 @@ div.user-records
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 184;
       this.defaultPageSize = 40;
       this.fetch_records_indices();
+    },
+    mounted() {
+      this.scrollY = document.body.clientHeight - 184;
     },
     watch: {
       $route(route) {
         if (route.name == "records") {
-          this.defaultPageSize = 40;
           if (route.path != this.last_records_route.path) {
             this.fetch_records_indices();
           }

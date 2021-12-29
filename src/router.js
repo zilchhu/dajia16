@@ -1,5 +1,5 @@
 // import App2 from './App2.vue'
-import NotFound from "./NotFound"
+import NotFound from './NotFound'
 import User from "./pages/user/User"
 import UserActsOvTable from "./pages/user/UserActsOvTable"
 import UserRecords from "./pages/user/UserRecords"
@@ -9,6 +9,7 @@ import Change from "./pages/change/Change"
 import Tasks from "./pages/change/Tasks"
 import Prob from "./pages/probs/Prob"
 import Tools from "./pages/tools/Tools"
+import ToolsFood from "./pages/tools/ToolsFood"
 import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
 import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
 import ToolsAddDada from "./pages/tools/ToolsAddDada"
@@ -19,8 +20,8 @@ import ToolsAddZps from "./pages/tools/ToolsAddZps"
 import ToolsFreshMt from "./pages/tools/ToolsFreshMt"
 import ToolsFreshElm from "./pages/tools/ToolsFreshElm"
 import ToolsTests from "./pages/tools/ToolsTests"
-import ToolsFoodMt from "./pages/tools/ToolsFoodMt"
-import ToolsFoodElm from "./pages/tools/ToolsFoodElm"
+// import ToolsFoodMt from "./pages/tools/ToolsFoodMt"
+// import ToolsFoodElm from "./pages/tools/ToolsFoodElm"
 import ToolsFoodSubMt from "./pages/tools/ToolsFoodSubMt"
 import ToolsDelivery from "./pages/tools/ToolsDelivery"
 import ToolsFullDiscount from "./pages/tools/ToolsFullDiscount"
@@ -56,6 +57,7 @@ export const routes = [
 
     // ]
   },
+  { path: "/tools/food", name: "tools-food", component: ToolsFood },
   { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },
   { path: "/tools/add/fengniao", name: "tools-add-fengniao", component: ToolsAddFengniao },
   { path: "/tools/add/dada", name: "tools-add-dada", component: ToolsAddDada },
@@ -65,8 +67,8 @@ export const routes = [
   { path: "/tools/add/zps", name: "tools-add-zps", component: ToolsAddZps },
   { path: "/tools/fresh/mt", name: "tools-fresh-mt", component: ToolsFreshMt },
   { path: "/tools/fresh/elm", name: "tools-fresh-elm", component: ToolsFreshElm },
-  { path: "/tools/food/mt", name: "tools-food-mt", component: ToolsFoodMt },
-  { path: "/tools/food/elm", name: "tools-food-elm", component: ToolsFoodElm },
+  // { path: "/tools/food/mt", name: "tools-food-mt", component: ToolsFoodMt },
+  // { path: "/tools/food/elm", name: "tools-food-elm", component: ToolsFoodElm },
   { path: "/tools/food/sub/mt", name: "tools-food-sub-mt", component: ToolsFoodSubMt },
   { path: "/tools/delivery", name: "tools-delivery", component: ToolsDelivery },
   { path: "/tools/fulldiscount", name: "tools-full-discount", component: ToolsFullDiscount },

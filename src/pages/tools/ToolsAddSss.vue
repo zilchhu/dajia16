@@ -1,42 +1,33 @@
 <template lang="pug">
 div
-  a-table.ant-table-change(
+  s-table.ant-table-change(
     :columns="columns",
     :data-source="table",
     rowKey="key",
     :loading="loading",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    :pagination="false",
     size="small",
     :scroll="{ y: scrollY }",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#handle="{ text, record }")
-      a-input(
-        :value="text",
-        @change="(e) => handleChange(e.target.value, record)",
-        size="small"
-      )
-
-    template(#date="{ text, record }")
-      .pre-wrap {{ text?.replace('T', '\n')?.replace(/\.\d{3}Z/, '') }}
-
-    template(#operation="{ text, record }")
-      div
-        a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
-        a-button(type="link", size="small", @click="() => delRecord(record)") 删除
-
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == 'key'")
+        div
+          a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
+          a-button(type="link", size="small", @click="() => delRecord(record)") 删除
+     
+  
   a-modal(
     v-model:visible="isAddModalVis",
     title="添加条目",
@@ -149,31 +140,30 @@ div
           {
             title: "闪时送名称",
             dataIndex: "闪时送名称",
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.闪时送名称 ?? "") == value,
           },
           {
             title: "店铺ID",
             dataIndex: "店铺ID",
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.店铺ID ?? "") == value,
           },
           {
             title: "店铺名称",
             dataIndex: "店铺名称",
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.店铺名称 ?? "") == value,
           },
           {
             title: "平台",
             dataIndex: "平台",
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.平台 ?? "") == value,
           },
           {
             title: "操作",
-            dataIndex: "key",
-            slots: { customRender: "operation" },
+            dataIndex: "key"
           },
         ];
       },

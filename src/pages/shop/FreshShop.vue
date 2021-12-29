@@ -1,70 +1,95 @@
 <template lang="pug">
 div
-  a-table.ant-table-change.ant-table-fresh(:columns="fresh_shop_columns" :data-source="fresh_shop_data.shops" rowKey="key" :loading="spinning" 
-    :pagination="{showSizeChanger: true, defaultPageSize, pageSizeOptions: ['19', '38', '76', '152'], size: 'small'}" 
-    @change="table_change"
-    size="small" :scroll="{ x: scrollX, y: scrollY}" bordered :style="`max-width: ${scrollX + 10}px;`"
-    :rowClassName="(record) => record.field == '评论数' ? 'table-striped' : null")
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      //- a-row(type="flex")
-      //-   a-col(flex="auto")
-      //-     a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${240}px;`")
-      //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      //-   a-col(flex="60px")
-      //-     a-button(type="link" @click="confirm") confirm
-      //-     br
-      //-     a-button(type="link" @click="clearFilters") reset
-      table-select(:style="`min-width: 160px; width: ${column.dataIndex == 'name' ? 350 : column.width + 50 || 300}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
+  a-table.ant-table-change.ant-table-fresh(
+    :columns="fresh_shop_columns",
+    :data-source="fresh_shop_data.shops",
+    rowKey="key",
+    :loading="spinning",
+    :pagination="{ showSizeChanger: true, defaultPageSize, pageSizeOptions: ['19', '38', '76', '152'], size: 'small' }",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    bordered,
+    :style="`max-width: ${scrollX + 10}px;`",
+    :rowClassName="(record) => (record.field == '评论数' ? 'table-striped' : null)"
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="fresh_shop_data.shops",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="fresh_shop_data.dates.includes(column.dataIndex)")
+        div(v-if="record.field == '优化'")
+          div(v-if="text?.isYesterday") 
+            a-popover(color="cyan")
+              template(#content)
+                a-textarea(
+                  :defaultValue="text?.a2",
+                  :autoSize="{ minRows: 12 }",
+                  style="min-width: 500px",
+                  @change="(e) => handleChange(e, text, record.wmPoiId)"
+                )
+              .truncate(style="width: 100%") {{ isEmpty(text?.a2) ? '-' : text?.a2 }}
+          div(v-else)
+            a-tooltip(color="cyan")
+              template(#title)
+                .pre-wrap {{ text?.a2 }}
+              .truncate(style="width: 100%") {{ text?.a2 }}
+        .cell(v-else, :class="{ unsatisfied: isUnsatisfy(record, text) }") {{ text }}
+      template(v-else-if="column.dataIndex == 'field'")
+        .cell(:title="record.name", @click="() => showChartModal(record)") {{ text }}
 
-      
-    template(#value="{text, record}")
-      div(v-if="record.field == '优化'")
-        div(v-if="text?.isYesterday") 
-          a-popover(color="cyan")
-            template(#content)
-              a-textarea(:defaultValue="text?.a2" :autoSize="{minRows: 12}" style="min-width: 500px" @change="(e) => handleChange(e, text, record.wmPoiId)")
-            .truncate(style="width: 100%;") {{isEmpty(text?.a2) ? '-' : text?.a2}}
-        div(v-else)
-          a-tooltip(color="cyan")
-            template(#title)
-              .pre-wrap {{text?.a2}}
-            .truncate(style="width: 100%;") {{text?.a2}}
-      .cell(v-else :class="{unsatisfied: isUnsatisfy(record, text)}") {{text}}
-
-    template(#field="{text, record}")
-      .cell(:title="record.name" @click="() => showChartModal(record)") {{text}}
-
-  a-modal(v-model:visible="aModel" :footer="null" centered :width="800")
-    a-table(:columns="fresh_as_columns" :data-source="fresh_as" rowKey="updated_at" :pagination="false" :scroll="{y: 850}" size="small" style="max-width: 700px;")
-      template(#a2="{text, record}")
-        a-textarea(:value="text" @change="e => handleChange(e.target.value, record.wmpoiid, record.updated_at)" :auto-size="{ minRows: 1 }")
-
-  a-modal(v-model:visible="probClickModal" :footer="null" centered :width="1080")
+  a-modal(
+    v-model:visible="probClickModal",
+    :footer="null",
+    centered,
+    :width="1080"
+  )
     shop-problem(:shop_meta="shop_meta")
 
-  a-modal(v-model:visible="ratesClickModal" :footer="null" centered :width="800")
+  a-modal(
+    v-model:visible="ratesClickModal",
+    :footer="null",
+    centered,
+    :width="800"
+  )
     shop-indices(:shop_meta="shop_meta_rates")
 
-  a-modal(v-model:visible="offsellClickModal" :footer="null" centered :width="1080")
+  a-modal(
+    v-model:visible="offsellClickModal",
+    :footer="null",
+    centered,
+    :width="1080"
+  )
     shop-offsell(:goods_meta="shop_meta_offsells")
 
-  a-modal(v-model:visible="isChartModalVis" :footer="null" centered :width="800" forceRender)
-    v-chart(class="chart" :option="option")
+  a-modal(
+    v-model:visible="isChartModalVis",
+    :footer="null",
+    centered,
+    :width="800",
+    forceRender
+  )
+    v-chart.chart(:option="option")
 
   .left-bottom-div(v-show="!spinning")
-    a-button(type="link" size="small" @click="fetch_fresh_shop") refresh
-    a(:href="`http://192.168.3.3:9040/新店表${yesterday}.xlsx`" target="_blank") export
+    a-button(type="link", size="small", @click="fetch_fresh_shop") refresh
+    a(:href="`http://192.168.3.3:9040/新店表${yesterday}.xlsx`", target="_blank") export
 </template>
 
 <script>
-  import { message } from "ant-design-vue";
-  import FreshShop from "../../api/fresh-shop";
   import dayjs from "dayjs";
   import localeData from "dayjs/plugin/localeData";
   import weekday from "dayjs/plugin/weekday";
   import updateLocale from "dayjs/plugin/updateLocale";
-
+  import { message } from "ant-design-vue";
+  import FreshShop from "../../api/fresh-shop";
   import ShopProblem from "../../components/shop/ShopProblem";
   import ShopIndices from "../../components/shop/ShopIndices";
   import ShopOffsell from "../../components/shop/ShopOffsell";
@@ -161,12 +186,9 @@ div
           {
             title: "物理店",
             dataIndex: "real_shop_name",
-            width: 60,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
+            width: 70,
             fixed: "left",
             customRender: ({ text, record, index }) => {
-              console.log(record);
               const obj = {
                 children: (
                   <div style="writing-mode: vertical-lr; white-space: pre-wrap; color: rgba(0,0,0,.65);">
@@ -182,14 +204,11 @@ div
               }
               return obj;
             },
-            onFilter: (value, record) => record.real_shop_name == value,
           },
           {
             title: "门店",
             dataIndex: "name",
-            width: 60,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
+            width: 70,
             fixed: "left",
             customRender: ({ text, record, index }) => {
               const obj = {
@@ -209,14 +228,11 @@ div
               }
               return obj;
             },
-            onFilter: (value, record) => record.name == value,
           },
           {
             title: "负责人",
             dataIndex: "person",
-            width: 60,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
+            width: 70,
             fixed: "left",
             customRender: ({ text, record, index }) => {
               const obj = {
@@ -242,14 +258,11 @@ div
               }
               return obj;
             },
-            onFilter: (value, record) => record.person == value,
           },
           {
             title: "组长",
             dataIndex: "leader",
-            width: 60,
-            slots: { filterDropdown: "filterDropdown" },
-            filterMultiple: true,
+            width: 70,
             fixed: "left",
             customRender: ({ text, record, index }) => {
               const obj = {
@@ -275,76 +288,30 @@ div
               }
               return obj;
             },
-            onFilter: (value, record) => record.leader == value,
           },
           {
             title: "项目",
             dataIndex: "field",
-            width: 60,
-            // filters: this.getColFilters('field'),
-            // filterMultiple: true,
+            width: 70,
             fixed: "left",
-            slots: { customRender: "field" },
-            onFilter: (value, record) => record.field == value,
           },
         ];
         let dates_cols = this.fresh_shop_data.dates.map((v) => ({
           title: dayjs(v, "YYYYMMDD").format("M/D"),
           dataIndex: v,
           align: "right",
-          width: 60,
-          slots: { customRender: "value" },
-          // customRender: ({ text, record }) => {
-          //   const obj2 = {
-          //     children: (
-          //       <div
-          //         className={this.isUnsatisfy(record, text) ? 'unsatisfied' : ''}
-          //         onClick={() => {
-          //           if (record.field == '成本比例') this.costRatioClick(v, record)
-          //           else if (record.field == '评分') this.ratingClick(record)
-          //           else if (record.field == '下架产品量') this.offsellClick(v, record)
-          //         }}
-          //       >
-          //         {text}
-          //       </div>
-          //     ),
-          //     props: {}
-          //   }
-          //   const obj3 = {
-          //     children: (
-          //       <div style="display: flex; align-items: center; max-width: 1080px;">
-          //         <a-textarea
-          //           auto-size={{ minRows: 1 }}
-          //           defaultValue={this.fresh_as_data.find(
-          //               v => v.wmpoiid == record.wmPoiId && v.updated_at == this.today
-          //             )?.a2}
-          //           id={record.key}
-          //         />
-          //         <SaveOutlined style="flex-basis: 80px;" onClick={() => this.handleAAModel(record)} />
-          //         <a-badge
-          //           count={this.fresh_as_data.filter(v => v.wmpoiid == record.wmPoiId).length}
-          //           number-style={{ backgroundColor: '#52c41acc' }}
-          //           style="flex-basis: 80px;"
-          //         >
-          //           <div onClick={() => this.handleAModel(record)}>历史记录</div>
-          //         </a-badge>
-          //       </div>
-          //     ),
-          //     props: { colSpan: i == 0 ? this.fresh_shop_data.dates.length : 0 }
-          //   }
-          //   return record.field == '优化' ? obj3 : obj2
-          // }
-          // sorter: (a, b) => this.toNum(a[v]) - this.toNum(b[v])
+          width: 70,
+          _notFilter: true,
         }));
         // console.log([...fiexed_cols, ...dates_cols])
-        return [...fiexed_cols, ...dates_cols];
+        return [...fiexed_cols, ...dates_cols].map(this.extendColumn);
       },
       fresh_as_columns() {
         return [
           {
             title: "优化记录",
             dataIndex: "a2",
-            width: 600,
+            width: 700,
             slots: { customRender: "a2" },
           },
           {
@@ -362,7 +329,7 @@ div
     methods: {
       reduce_width(nodes) {
         return nodes.reduce((sw, c) => {
-          if (c.width) return sw + c.width;
+          if (c.width) return sw + c.width ?? 200;
           if (c.children) return sw + this.reduce_width(c.children);
           return sw;
         }, 10);
@@ -379,6 +346,33 @@ div
         } catch (error) {
           return 0;
         }
+      },
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
       },
       debounce(fn) {
         let timeout = null;
@@ -479,8 +473,8 @@ div
         this.handleChange(value, record.wmPoiId, this.today);
       },
       showChartModal(record) {
-        console.log(record);
         if (record.field == "优化") return;
+
         this.option = {
           ...this.chartBaseOpt,
           title: {
@@ -505,9 +499,6 @@ div
           ],
         };
         this.isChartModalVis = true;
-      },
-      table_change(pagination) {
-        localStorage.setItem("freshShop/defaultPageSize", pagination.pageSize);
       },
       costRatioClick(date, record) {
         this.shop_meta = {
@@ -534,18 +525,16 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 184;
-      this.defaultPageSize =
-        +localStorage.getItem("freshShop/defaultPageSize") || 19;
       this.debounce_save = this.debounce(this.save);
       this.fetch_fresh_shop();
       this.fetch_fresh_as();
     },
+    mounted() {
+      this.scrollY = document.body.clientHeight - 184;
+    },
     watch: {
       $route(route) {
         if (route.name == "fresh-shop") {
-          this.defaultPageSize =
-            +localStorage.getItem("freshShop/defaultPageSize") || 19;
           if (route.path != this.last_fresh_shop_route.path) {
             this.fetch_fresh_shop();
           }

@@ -1,25 +1,58 @@
 <template lang="pug">
 div
-  a-table.ant-table-change(:columns="columns" :data-source="table" rowKey="key" :loading="loading" 
-    :pagination="{showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small'}" 
-    size="small" :scroll="{y: scrollY}" :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)")
+  s-table.ant-table-change(
+    :columns="columns",
+    :data-source="table",
+    rowKey="key",
+    :loading="loading",
+    :pagination="false",
+    size="small",
+    :scroll="{ y: scrollY }",
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
 
-    template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-      table-select(:style="`min-width: 160px; width: ${column.width + 50 || 350}px;`" :filterOptions="getColFilters(column.dataIndex)" 
-        :selectedList="selectedKeys" @select-change="setSelectedKeys" @confirm="confirm" @reset="clearFilters")
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == 'handle'")
+        a-input(
+          :value="text",
+          @change="(e) => handleChange(e.target.value, record)",
+          size="small"
+        )
+      template(v-else-if="column.dataIndex == 'balances'")
+        div(v-html="renderBalances(text)")
 
-    template(#balances="{text, record}")
-      div(v-html="renderBalances(text)")
+    template(#handle="{ text, record }")
+      a-input(
+        :value="text",
+        @change="(e) => handleChange(e.target.value, record)",
+        size="small"
+      )
 
-    template(#handle="{text, record}")
-      a-input(:value="text" @change="e => handleChange(e.target.value, record)" size="small")
-
-  .left-bottom-div(v-show="!loading")
-    a-button(type="link" size="small" @click="fetchTable") 刷新
-    div(style="margin-right: 8px; font-size: 10px;") 变化天数
-    a-slider(v-model:value="day" :min="1" :max="10" style="width: 160px;")
-    a-button(type="link" size="small" @click="exportTable" :loading="exporting") 导出
-    a(v-show="tableUrl" :href="`http://192.168.3.3:9005/${tableUrl}`" target="_blank") 下载
+  .left-bottom-div(v-show="!loading" style="min-width: 400px")
+    a-button(type="link", size="small", @click="fetchTable") 刷新
+    div(style="margin-right: 8px; font-size: 10px") 变化天数
+    a-slider(v-model:value="day", :min="1", :max="10", style="width: 160px")
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 下载
 </template>
 
 <script>
@@ -52,71 +85,44 @@ div
             title: "店铺id",
             dataIndex: "shop_id",
             width: 110,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.shop_id == value,
           },
           {
             title: "店铺名称",
             dataIndex: "shop_name",
             width: 250,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.shop_name ?? "") == value,
           },
           {
             title: "平台",
             dataIndex: "platform",
             width: 70,
-            filters: [
-              { text: "美团", value: "美团" },
-              { text: "饿了么", value: "饿了么" },
-            ],
-            filterMultiple: true,
+            customFilterDropdown: true,
             onFilter: (value, record) => record.platform == value,
           },
           {
             title: "物理店",
             dataIndex: "real_shop_name",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.real_shop_name ?? "") == value,
           },
           {
             title: "责任人",
             dataIndex: "person",
             width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record.person ?? "") == value,
-          },
-          {
-            title: "组长",
-            dataIndex: "leader",
-            width: 80,
-            slots: { filterDropdown: "filterDropdown", customRender: "person" },
-            onFilter: (value, record) => (record.leader ?? "") == value,
-          },
-          {
-            title: "新店责任人",
-            dataIndex: "new_person",
-            width: 110,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => (record.new_person ?? "") == value,
           },
           {
             title: "余额变化",
             dataIndex: "balances",
-            slots: { customRender: "balances" },
           },
           {
             title: "处理",
             dataIndex: "handle",
-            filters: [
-              { text: "已处理", value: "" },
-              { text: "未处理", value: "1" },
-            ],
-            filterMultiple: true,
-            slots: { customRender: "handle" },
-            onFilter: (value, record) =>
-              (record?.handle == null) == Boolean(value),
           },
         ];
       },

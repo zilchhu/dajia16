@@ -1,12 +1,29 @@
 <template lang="pug">
-a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" rowKey="q" :showHeader="false" :scroll={x: scrollX} :pagination="false" size="small")
-  template(#name="{text, record}")
-    a-input(:value="text" @change="e => handleChange(e.target.value, record, 'name')")
-  template(#a="{text, record}")
-    a-textarea(:value="text" @change="e => handleChange(e.target.value, record, 'a')" :autoSize="{minRows: 1}")
-  template(#time="{text, record}")
-    a-spin(:spinning="saving" size="small") 
-      span {{text}}
+a-table(
+  v-if="data && data.length > 0",
+  :columns="columns",
+  :data-source="data",
+  rowKey="q",
+  :showHeader="false",
+  :scroll={ x: scrollX },
+  :pagination="false",
+  size="small"
+)
+  template(#bodyCell="{ column, text, record }")
+    template(v-if="column.dataIndex == 'name'")
+      a-input(
+        :value="text",
+        @change="(e) => handleChange(e.target.value, record, 'name')"
+      )
+    template(v-else-if="column.dataIndex == 'a'")
+      a-textarea(
+        :value="text",
+        @change="(e) => handleChange(e.target.value, record, 'a')",
+        :autoSize="{ minRows: 1 }"
+      )
+    template(v-else-if="column.dataIndex == 'time'")
+      a-spin(:spinning="saving", size="small") 
+        span {{ text }}
 </template>
 
 <script>
@@ -25,18 +42,15 @@ a-table(v-if="data && data.length > 0" :columns="columns" :data-source="data" ro
       title: "姓名",
       dataIndex: "name",
       width: 140,
-      slots: { customRender: "name" },
     },
     {
       title: "优化",
       dataIndex: "a",
       width: 580,
-      slots: { customRender: "a" },
     },
     {
       title: "时间",
       dataIndex: "time",
-      slots: { customRender: "time" },
     },
   ];
 

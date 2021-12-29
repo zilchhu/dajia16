@@ -11,35 +11,19 @@ div
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
-      //- a-row(type="flex")
-      //-   a-col(flex="auto")
-      //-     a-select(mode="multiple" :value="selectedKeys" @change="onSelectChange" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${column.width || 220}px;`")
-      //-       a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      //-   a-col(flex="60px")
-      //-     a-button(type="link" @click="confirm") confirm
-      //-     br
-      //-     a-button(type="link" @click="clearFilters") reset
-      //- p {{selectedKeys}}
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#star="{ text, record }")
-      span {{ '⭐'.repeat(text) }}
-
-    template(#handle="{ text, record }")
-      a-input(
-        :value="text",
-        @change="(e) => handleChange(e.target.value, record)",
-        size="small"
-      )
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '评分'")
+        span {{ '⭐'.repeat(text) }}
 
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable") 
@@ -102,21 +86,21 @@ div
             title: "平台",
             dataIndex: "平台",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.平台 == value,
           },
           {
             title: "店铺ID",
             dataIndex: "店铺ID",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.店铺ID == value,
           },
           {
             title: "店铺名称",
             dataIndex: "店铺名称",
             width: 250,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.店铺名称 == value,
             sorter: (a, b) => a.店铺名称?.localeCompare(b.店铺名称),
           },
@@ -124,7 +108,7 @@ div
             title: "物理店",
             dataIndex: "物理店",
             width: 100,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.物理店 == value,
             sorter: (a, b) => a.物理店?.localeCompare(b.物理店),
           },
@@ -132,14 +116,14 @@ div
             title: "评分",
             dataIndex: "评分",
             width: 90,
-            slots: { filterDropdown: "filterDropdown", customRender: "star"},
+            customFilterDropdown: true,
             onFilter: (value, record) => record.评分 == value,
             sorter: (a, b) => this.toNum(a.评分) - this.toNum(b.评分),
           },
           {
             title: "评价",
             dataIndex: "评价",
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
           },
           {
             title: "订单",
@@ -150,15 +134,15 @@ div
             title: "时间",
             dataIndex: "时间",
             width: 200,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.时间 == value,
           },
           {
             title: "负责人",
             dataIndex: "负责人",
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.负责人 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.负责人 ?? "") == value,
           },
           // {
           //   title: "处理",

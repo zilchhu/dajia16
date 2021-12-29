@@ -3,26 +3,53 @@ a-card(size="small")
   template(#title)
     .title
       .title-meta
-        i.title_platform.iconfont.icon-meituan1(v-show="shop_meta.platform == '美团'" :title="shop_meta.platform") 
-        i.title_platform.iconfont.icon-small.icon-elment(v-show="shop_meta.platform == '饿了么'" :title="shop_meta.platform") 
+        i.title_platform.iconfont.icon-meituan1(
+          v-show="shop_meta.platform == '美团'",
+          :title="shop_meta.platform"
+        ) 
+        i.title_platform.iconfont.icon-small.icon-elment(
+          v-show="shop_meta.platform == '饿了么'",
+          :title="shop_meta.platform"
+        ) 
         .copy-cell2
-          router-link.title_shopname(:to="{ name: 'shop', params: { shopid: shop_meta.shop_id } }") {{ shop_meta.shop_name }}
+          router-link.title_shopname(
+            :to="{ name: 'shop', params: { shopid: shop_meta.shop_id } }"
+          ) {{ shop_meta.shop_name }}
           .copy-icon(@click="() => copy(shop_meta.shop_name)")
-            a-tooltip(title="copied" :visible="copyTipShow")
+            a-tooltip(title="copied", :visible="copyTipShow")
               CopyOutlined
       .title-tags
-        a-tooltip(v-for="tag in tags" :key="tag.q")
+        a-tooltip(v-for="tag in tags", :key="tag.q")
           template(#title)
             span {{ tag.value }}
-          a-checkable-tag(:style="{ background: tag.tag_color }" v-model:checked="tag.checked") {{ tag.q }}
-  a-table(v-if="items_show.length > 0" :columns="columns" :data-source="items_show" rowKey="q" :pagination="false" size="small" :showHeader="false")
-    template(#name="{ text, record }")
-      a-input(:value="text" @change="e => handleChange(e.target.value, record, 'name')" size="small")
-    template(#a="{ text, record }")
-      a-textarea(:value="text" @change="e => handleChange(e.target.value, record, 'a')" :autoSize="{ minRows: 1 }")
-    template(#time="{ text, record }")
-      a-spin(:spinning="saving" size="small") 
-        span {{ text }}
+          a-checkable-tag(
+            :style="{ background: tag.tag_color }",
+            v-model:checked="tag.checked"
+          ) {{ tag.q }}
+  a-table(
+    v-if="items_show.length > 0",
+    :columns="columns",
+    :data-source="items_show",
+    rowKey="q",
+    :pagination="false",
+    size="small",
+    :showHeader="false"
+  )
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == 'name'")
+        a-input(
+          :value="text",
+          @change="(e) => handleChange(e.target.value, record, 'name')"
+        )
+      template(v-else-if="column.dataIndex == 'a'")
+        a-textarea(
+          :value="text",
+          @change="(e) => handleChange(e.target.value, record, 'a')",
+          :autoSize="{ minRows: 1 }"
+        )
+      template(v-else-if="column.dataIndex == 'time'")
+        a-spin(:spinning="saving", size="small") 
+          span {{ text }}
 </template>
 
 <script>
@@ -61,18 +88,15 @@ a-card(size="small")
           title: "姓名",
           dataIndex: "name",
           width: 100,
-          slots: { customRender: "name" },
         },
         {
           title: "优化",
           dataIndex: "a",
           width: 500,
-          slots: { customRender: "a" },
         },
         {
           title: "时间",
           dataIndex: "time",
-          slots: { customRender: "time" },
           width: 180,
         },
       ];

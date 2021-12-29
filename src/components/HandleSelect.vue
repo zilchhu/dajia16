@@ -3,7 +3,7 @@
   a-input-search(
     v-model:value="searchText",
     :placeholder="`搜索${columnTitle}`",
-    :allowClear="false",
+    :allowClear="true",
     @search="onSearch",
     @change="onChange"
   )
@@ -16,13 +16,10 @@
         :indeterminate="indeterminate"
       ) 全选
       .filter-addon(@click="onClearFilter") 清除筛选
-    .scroll(:style="`height: ${containerHeight}px;`", @scroll="onScroll")
-      a-checkbox-group(
-        v-model:value="checkedList",
-        :style="`width: 100%; padding-top: ${paddingTop}px; padding-bottom: ${paddingBottom}px;`"
-      )
-        .check-option(v-for="opt in realCheckOptions", :key="opt.value")
-          a-checkbox(:value="opt.value") {{ opt.label }}
+    .scroll(style="max-height: 400px; overflow-y: auto")
+      a-checkbox-group(v-model:value="checkedList", style="width: 100%")
+        .check-option(v-for="opt in checkOptions", :key="opt.value")
+          a-checkbox(:value="opt.value", style="flex-grow: 1") {{ opt.label }}
           .filter-addon(@click="onFilterOnly(opt)") 筛选此项
 
     .btn-list 
@@ -31,65 +28,19 @@
 </template>
 
 <script>
+  import md5 from "md5";
+
   export default {
     name: "table-select",
-    props: ["columnTitle", "columnIndex", "tableData"],
+    props: ["columnTitle", "filterOptions"],
     data() {
       return {
-        checkOptions: [
-          ...new Set(this.tableData.map((v) => v[this.columnIndex] ?? "")),
-        ]
-          .map((v) => ({ label: v ?? "", value: v ?? "" }))
-          .sort((a, b) => {
-            if (typeof a.value == "string") return a.value.localeCompare(b.value);
-            return a.value - b.value;
-          })
-          .reverse(),
+        checkOptions: [...this.filterOptions],
         checkedList: [],
         searchText: "",
         indeterminate: false,
         allChecked: false,
-        scrollTop: 0,
-        checkOptHeight: 22,
       };
-    },
-    computed: {
-      filterOptions() {
-        return [...new Set(this.tableData.map((v) => v[this.columnIndex] ?? ""))]
-          .map((v) => ({ label: v ?? "", value: v ?? "" }))
-          .sort((a, b) => {
-            if (typeof a.value == "string") return a.value.localeCompare(b.value);
-            return a.value - b.value;
-          })
-          .reverse();
-        // .map((v, i) => ({ ...v, label: i + " " + v.label }));
-      },
-      containerHeight() {
-        return Math.min(300, this.filterOptions.length * this.checkOptHeight);
-      },
-      checkBegin() {
-        return Math.floor(this.scrollTop / this.checkOptHeight);
-      },
-      checkEnd() {
-        return (
-          this.checkBegin +
-          Math.floor(this.containerHeight / this.checkOptHeight) +
-          2
-        );
-      },
-      realCheckOptions() {
-        // console.log(this.checkBegin, this.checkEnd);
-        return this.checkOptions.slice(this.checkBegin, this.checkEnd);
-      },
-      paddingTop() {
-        return this.scrollTop;
-      },
-      paddingBottom() {
-        return Math.max(
-          0,
-          this.checkOptions.length * this.checkOptHeight - this.paddingTop - 270
-        );
-      },
     },
     methods: {
       onChange() {
@@ -106,16 +57,10 @@
           return;
         }
 
-        this.checkOptions = this.filterOptions.filter((v) => reg.test(v.value));
+        this.checkOptions = this.filterOptions.filter((v) => reg.test(v.label));
         this.checkedList = this.checkOptions.map((v) => v.value);
       },
       onSearch() {
-        // if (this.searchText == "") {
-        //   setTimeout(() => {
-        //     this.confirmSelect();
-        //   }, 300);
-        //   return;
-        // }
         this.confirmSelect();
       },
       onCheckAll(e) {
@@ -123,10 +68,6 @@
           ? this.checkOptions.map((v) => v.value)
           : [];
         this.indeterminate = false;
-      },
-      onScroll(e) {
-        // console.log(top);
-        this.scrollTop = e.target.scrollTop;
       },
       confirmSelect() {
         this.$emit("confirm", this.checkedList);
@@ -170,32 +111,23 @@
 
 <style lang="sass" scoped>
 .table-select
-  width: 350px
-  max-width: 600px
+  width: fit-content
   padding: 2px
 
 .check-list
   display: flex
   flex-direction: column
 
-.scroll
-  overflow: auto
-
 .check-option
-  position: relative
+  display: flex
   width: 100%
-  height: 22px
-  white-space: nowrap
+  align-items: center
+  justify-content: space-between
 
 .filter-addon
-  position: absolute
   visibility: hidden
-  top: 0
-  right: 4px
-  line-height: 22px
   padding: 0 4px
   font-size: 0.88em
-  background-color: white
   cursor: pointer
 
 .check-option:hover .filter-addon

@@ -1,126 +1,154 @@
 <template lang="pug">
-a-table(:columns="shop_indices_columns" :data-source="shop_indices_data.data" rowKey="field" :loading="spinning" 
-  :pagination="false" 
-  size="small" :scroll="{ x: scrollX, y: scrollY}" bordered :style="`max-width: ${scrollX + 10}px;`")
-  template(#filterDropdown="{confirm, clearFilters, column, selectedKeys, setSelectedKeys}")
-    a-row(type="flex")
-      a-col(flex="auto")
-        a-select(mode="multiple" :value="selectedKeys" @change="setSelectedKeys" :placeholder="`filter ${column.title}`" :style="`min-width: 160px; width: ${240}px;`")
-          a-select-option(v-for="option in getColFilters(column.dataIndex)" :key="option.value") {{option.value}} 
-      a-col(flex="60px")
-        a-button(type="link" @click="confirm") confirm
-        br
-        a-button(type="link" @click="clearFilters") reset
-
+s-table(
+  :columns="shop_indices_columns",
+  :data-source="shop_indices_data.data",
+  rowKey="field",
+  :loading="spinning",
+  :pagination="false",
+  size="small",
+  :scroll="{ x: scrollX }",
+  bordered,
+  :style="`max-width: ${scrollX + 10}px;`"
+)
+  template(
+    #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+  )
+    table-select(
+      :columnTitle="column.title",
+      :columnIndex="column.dataIndex",
+      :tableData="shop_indices_data.data",
+      @select-change="setSelectedKeys",
+      @confirm="confirm()",
+      @reset="clearFilters()"
+    )
 </template>
 
 <script>
-import { message } from 'ant-design-vue'
-import Shop from '../../api/shop'
-import dayjs from 'dayjs'
-import localeData from 'dayjs/plugin/localeData'
-import weekday from 'dayjs/plugin/weekday'
-import updateLocale from 'dayjs/plugin/updateLocale'
+  import dayjs from "dayjs";
+  import localeData from "dayjs/plugin/localeData";
+  import weekday from "dayjs/plugin/weekday";
+  import updateLocale from "dayjs/plugin/updateLocale";
+  import { message } from "ant-design-vue";
+  import Shop from "../../api/shop";
+  import TableSelect from "../TableSelect";
 
-import 'dayjs/locale/zh-cn'
+  import "dayjs/locale/zh-cn";
 
-dayjs.extend(localeData)
-dayjs.extend(weekday)
-dayjs.extend(updateLocale)
+  dayjs.extend(localeData);
+  dayjs.extend(weekday);
+  dayjs.extend(updateLocale);
 
-dayjs.locale('zh-cn')
+  dayjs.locale("zh-cn");
 
-dayjs.updateLocale('zh-cn', {
-  weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-})
+  dayjs.updateLocale("zh-cn", {
+    weekdays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+  });
 
-export default {
-  name: 'shop-indices',
-  props: ['shop_meta'],
-  data() {
-    return {
-      shop_indices_data: {
-        dates: [],
-        data: []
+  export default {
+    name: "shop-indices",
+    components: {
+      TableSelect,
+    },
+    props: ["shop_meta"],
+    data() {
+      return {
+        shop_indices_data: {
+          dates: [],
+          data: [],
+        },
+        spinning: false,
+      };
+    },
+    computed: {
+      shop_indices_columns() {
+        let fiexed_cols = [
+          {
+            title: "指标",
+            dataIndex: "field",
+            width: 120,
+            fixed: "left",
+          },
+        ];
+        let dates_cols = this.shop_indices_data.dates.map((v) => ({
+          title: dayjs(v, "YYYY-MM-DD").format("M/D"),
+          dataIndex: v,
+          align: "right",
+          width: 80,
+          _notFilter: true,
+        }));
+        // console.log([...fiexed_cols, ...dates_cols])
+        return [...fiexed_cols, ...dates_cols].map(this.extendColumn);
       },
-      spinning: false,
-      scrollY: 900
-    }
-  },
-  computed: {
-    shop_indices_columns() {
-      let fiexed_cols = [
-        {
-          title: '指标',
-          dataIndex: 'field',
-          width: 120,
-          filters: this.getColFilters('field'),
-          filterMultiple: true,
-          fixed: 'left',
-          onFilter: (value, record) => record.field == value
+      scrollX() {
+        let x = this.reduce_width(this.shop_indices_columns);
+        return x;
+      },
+    },
+    methods: {
+      reduce_width(nodes) {
+        return nodes.reduce((sw, c) => {
+          if (c.width) return sw + c.width ?? 200;
+          if (c.children) return sw + this.reduce_width(c.children);
+          return sw;
+        }, 10);
+      },
+      toNum(str) {
+        try {
+          return parseFloat(str);
+        } catch (error) {
+          return 0;
         }
-      ]
-      let dates_cols = this.shop_indices_data.dates.map(v => ({
-        title: dayjs(v, 'YYYY-MM-DD').format('M/D'),
-        dataIndex: v,
-        align: 'right',
-        width: 80,
-        // sorter: (a, b) => this.toNum(a[v]) - this.toNum(b[v])
-      }))
-      // console.log([...fiexed_cols, ...dates_cols])
-      return [...fiexed_cols, ...dates_cols]
+      },
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
+      },
+      fetch_shop_indices() {
+        this.spinning = true;
+        new Shop(this.shop_meta.shopId)
+          .indices(this.shop_meta.platform)
+          .then((res) => {
+            this.shop_indices_data = res;
+            this.spinning = false;
+          })
+          .catch((e) => {
+            message.error(e);
+            this.spinning = false;
+          });
+      },
     },
-    scrollX() {
-      let x = this.reduce_width(this.shop_indices_columns)
-      return x
-    }
-  },
-  methods: {
-    reduce_width(nodes) {
-      return nodes.reduce((sw, c) => {
-        if (c.width) return sw + c.width
-        if (c.children) return sw + this.reduce_width(c.children)
-        return sw
-      }, 10)
+    created() {
+      this.fetch_shop_indices();
     },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
-      }
+    watch: {
+      shop_meta() {
+        this.fetch_shop_indices();
+      },
     },
-    getColFilters(colName) {
-      return Array.from(new Set(this.shop_indices_data.data.map(row => row[colName]))).map(col => ({
-        text: col,
-        value: col
-      }))
-    },
-    fetch_shop_indices() {
-      this.spinning = true
-      new Shop(this.shop_meta.shopId)
-        .indices(this.shop_meta.platform)
-        .then(res => {
-          this.shop_indices_data = res
-          this.spinning = false
-        })
-        .catch(e => {
-          console.error(e)
-          message.error(e)
-          this.spinning = false
-        })
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 126
-    this.fetch_shop_indices()
-  },
-  watch: {
-    shop_meta() {
-      this.fetch_shop_indices()
-    }
-  }
-}
+  };
 </script>
 
 <style lang="sass" scoped>

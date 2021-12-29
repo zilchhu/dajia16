@@ -1,5 +1,5 @@
 <template lang="pug">
-div(style="padding-right: 20px")
+div
   div(
     style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px"
   )
@@ -17,26 +17,26 @@ div(style="padding-right: 20px")
       :loading="batch_update_loading"
     ) 批量更新
 
-  a-table.ant-table-change(
+  s-table.ant-table-change(
     :columns="columns",
     :data-source="table",
     rowKey="_i",
     :loading="loading",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+    :pagination="false",
     size="small",
-    :scroll="{ y: scrollY, x: scrollX }",
+    :scroll="{ y: scrollY}",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.filterWidth || column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
 </template>
 
@@ -94,7 +94,7 @@ div(style="padding-right: 20px")
             title: name,
             dataIndex: name,
             width: 70,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => (record[name] ?? "") == value,
           };
           return column;

@@ -27,7 +27,6 @@
     a-time-picker(v-model:value="run_at")
     a-button(@click="delayRun", size="small", :loading="delay_run_loading") 定时运行
 
-    
   a-divider
 
   a-table.ant-table-change(
@@ -41,24 +40,24 @@
     :rowClassName="(record, index) => (record?._res?.code == 0 ? 'row-succ' : record?._res?.code == 1 ? 'row-error' : '')"
   )
     template(
-      #filterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       table-select(
-        :style="`min-width: 160px; width: ${column.width || 220}px;`",
-        :filterOptions="getColFilters(column.dataIndex)",
-        :selectedList="selectedKeys",
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="table",
         @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        @confirm="confirm()",
+        @reset="clearFilters()"
       )
-
-    template(#tooltip="{ text, record }")
-      a-tooltip
-        template(#title)
-          div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
-        div {{ text }}
-
-  //- p(style="white-space: pre-wrap") {{ results.join('\n') }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex == '门店ID'")
+        a-tooltip
+          template(#title)
+            div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+          div(
+            :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+          ) {{ text }}
 </template>
 
 <script>
@@ -68,7 +67,7 @@
   import Shop from "../../api/shop";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
-  import moment from 'moment'
+  import moment from "moment";
 
   export default {
     name: "tools-delivery",
@@ -89,8 +88,8 @@
         loading: false,
         tableName: "",
         templateUrl: "http://192.168.3.3:9007/减配送费.xlsx",
-        run_at: moment('23:00:00', 'HH:mm:ss'),
-        delay_run_loading: false
+        run_at: moment("23:00:00", "HH:mm:ss"),
+        delay_run_loading: false,
       };
     },
     computed: {
@@ -100,21 +99,21 @@
             title: "门店ID",
             dataIndex: "门店ID",
             width: 90,
-            slots: { filterDropdown: "filterDropdown", customRender: "tooltip" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.门店ID == value,
           },
           {
             title: "门店名称",
             dataIndex: "门店名称",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
-            onFilter: (value, record) => record.门店名称 == value,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.门店名称 ?? "") == value,
           },
           {
             title: "减配送费",
             dataIndex: "减配送费",
             width: 90,
-            slots: { filterDropdown: "filterDropdown" },
+            customFilterDropdown: true,
             onFilter: (value, record) => record.减配送费 == value,
           },
         ];
