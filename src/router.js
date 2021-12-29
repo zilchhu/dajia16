@@ -1,4 +1,5 @@
 // import App2 from './App2.vue'
+import NotFound from "./NotFound"
 import User from "./pages/user/User"
 import UserActsOvTable from "./pages/user/UserActsOvTable"
 import UserRecords from "./pages/user/UserRecords"
@@ -87,6 +88,7 @@ export const routes = [
   { path: "/testc", name: "activity-comments", component: ActivityComments },
   { path: "/notes", name: "note", component: Note },
   { path: "/", name: "index", redirect: "/date/1" },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound },
 ]
 
 const router = createRouter({
