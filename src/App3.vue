@@ -133,6 +133,7 @@ div(style="position: relative")
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food", title: "商品★" },
+          { name: "tools-act", title: "活动★" },
           { name: "tools-food-mt", title: "美团改价" },
           { name: "tools-food-sub-mt", title: "美团替换" },
           { name: "tools-delivery", title: "减配送费" },
@@ -184,6 +185,8 @@ div(style="position: relative")
           .catch((err) => console.error(err));
       },
       date_change(date, date_str) {
+        console.log("date_change", date_str);
+
         let date1 = dayjs()
           .startOf("day")
           .diff(dayjs(date_str).startOf("day"), "day");
@@ -193,7 +196,7 @@ div(style="position: relative")
         this.$router.replace({
           name: "date",
           params: { day: date1 },
-          query: { d: date_str },
+          // query: { d: date_str },
         });
       },
       disabledDate(currentDate) {
@@ -229,7 +232,7 @@ div(style="position: relative")
         let i = this.routes.findIndex((v) => v.title == r.title);
         if (i >= 0) {
           this.routes = this.routes.map((v) => ({ ...v, color: "default" }));
-          this.routes[i].color = "blue";
+          this.routes[i] = { ...r, color: "blue" };
         }
         this.saveRoutes();
       },
@@ -307,6 +310,9 @@ div(style="position: relative")
         this.lastRoute = { ...oldRoute, title: this.getRouteTitle(oldRoute) };
         let title = this.getRouteTitle(route);
         if (title == "-") return;
+        if (title == "营推")
+          this.selected_date = dayjs().subtract(+route.params.day, "days");
+
         if (this.routes.find((v) => v.title == title)) {
           this.updateRoute({ ...route, title });
           return;

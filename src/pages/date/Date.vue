@@ -12,7 +12,7 @@ div(ref="date")
     :pagination="false",
     size="small",
     :scroll="{ x: scrollX, y: scrollY }",
-    :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)"
+    :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)",
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
@@ -25,6 +25,8 @@ div(ref="date")
         @confirm="confirm()",
         @reset="clearFilters()"
       )
+    template(#headerCell="{ title, column }")
+      .header-cell {{ title }}
     template(#bodyCell="{ column, text, record }")
       template(v-if="column.dataIndex == 'shop_id'")
         .copy-cell
@@ -93,6 +95,7 @@ div(ref="date")
                   //-   p.truncate(:class="{success: value == 100}") {{value}}
               template(v-else, #formatter="{ value }")
                 p.truncate {{ emptyVal(value) }}
+
       hello-form2(:record="record", @save="onSave")
       .date-shop-btn(@click="viewHistoryShopTable(record)") 往日数据
 
@@ -125,7 +128,7 @@ div(ref="date")
     :width="bodyRect.width * 0.86"
   )
     .modal
-      shop-problem(:shop_meta="shop_meta" :scrollY="bodyRect.height * 0.7")
+      shop-problem(:shop_meta="shop_meta", :scrollY="bodyRect.height * 0.7")
 
   a-modal(
     v-model:visible="ratesClickModal",
@@ -191,6 +194,7 @@ div(ref="date")
         collapseKey: [],
         selectedRowKeys: [],
         defaultPageSize: 30,
+        scrollLeft: 0,
         shop_meta: { shopId: null, platform: null },
         shop_meta_rates: { shopId: null, platform: null },
         shopNameCopyShows: {},
@@ -229,7 +233,7 @@ div(ref="date")
           {
             title: "城市",
             dataIndex: "city",
-            width: 40,
+            width: 60,
           },
           {
             title: "负责",
@@ -267,7 +271,7 @@ div(ref="date")
             title: "评分",
             dataIndex: "rating",
             align: "right",
-            width: 40,
+            width: 50,
             _sort: true,
           },
           {
@@ -323,14 +327,14 @@ div(ref="date")
             title: "收入",
             dataIndex: "income",
             align: "right",
-            width: 70,
+            width: 60,
             _sort: true,
           },
           {
             title: "成本比例",
             dataIndex: "cost_ratio",
             align: "right",
-            width: 70,
+            width: 60,
             _sort: true,
           },
           {
@@ -372,13 +376,14 @@ div(ref="date")
             title: "总分",
             dataIndex: "score",
             align: "right",
-            width: 70,
+            width: 60,
             _sort: true,
           },
           {
             title: "日期",
             dataIndex: "date",
             align: "right",
+            fixed: "right",
             width: 70,
           },
         ].map(this.extendColumn);
@@ -387,7 +392,7 @@ div(ref="date")
         return this.bodyRect.height - 148;
       },
       scrollX() {
-        return this.tableCols.reduce((sum, { width }) => sum + width + 10, 50);
+        return this.tableCols.reduce((sum, { width }) => sum + width ?? 200, 20);
       },
       en2zh() {
         const map = new Map();
@@ -436,11 +441,11 @@ div(ref="date")
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-                                                                                let v = 0
-                                                                                try {
-                                                                                  v = parseFloat(val)
-                                                                                } catch (e) { console.error(e) }
-                                                                                return v ${r[1]} ${r[2]}`;
+                                                                                                let v = 0
+                                                                                                try {
+                                                                                                  v = parseFloat(val)
+                                                                                                } catch (e) { console.error(e) }
+                                                                                                return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -556,9 +561,13 @@ div(ref="date")
         }
         return _col;
       },
-      onSave(id) {
-        console.log(id);
-        this.getTableByDate();
+      onSave(id, a) {
+        let newTable = [...this.table];
+        let i = newTable.findIndex((v) => v.id == id);
+        if (i >= 0) {
+          newTable[i].a = a;
+          this.table = newTable;
+        }
       },
       copy(text, key) {
         mcopy(`${text}`);
@@ -687,7 +696,7 @@ div(ref="date")
         app.run("ws://", "@export-table", {
           json: this.transformTable(),
         });
-      },
+      }
     },
     created() {
       app.on("@export-table", (state) => {
@@ -719,7 +728,8 @@ div(ref="date")
   padding-right: 60px
 
 .date-shop-btn
-  padding: 12px 8px
+  width: fit-content
+  padding: 6px 8px
   font-weight: bold
   font-size: 1.1em
   color: #1890ff
@@ -768,6 +778,10 @@ div(ref="date")
   white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
+
+.header-cell
+  white-space: normal
+  font-size: 0.8em
 
 .small
   font-size: .9em

@@ -1,7 +1,7 @@
 <template lang="pug">
-.tools-food
+.tools-act
   .header
-    .title 商品任务
+    div
     .controls
       a-button(size="small", @click="fetchTable") 刷新列表
       a-button(size="small", @click="addTask") 新增任务
@@ -31,7 +31,7 @@
         div(style="overflow: hidden", :title="text")
           a-button(type="link", size="small", @click="viewTaskInputs(record)") {{ text }}
       template(v-else-if="column.dataIndex == '状态'")
-        div(style="cursor: pointer", title="点此查看实时结果")
+        div(style="cursor: pointer")
           a-tag(
             :color="getStatusTagColor(text)",
             @click="viewTaskResults(record)"
@@ -69,7 +69,7 @@
       a-form-item(label="文件", :labelCol="{ span: 2 }")
         .updown-table
           a-upload(
-            action="http://192.168.3.3:9005/upload",
+            action="http://192.168.3.3:9007/upload",
             @change="onFileChange"
           )
             a-button(size="small")
@@ -80,7 +80,7 @@
             :href="`http://192.168.3.3:9007/${taskModels[form.type]}`",
             download
           ) 下载模板
-      ToolsFoodView(
+      ToolsActView(
         viewType="plain",
         :taskType="form.type",
         :plainTable="fileTable",
@@ -106,7 +106,7 @@
   )
     .view-modal
       .header
-    ToolsFoodView(
+    ToolsActView(
       :viewType="viewType",
       :taskType="viewedTask.type",
       :taskId="viewedTask.id",
@@ -117,11 +117,10 @@
 <script>
   import app from "apprun";
   import moment from "moment";
-  import dayjs from "dayjs";
   import { message } from "ant-design-vue";
   import { UploadOutlined } from "@ant-design/icons-vue";
   import TableSelect from "../../components/TableSelect";
-  import ToolsFoodView from "./ToolsFoodView.vue";
+  import ToolsActView from "./ToolsActView.vue";
   import Shop from "../../api/shop";
 
   function throttle(fn, wait) {
@@ -140,10 +139,10 @@
   }
 
   export default {
-    name: "tool-food",
+    name: "tool-act",
     components: {
       TableSelect,
-      ToolsFoodView,
+      ToolsActView,
       UploadOutlined,
     },
     data() {
@@ -208,18 +207,20 @@
         loading: false,
         // form
         taskTypes: [
-          "修改美团外卖商品",
-          "修改饿了么外卖商品",
-          "修改美团外卖分类",
-          "修改饿了么外卖分类",
-          "替换美团外卖商品",
+          "修改美团收藏有礼",
+          "修改美团店内领券",
+          "删除美团售卖代金券",
+          "修改美团下单返券",
+          "修改美团满减活动",
+          "修改美团减配送费",
         ],
         taskModels: {
-          修改美团外卖商品: "美团外卖修改商品模板.xlsx",
-          修改饿了么外卖商品: "饿了么外卖修改商品模板.xlsx",
-          修改美团外卖分类: "美团外卖修改分类模板.xlsx",
-          修改饿了么外卖分类: "饿了么外卖修改分类模板.xlsx",
-          替换美团外卖商品: "美团外卖替换商品模板.xlsx",
+          修改美团收藏有礼: '美团外卖修改收藏有礼模板.xlsx',
+          修改美团店内领券: '美团外卖修改店内领券模板.xlsx',
+          删除美团售卖代金券: '美团外卖删除售卖代金券模板.xlsx',
+          修改美团下单返券: '美团外卖修改下单返券模板.xlsx',
+          修改美团满减活动: '美团外卖修改满减活动模板.xlsx',
+          修改美团减配送费: '美团外卖修改减配送费模板.xlsx',
         },
         cookies: [],
         form: {
@@ -290,7 +291,7 @@
       },
       fetchTable() {
         this.loading = true;
-        app.run("ws://", "get-food-tasks");
+        app.run("ws2://", "get-act-tasks");
       },
       fetchCookies() {
         new Shop()
@@ -303,13 +304,17 @@
           });
       },
       onFileChange({ file }) {
-        if (file.status == "done" && file?.response?.res?.filename) {
-          this.form.filename = file.response.res.filename;
-          this.form.filepath = file.response.res.path;
+        console.log(file);
+
+        if (file.status == "done") {
+          this.form.filename = file.response.result.filename;
+          this.form.filepath = file.response.result.path;
+
+          console.log(this.form);
 
           setTimeout(() => {
-            app.run("ws://", "@upload-table", {
-              table: file.response.res.filename,
+            app.run("ws2://", "upload-table", {
+              table: file.response.result.filename,
             });
           }, 800);
         }
@@ -341,7 +346,7 @@
           return;
         }
 
-        app.run("ws://", "add-food-task", {
+        app.run("ws2://", "add-act-task", {
           name: this.form.name,
           type: this.form.type,
           input: {
@@ -355,7 +360,7 @@
         this.modalShow = false;
       },
       cancelTask(id) {
-        app.run("ws://", "cancel-food-task", { id });
+        app.run("ws2://", "cancel-act-task", { id });
       },
       viewTaskInputs(rec) {
         this.viewType = "inputs";
@@ -367,32 +372,32 @@
         this.viewedTask = { type: rec.类型, id: rec.id };
         this.viewModalShow = true;
       },
-      onGetFoodTasks(state) {
+      onGetActTasks(state) {
         if (state.error) message.error(state.error);
         this.table = state.result.tasks;
         this.loading = false;
       },
       onUploadTable(state) {
-        this.fileTable = state.jsonTable;
+        if (state.error) message.error(state.error);
+        this.fileTable = state.result.jsonTable;
       },
-      onAddFoodTask(state) {
+      onAddActTask(state) {
         if (state.error) message.error(state.error);
       },
-      onCancelFoodTask(state) {
+      onCancelActTask(state) {
         if (state.error) message.error(state.error);
       },
-      onFoodTaskStatus(state) {
+      onActTaskStatus(state) {
         this.throtFetchTable();
       },
     },
     created() {
-      console.log("tool-food created!");
       this.throtFetchTable = throttle(this.fetchTable, 800);
-      app.on("get-food-tasks-res", this.onGetFoodTasks);
-      app.on("@upload-table", this.onUploadTable);
-      app.on("add-food-task-res", this.onAddFoodTask);
-      app.on("cancel-food-task-res", this.onCancelFoodTask);
-      app.on("food-task-status", this.onFoodTaskStatus);
+      app.on("get-act-tasks-res", this.onGetActTasks);
+      app.on("upload-table-res", this.onUploadTable);
+      app.on("add-act-task-res", this.onAddActTask);
+      app.on("cancel-act-task-res", this.onCancelActTask);
+      app.on("act-task-status", this.onActTaskStatus);
 
       this.fetchCookies();
       setTimeout(() => {
@@ -403,19 +408,18 @@
       this.bodyRect = document.body.getBoundingClientRect();
     },
     unmounted() {
-      console.log("tool-food unmounted!");
-      app.off("get-food-tasks-res", this.onGetFoodTasks);
-      app.off("@upload-table", this.onUploadTable);
-      app.off("add-food-task-res", this.onAddFoodTask);
-      app.off("cancel-food-task-res", this.onCancelFoodTask);
-      app.off("food-task-status", this.onFoodTaskStatus);
+      app.off("get-act-tasks-res", this.onGetActTasks);
+      app.off("upload-table-res", this.onUploadTable);
+      app.off("add-act-task-res", this.onAddActTask);
+      app.off("cancel-act-task-res", this.onCancelActTask);
+      app.off("act-task-status", this.onActTaskStatus);
     },
   };
 </script>
 
 
 <style lang="sass" scoped>
-.tools-food
+.tools-act
   padding: 20px
   margin: 0 auto
 
@@ -424,10 +428,6 @@
     justify-content: space-between
     align-items: center
     margin-bottom: 6px
-
-    .title
-      font-size: 1.1em
-      font-weight: bold
 
     .controls
       display: flex

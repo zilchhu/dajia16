@@ -185,7 +185,7 @@
           return;
         }
 
-        app.run("ws://", "update-full-discount-acts", {
+        app.run("ws2://", "update-full-discount-acts", {
           auth: this.auth.split("||")[1] || this.auth,
           platform: 1,
           jsonTable: this.jsonTable,
@@ -206,7 +206,7 @@
           return;
         }
 
-        app.run("ws://", "update-full-discount-acts", {
+        app.run("ws2://", "update-full-discount-acts", {
           auth: this.auth.split("||")[1] || this.auth,
           platform: 1,
           at: +this.run_at,

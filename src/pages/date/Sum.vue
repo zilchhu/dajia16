@@ -193,6 +193,22 @@ s-table.ant-table-change(
               width: 80,
               _sort: true,
             },
+            {
+              title: "上月利润",
+              dataIndex: `before_30_profit_${v}`,
+              key: `before_30_profit_${v}`,
+              align: "right",
+              width: 80,
+              _sort: true,
+            },
+            {
+              title: "比上月",
+              dataIndex: `month_on_month_ratio_profit_${v}`,
+              key: `month_on_month_ratio_profit_${v}`,
+              align: "right",
+              width: 80,
+              _sort: true,
+            },
           ].map(this.extendColumn),
         }));
         return [...fiexed_cols, ...dates_cols];

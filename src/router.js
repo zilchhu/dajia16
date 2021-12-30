@@ -1,5 +1,5 @@
 // import App2 from './App2.vue'
-import NotFound from './NotFound'
+import NotFound from "./NotFound"
 import User from "./pages/user/User"
 import UserActsOvTable from "./pages/user/UserActsOvTable"
 import UserRecords from "./pages/user/UserRecords"
@@ -10,6 +10,7 @@ import Tasks from "./pages/change/Tasks"
 import Prob from "./pages/probs/Prob"
 import Tools from "./pages/tools/Tools"
 import ToolsFood from "./pages/tools/ToolsFood"
+import ToolsAct from "./pages/tools/ToolsAct"
 import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
 import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
 import ToolsAddDada from "./pages/tools/ToolsAddDada"
@@ -22,7 +23,7 @@ import ToolsFreshElm from "./pages/tools/ToolsFreshElm"
 import ToolsTests from "./pages/tools/ToolsTests"
 // import ToolsFoodMt from "./pages/tools/ToolsFoodMt"
 // import ToolsFoodElm from "./pages/tools/ToolsFoodElm"
-import ToolsFoodSubMt from "./pages/tools/ToolsFoodSubMt"
+// import ToolsFoodSubMt from "./pages/tools/ToolsFoodSubMt"
 import ToolsDelivery from "./pages/tools/ToolsDelivery"
 import ToolsFullDiscount from "./pages/tools/ToolsFullDiscount"
 import ToolsOrderCoupon from "./pages/tools/ToolsOrderCoupon"
@@ -58,6 +59,8 @@ export const routes = [
     // ]
   },
   { path: "/tools/food", name: "tools-food", component: ToolsFood },
+  { path: "/tools/act", name: "tools-act", component: ToolsAct },
+
   { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },
   { path: "/tools/add/fengniao", name: "tools-add-fengniao", component: ToolsAddFengniao },
   { path: "/tools/add/dada", name: "tools-add-dada", component: ToolsAddDada },
@@ -69,7 +72,7 @@ export const routes = [
   { path: "/tools/fresh/elm", name: "tools-fresh-elm", component: ToolsFreshElm },
   // { path: "/tools/food/mt", name: "tools-food-mt", component: ToolsFoodMt },
   // { path: "/tools/food/elm", name: "tools-food-elm", component: ToolsFoodElm },
-  { path: "/tools/food/sub/mt", name: "tools-food-sub-mt", component: ToolsFoodSubMt },
+  // { path: "/tools/food/sub/mt", name: "tools-food-sub-mt", component: ToolsFoodSubMt },
   { path: "/tools/delivery", name: "tools-delivery", component: ToolsDelivery },
   { path: "/tools/fulldiscount", name: "tools-full-discount", component: ToolsFullDiscount },
   { path: "/tools/ordercoupon", name: "tools-order-coupon", component: ToolsOrderCoupon },
@@ -90,7 +93,7 @@ export const routes = [
   { path: "/testc", name: "activity-comments", component: ActivityComments },
   { path: "/notes", name: "note", component: Note },
   { path: "/", name: "index", redirect: "/date/1" },
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound },
+  { path: "/:pathMatch(.*)*", name: "not-found", component: NotFound },
 ]
 
 const router = createRouter({

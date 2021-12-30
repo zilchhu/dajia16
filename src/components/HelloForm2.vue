@@ -118,7 +118,7 @@ a-table(
     },
     methods: {
       handleChange(value, record, column) {
-        if (/^\s+$/.test(value)) return;
+        // if (/^\s+$/.test(value)) return;
         const newData = [...this.data];
         const target = newData.filter((item) => record.q === item.q)[0];
         if (target) {
@@ -144,9 +144,9 @@ a-table(
           updateTableById(this.record.id, a)
             .then((res) => {
               message.success(res);
-              this.data = newData;
+              // this.data = newData;
               this.saving = false;
-              // this.$emit('save', this.record.id)
+              this.$emit('save', this.record.id, a)
             })
             .catch((err) => {
               message.error(err);

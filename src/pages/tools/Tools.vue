@@ -48,17 +48,18 @@
             ],
           },
           {
-            title: "美团活动",
+            title: "活动★",
             items: [
-              { title: "减配送费", to: { name: "tools-delivery" } },
-              { title: "满减活动", to: { name: "tools-full-discount" } },
-              { title: "下单返券", to: { name: "tools-order-coupon" } },
-              {
-                title: "售卖代金券",
-                to: { name: "tools-seal-full-discount-coupon" },
-              },
-              { title: "店内领券", to: { name: "tools-poi-inner-coupon" } },
-              { title: "收藏领券", to: { name: "tools-collect-coupon" } },
+              { title: "修改美团活动", to: { name: "tools-act" } },
+              // { title: "减配送费", to: { name: "tools-delivery" } },
+              // { title: "满减活动", to: { name: "tools-full-discount" } },
+              // { title: "下单返券", to: { name: "tools-order-coupon" } },
+              // {
+              //   title: "售卖代金券",
+              //   to: { name: "tools-seal-full-discount-coupon" },
+              // },
+              // { title: "店内领券", to: { name: "tools-poi-inner-coupon" } },
+              // { title: "收藏领券", to: { name: "tools-collect-coupon" } },
             ],
           },
         ],
