@@ -142,9 +142,11 @@ div
           });
       },
       handleChange(value, record) {
-        const target = this.table.filter((item) => record.key === item.key)[0];
-        if (target) {
-          target["handle"] = value;
+        let newTable = [...this.table];
+        const i = newTable.findIndex((item) => record.key == item.key);
+        if (i > -1) {
+          newTable[i]["handle"] = value;
+          this.table = newTable;
           this.debounce_save(record);
         }
       },
@@ -152,9 +154,9 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save(this.probType, record.key, target["handle"])
+            .save(this.probType, record.handle_key ?? record.key, target["handle"])
             .then((res) => {
-              console.log(res);
+              message.success(res)
             })
             .catch((err) => {
               message.error(err);

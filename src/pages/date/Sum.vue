@@ -1,30 +1,43 @@
 <template lang="pug">
-s-table.ant-table-change(
-  :columns="sum_columns",
-  :data-source="sum_data.shops",
-  rowKey="real_shop",
-  :loading="spinning",
-  :pagination="false",
-  size="small",
-  :scroll="{ x: scrollX, y: scrollY }",
-  bordered
-)
-  template(
-    #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+.op-sum
+  .indice-filter
+    a-checkbox(
+      v-model:checked="indiceAllChecked",
+      :indeterminate="indiceCheckAllIndeter",
+      @change="onCheckAllIndice"
+    ) 全选
+    a-checkbox-group(v-model:value="checkedIndice")
+      span.check-option(v-for="opt in indiceOptions", :key="opt.value")
+        a-checkbox(:value="opt.value") {{ opt.label }}
+
+  s-table.ant-table-change(
+    :columns="sum_columns",
+    :data-source="sum_data.shops",
+    rowKey="real_shop",
+    :loading="spinning",
+    :pagination="false",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    bordered
   )
-    table-select(
-      :columnTitle="column.title",
-      :columnIndex="column.dataIndex",
-      :tableData="sum_data.shops",
-      @select-change="setSelectedKeys",
-      @confirm="confirm()",
-      @reset="clearFilters()"
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
-  template(#bodyCell="{ column, text, record }")
-    template(v-if="column.dataIndex.startsWith('consume_sum_ratio_')")
-      .cell(:class="{ unsatisfied: text ? toNum(text) > 4.5 : false }") {{ text }}
-    template(v-else-if="column.dataIndex.startsWith('cost_sum_ratio_')")
-      .cell(:class="{ unsatisfied: text ? toNum(text) > 50 : false }") {{ text }}
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="sum_data.shops",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
+    template(#headerCell="{ title, column }")
+      .header-cell {{ title }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex.startsWith('consume_sum_ratio_')")
+        .cell(:class="{ unsatisfied: text ? toNum(text) > 4.5 : false }") {{ text }}
+      template(v-else-if="column.dataIndex.startsWith('cost_sum_ratio_')")
+        .cell(:class="{ unsatisfied: text ? toNum(text) > 50 : false }") {{ text }}
 </template>
 
 <script>
@@ -60,6 +73,38 @@ s-table.ant-table-change(
           months: [],
           shops: [],
         },
+        indice: [
+          "营业收入",
+          "推广费用",
+          "推广比例",
+          "成本",
+          "成本比例",
+          "房租成本",
+          "人工成本",
+          "水电成本",
+          "好评返现",
+          "运营成本",
+          "利润",
+          "月均利润",
+          "比上月",
+        ],
+        checkedIndice: [
+          "营业收入",
+          "推广费用",
+          "推广比例",
+          "成本",
+          "成本比例",
+          "房租成本",
+          "人工成本",
+          "水电成本",
+          "好评返现",
+          "运营成本",
+          "利润",
+          "月均利润",
+          "比上月",
+        ],
+        indiceAllChecked: true,
+        indiceCheckAllIndeter: false,
         spinning: false,
         scrollY: 900,
         last_sum_route: { path: "/sum/7" },
@@ -67,7 +112,10 @@ s-table.ant-table-change(
     },
     computed: {
       day() {
-        return this.$route.params.day;
+        return this.$route.params.day || 7;
+      },
+      indiceOptions() {
+        return this.indice.map((v) => ({ label: v, value: v }));
       },
       sum_columns() {
         let fiexed_cols = [
@@ -85,26 +133,31 @@ s-table.ant-table-change(
             width: 60,
             fixed: "left",
           },
-          {
-            title: "组长",
-            dataIndex: "leader",
-            key: "leader",
-            width: 60,
-            fixed: "left",
-          },
+          // {
+          //   title: "组长",
+          //   dataIndex: "leader",
+          //   key: "leader",
+          //   width: 60,
+          //   fixed: "left",
+          // },
           {
             title: "物理店",
             dataIndex: "real_shop",
             key: "real_shop",
             width: 90,
             fixed: "left",
-            _sort: 'str',
+            _sort: "str",
             _filter: true,
           },
         ].map(this.extendColumn);
-        let dates_cols = this.sum_data.dates.map((v) => ({
-          title: `${v} ${dayjs.weekdays()[dayjs(v + "", "YYYYMMDD").day()]}`,
-          children: [
+
+        let dates_cols = this.sum_data.dates.map((v) => {
+          let title =
+            this.checkedIndice.length == 1
+              ? String(v)?.slice(4)
+              : `${v} ${dayjs.weekdays()[dayjs(v + "", "YYYYMMDD").day()]}`;
+
+          let children = [
             {
               title: "营业收入",
               dataIndex: `income_sum_${v}`,
@@ -194,7 +247,7 @@ s-table.ant-table-change(
               _sort: true,
             },
             {
-              title: "上月利润",
+              title: "月均利润",
               dataIndex: `before_30_profit_${v}`,
               key: `before_30_profit_${v}`,
               align: "right",
@@ -209,8 +262,14 @@ s-table.ant-table-change(
               width: 80,
               _sort: true,
             },
-          ].map(this.extendColumn),
-        }));
+          ]
+            .filter((c) => this.checkedIndice.includes(c.title))
+            .map(this.extendColumn);
+
+          return { title, children };
+        });
+
+        if (this.checkedIndice.length == 0) return fiexed_cols;
         return [...fiexed_cols, ...dates_cols];
       },
       scrollX() {
@@ -275,12 +334,16 @@ s-table.ant-table-change(
             this.spinning = false;
           });
       },
+      onCheckAllIndice(e) {
+        this.checkedIndice = e.target.checked ? [...this.indice] : [];
+        this.indiceCheckAllIndeter = false;
+      },
     },
     created() {
       this.fetch_sum_single();
     },
     mounted() {
-      this.scrollY = document.body.clientHeight - 248;
+      this.scrollY = document.body.clientHeight - 192;
     },
     watch: {
       $route(route) {
@@ -290,6 +353,11 @@ s-table.ant-table-change(
           }
           this.last_sum_route = route;
         }
+      },
+      checkedIndice(val) {
+        this.indiceCheckAllIndeter =
+          !!val.length && val.length < this.indice.length;
+        this.indiceAllChecked = val.length === this.indice.length;
       },
     },
   };
@@ -303,4 +371,16 @@ s-table.ant-table-change(
 
 .unsatisfied
   color: #fa541c
+
+.indice-filter
+  padding: 8px
+
+.check-option
+  padding: 0 2px
+
+.header-cell
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  font-size: 0.886em
 </style>

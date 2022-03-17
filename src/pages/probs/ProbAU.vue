@@ -1,5 +1,12 @@
 <template lang="pug">
 div
+  .header
+    a-date-picker(
+      v-model:value="probDate",
+      @change="onSelectDate",
+      :allowClear="false",
+      size="small"
+    )
   s-table.ant-table-change(
     :columns="extendedColumns",
     :data-source="table",
@@ -21,12 +28,26 @@ div
         @reset="clearFilters()"
       )
     template(#bodyCell="{ column, text, record }")
-      template(v-if="column.dataIndex == 'handle'")
+      template(v-if="column.dataIndex == '申诉内容'")
         a-input(
           :value="text",
+          :title="text",
           @change="(e) => handleChange(e.target.value, record)",
           size="small"
         )
+      template(v-if="column.dataIndex == '申诉结果'")
+        a-select(
+          :value="text",
+          :options="appealResultOptions",
+          :placeholder="text",
+          size="small",
+          @select="(value) => handleSelect(value, record)",
+          style="width: 90px"
+        )
+      template(
+        v-else-if="['评价内容'].includes(column.dataIndex)"
+      )
+        .ellipsis(:title="text") {{ text }}
 
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable") 
@@ -60,9 +81,10 @@ div
   import HandleSelect from "../../components/HandleSelect";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
+  import dayjs from "dayjs";
 
   export default {
-    name: "ProbBase",
+    name: "ProbAU",
     components: {
       HandleSelect,
       TableSelect,
@@ -70,10 +92,70 @@ div
       ExportOutlined,
       DownloadOutlined,
     },
-    props: ["probType", "columns", "xScroll"],
     data() {
       return {
+        probType: "au",
+        probDate: dayjs().subtract(1, "day"),
+        columns: [
+          {
+            title: "负责人",
+            dataIndex: "负责人",
+            width: 70,
+          },
+          {
+            title: "店铺ID",
+            dataIndex: "店铺ID",
+            width: 70,
+            _filter: true,
+            _sort: true,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 150,
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            width: 70,
+          },
+          {
+            title: "物理店",
+            dataIndex: "物理店",
+            width: 70,
+          },
+          {
+            title: "评分",
+            dataIndex: "评分",
+            width: 70,
+          },
+          {
+            title: "评价内容",
+            dataIndex: "评价内容",
+            width: 250,
+          },
+          {
+            title: "申诉内容",
+            dataIndex: "申诉内容",
+            width: 250,
+          },
+          {
+            title: "申诉结果",
+            dataIndex: "申诉结果",
+            width: 70,
+          },
+          {
+            title: "评价日期",
+            dataIndex: "评价日期",
+            width: 100,
+          },
+        ],
         table: [],
+        applealResultsMap: {
+          未记录: 0,
+          失败: 1,
+          成功: 2,
+        },
         loading: false,
         scrollY: 900,
         debounce_save: null,
@@ -82,6 +164,9 @@ div
       };
     },
     computed: {
+      appealResultOptions() {
+        return Object.keys(this.applealResultsMap).map((k) => ({ value: k }));
+      },
       extendedColumns() {
         return this.columns.map((col) => {
           let _col = {
@@ -110,7 +195,7 @@ div
           .reduce((p, v) => p + v, 0);
       },
       scroll() {
-        if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
+        // if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
         return { y: this.scrollY };
       },
     },
@@ -126,13 +211,13 @@ div
         let timeout = null;
         return function () {
           clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+          timeout = setTimeout(() => fn.apply(this, arguments), 1000);
         };
       },
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single(this.probType)
+          .singleDate(this.probType, this.probDate.format("YYYYMMDD"))
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -142,11 +227,23 @@ div
             this.loading = false;
           });
       },
+      onSelectDate() {
+        this.fetchTable();
+      },
       handleChange(value, record) {
         let newTable = [...this.table];
         const i = newTable.findIndex((item) => record.key == item.key);
         if (i > -1) {
-          newTable[i]["handle"] = value;
+          newTable[i]["申诉内容"] = value;
+          this.table = newTable;
+          this.debounce_save(record);
+        }
+      },
+      handleSelect(value, record) {
+        let newTable = [...this.table];
+        const i = newTable.findIndex((item) => record.key == item.key);
+        if (i > -1) {
+          newTable[i]["申诉结果"] = value;
           this.table = newTable;
           this.debounce_save(record);
         }
@@ -154,8 +251,14 @@ div
       save(record) {
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
+          console.log(target);
+
           new Probs()
-            .save(this.probType, record.handle_key ?? record.key, target["handle"])
+            .saveAu({
+              id: target.id,
+              appeal_info: target.申诉内容,
+              appeal_result: this.applealResultsMap[target.申诉结果],
+            })
             .then((res) => {
               message.success(res);
             })
@@ -180,7 +283,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 204;
+      this.scrollY = document.body.clientHeight - 244;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },
@@ -190,6 +293,17 @@ div
         this.exporting = false;
         this.tableUrl = state.path;
       });
-    },
+    }
   };
 </script>
+
+<style lang="sass" scoped>
+.ellipsis
+  display: -webkit-box
+  overflow: hidden
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+
+.wrap
+  white-space: pre-wrap
+</style>

@@ -14,6 +14,11 @@ ProbBase(probType="w", :columns="columns", :xScroll="true")
       return {
         columns: [
           {
+            title: "责任人",
+            dataIndex: "责任人",
+            width: 80,
+          },
+          {
             title: "店铺ID",
             dataIndex: "店铺ID",
             width: 90,
@@ -34,15 +39,9 @@ ProbBase(probType="w", :columns="columns", :xScroll="true")
             width: 90,
           },
           {
-            title: "责任人",
-            dataIndex: "责任人",
-            width: 80,
-          },
-          {
             title: "门店起送",
             dataIndex: "门店起送",
-            width: 140,
-            slots: { filterDropdown: "filterDropdown" },
+            width: 100,
             _sort: true,
             _filter: true,
           },
@@ -74,7 +73,7 @@ ProbBase(probType="w", :columns="columns", :xScroll="true")
             title: "起购数量",
             dataIndex: "起购数量",
             align: "right",
-            width: 140,
+            width: 100,
             _sort: true,
             _filter: true,
           },
@@ -102,7 +101,7 @@ ProbBase(probType="w", :columns="columns", :xScroll="true")
           {
             title: "处理",
             dataIndex: "handle",
-            width: 160
+            width: 160,
           },
         ],
       };

@@ -1,9 +1,9 @@
-import axios from 'axios'
+import axios from "axios"
 
 const inst = axios.create({
-  responseType: 'json',
-  baseURL: 'http://192.168.3.3:9004/',
-  timeout: 30 * 1000
+  responseType: "json",
+  baseURL: "http://192.168.3.3:9004/",
+  timeout: 30 * 1000,
 })
 
 inst.interceptors.response.use(
@@ -18,15 +18,15 @@ inst.interceptors.response.use(
 )
 
 const urls = {
-  table: 'table',
-  tableByDate: 'tableByDate',
-  tableByShop: 'tableByShop',
-  plan: 'plan',
-  plans: 'plans'
+  table: "table",
+  tableByDate: "tableByDate",
+  tableByShop: "tableByShop",
+  plan: "plan",
+  plans: "plans",
 }
 
-export async function getTableByDate(day_from_today = 1) {
-  return inst.get(`${urls.tableByDate}/${day_from_today}`)
+export async function getTableByDate(day_from_today = 1, force_refresh = false) {
+  return inst.get(`${urls.tableByDate}/${day_from_today}?force_refresh=${force_refresh ? 1 : 0}`)
 }
 
 export async function getTableByShop(shopId) {

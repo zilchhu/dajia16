@@ -88,11 +88,18 @@ const urls = {
     base(key) {
       return `/probs/${key}`
     },
+    baseDate(key, date) {
+      return `/probs/${key}/${date}`
+    },
+    baseDate2(key, begin, end) {
+      return `/probs/${key}/${begin}/${end}`
+    },
     save() {
       return `/saveProbs`
     },
     addAn: '/probs/an/add',
     editAn: '/probs/an/edit',
+    delAn: '/probs/an/del',
   },
   plan: {
     multi: 'plans'

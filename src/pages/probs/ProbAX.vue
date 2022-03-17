@@ -1,12 +1,12 @@
 <template lang="pug">
-ProbBase(probType="af", :columns="columns")
+ProbBase(probType="ax", :columns="columns")
 </template>
 
 <script>
   import ProbBase from "./ProbBaseS.vue";
 
   export default {
-    name: "ProbAF",
+    name: "ProbAX",
     components: {
       ProbBase,
     },
@@ -14,55 +14,51 @@ ProbBase(probType="af", :columns="columns")
       return {
         columns: [
           {
-            title: "责任人",
-            dataIndex: "责任人",
+            title: "负责人",
+            dataIndex: "负责人",
             width: 80,
           },
           {
-            title: "店铺id",
-            dataIndex: "店铺id",
-            width: 110,
+            title: "店铺ID",
+            dataIndex: "店铺ID",
+            width: 80,
           },
           {
-            title: "店名",
-            dataIndex: "店名",
+            title: "门店名称",
+            dataIndex: "门店名称",
             width: 250,
           },
           {
             title: "平台",
             dataIndex: "平台",
-            width: 70,
+            width: 80,
           },
           {
             title: "物理店",
             dataIndex: "物理店",
-            width: 90,
+            width: 80,
           },
           {
-            title: "分类",
-            dataIndex: "分类",
-            width: 150,
+            title: "品牌经理",
+            dataIndex: "品牌经理",
+            width: 100,
           },
           {
-            title: "商品",
-            dataIndex: "商品",
-            width: 300,
+            title: "配送方式",
+            dataIndex: "配送方式",
+            width: 100,
           },
           {
-            title: "库存",
-            dataIndex: "库存",
+            title: "优惠到期日期",
+            dataIndex: "优惠到期日期",
             width: 100,
             _sort: true,
-          },
-          {
-            title: "最大库存",
-            dataIndex: "最大库存",
-            width: 100,
-            _sort: true,
+            _filter: true,
           },
           {
             title: "处理",
             dataIndex: "handle",
+            width: 150,
           },
         ],
       };

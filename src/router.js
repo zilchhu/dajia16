@@ -8,8 +8,13 @@ import FreshShop from "./pages/shop/FreshShop"
 import Change from "./pages/change/Change"
 import Tasks from "./pages/change/Tasks"
 import Prob from "./pages/probs/Prob"
+import Prob2 from "./pages/probs/Prob2"
+import Prob3 from "./pages/probs/Prob3"
+import Prob4 from "./pages/probs/Prob4"
+import Prob5 from "./pages/probs/Prob5"
 import Tools from "./pages/tools/Tools"
 import ToolsFood from "./pages/tools/ToolsFood"
+import ToolsFoodDiff from "./pages/tools/ToolsFoodDiff"
 import ToolsAct from "./pages/tools/ToolsAct"
 import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
 import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
@@ -50,6 +55,10 @@ export const routes = [
   { path: "/changes", name: "changes", component: Change },
   { path: "/tasks", name: "tasks", component: Tasks },
   { path: "/probs", name: "probs", component: Prob },
+  { path: "/probs2", name: "probs2", component: Prob2 },
+  { path: "/probs3", name: "probs3", component: Prob3 },
+  { path: "/probs4", name: "probs4", component: Prob4 },
+  { path: "/probs5", name: "probs5", component: Prob5 },
   {
     path: "/tools",
     component: Tools,
@@ -59,6 +68,7 @@ export const routes = [
     // ]
   },
   { path: "/tools/food", name: "tools-food", component: ToolsFood },
+  { path: "/tools/fooddiff", name: "tools-food-diff", component: ToolsFoodDiff },
   { path: "/tools/act", name: "tools-act", component: ToolsAct },
 
   { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },

@@ -14,24 +14,24 @@ ProbBase(probType="ao", :columns="columns")
       return {
         columns: [
           {
+            title: "责任人",
+            dataIndex: "责任人",
+            width: 80,
+          },
+          {
             title: "店铺id",
-            dataIndex: "shop_id",
+            dataIndex: "店铺id",
             width: 90,
           },
           {
-            title: "店名",
-            dataIndex: "shop_name",
+            title: "店铺名称",
+            dataIndex: "店铺名称",
             width: 250,
           },
           {
             title: "物理店",
-            dataIndex: "real_shop_name",
+            dataIndex: "物理店",
             width: 100,
-          },
-          {
-            title: "责任人",
-            dataIndex: "person",
-            width: 80,
           },
           {
             title: "可报名活动",
@@ -40,7 +40,7 @@ ProbBase(probType="ao", :columns="columns")
           {
             title: "处理",
             dataIndex: "handle",
-            width: 160
+            width: 260,
           },
         ],
       };

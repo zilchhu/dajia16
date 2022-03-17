@@ -27,15 +27,29 @@ div
           :to="{ name: 'user', params: { username: text || '-', date: 0 } }",
           style="color: rgba(0, 0, 0, 0.65)"
         ) {{ text }}
+  .left-bottom-div(v-show="!spinning")
+    a-button(type="link", size="small", @click="() => fetch_perf()") 刷新
+    a-button(
+      type="link",
+      size="small",
+      @click="exportTable",
+      :loading="exporting"
+    ) 导出
+    a(
+      v-show="tableUrl",
+      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      target="_blank"
+    ) 下载
 </template>
 
 <script>
   import { message } from "ant-design-vue";
-  import Perf from "../../api/perf";
   import dayjs from "dayjs";
+  import app from "apprun";
   import localeData from "dayjs/plugin/localeData";
   import weekday from "dayjs/plugin/weekday";
   import updateLocale from "dayjs/plugin/updateLocale";
+  import Perf from "../../api/perf";
   import TableSelect from "../../components/TableSelect";
 
   import "dayjs/locale/zh-cn";
@@ -62,16 +76,18 @@ div
         scrollY: 900,
         defaultPageSize: 40,
         last_perf_route: { path: "/perf2" },
+        exporting: false,
+        tableUrl: null,
       };
     },
     computed: {
       perf_columns() {
         let fiexed_cols = [
-          {
-            title: "级别",
-            dataIndex: "级别",
-            width: 80,
-          },
+          // {
+          //   title: "级别",
+          //   dataIndex: "级别",
+          //   width: 80,
+          // },
           {
             title: "运营",
             dataIndex: "运营",
@@ -108,6 +124,13 @@ div
           {
             title: "提成",
             dataIndex: "提成",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "店均提成",
+            dataIndex: "店均提成",
             align: "right",
             width: 100,
             _sort: true,
@@ -194,11 +217,32 @@ div
       table_change(pagination) {
         localStorage.setItem("perf2/defaultPageSize", pagination.pageSize);
       },
+      transformTable() {
+        return this.perfs.map((row) =>
+          this.perf_columns.reduce(
+            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
+            {}
+          )
+        );
+      },
+      exportTable() {
+        this.exporting = true;
+        app.run("ws://", "@export-table", {
+          json: this.transformTable(),
+        });
+      },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 144;
-      this.defaultPageSize = +localStorage.getItem("perf2/defaultPageSize") || 40;
+      app.on("@export-table", (state) => {
+        console.log(state);
+        this.exporting = false;
+        this.tableUrl = state.path;
+      });
+
       this.fetch_perf();
+    },
+    mounted() {
+      this.scrollY = document.body.clientHeight - 144;
     },
     watch: {
       $route(route) {

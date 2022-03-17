@@ -14,6 +14,11 @@ ProbBase(probType="ag", :columns="columns")
       return {
         columns: [
           {
+            title: "责任人",
+            dataIndex: "责任人",
+            width: 80,
+          },
+          {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 110,
@@ -32,11 +37,6 @@ ProbBase(probType="ag", :columns="columns")
             title: "物理店",
             dataIndex: "物理店",
             width: 90,
-          },
-          {
-            title: "责任人",
-            dataIndex: "责任人",
-            width: 80,
           },
           {
             title: "分类名",

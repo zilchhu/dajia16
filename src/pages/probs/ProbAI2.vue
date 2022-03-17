@@ -28,10 +28,10 @@ div
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable") 
       SyncOutlined
-      span(style="margin-left: 4px") 软刷新
+      span(style="margin-left: 4px") 刷新
     a-button(type="link", size="small", @click="forceRefreshTable") 
       SyncOutlined
-      span(style="margin-left: 4px") 硬刷新
+      span(style="margin-left: 4px") 强刷新
     a-button(
       type="link",
       size="small",
@@ -124,11 +124,13 @@ div
             title: "评价",
             dataIndex: "评价",
             customFilterDropdown: true,
+            onFilter: (value, record) => (record.评价 ?? "") == value,
           },
           {
             title: "订单",
             dataIndex: "订单",
             width: 200,
+            onFilter: (value, record) => (record.订单 ?? "") == value,
           },
           {
             title: "时间",
@@ -229,7 +231,7 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save("ai", record.key, target["handle"])
+            .save("ai2", record.key, target["handle"])
             .then((res) => {
               console.log(res);
             })

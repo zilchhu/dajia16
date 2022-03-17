@@ -28,7 +28,7 @@ div
           @change="(e) => handleChange(e.target.value, record)",
           size="small"
         )
-      template(v-else-if="column.dataIndex == '活动规则'")
+      template(v-else-if="['规则', '昨天规则'].includes(column.dataIndex)")
         span.pre {{ text }}
 
   .left-bottom-div(v-show="!loading")
@@ -54,7 +54,7 @@ div
   import app from "apprun";
 
   export default {
-    name: "ProbAE",
+    name: "ProbBD",
     components: {
       TableSelect,
     },
@@ -73,61 +73,53 @@ div
         return [
           {
             title: "责任人",
-            dataIndex: "责任人",
+            dataIndex: "person",
             width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.责任人 ?? "") == value,
           },
           {
             title: "店铺编号",
-            dataIndex: "店铺编号",
-            width: 110,
-            customFilterDropdown: true,
-            onFilter: (value, record) => record.店铺编号 == value,
+            dataIndex: "shop_id",
+            width: 100,
           },
           {
             title: "店铺名称",
-            dataIndex: "店铺名称",
+            dataIndex: "shop_name",
             width: 250,
-            customFilterDropdown: true,
-            onFilter: (value, record) => record.店铺名称 == value,
           },
           {
             title: "平台",
-            dataIndex: "平台",
-            width: 70,
-            customFilterDropdown: true,
-            onFilter: (value, record) => record.平台 == value,
+            dataIndex: "platform",
+            width: 80,
           },
           {
-            title: "活动类型",
-            dataIndex: "活动类型",
-            width: 130,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.活动类型 ?? "") == value,
+            title: "物理店",
+            dataIndex: "real_shop_name",
+            width: 80,
           },
           {
-            title: "活动规则",
-            dataIndex: "活动规则",
-            customFilterDropdown: false,
-            onFilter: (value, record) => (record.活动规则 ?? "") == value,
+            title: "种类",
+            dataIndex: "种类",
+            width: 100,
           },
           {
-            title: "结束时间",
-            dataIndex: "结束时间",
-            width: 200,
-            customFilterDropdown: true,
-            onFilter: (value, record) => record.结束时间 == value,
-            sorter: (a, b) =>
-              dayjs(a.结束时间).isBefore(dayjs(b.结束时间)) ? -1 : 1,
+            title: "昨天种类",
+            dataIndex: "昨天种类",
+            width: 100,
+          },
+          {
+            title: "规则",
+            dataIndex: "规则",
+          },
+          {
+            title: "昨天规则",
+            dataIndex: "昨天规则",
           },
           {
             title: "处理",
             dataIndex: "handle",
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.handle ?? "") == value,
+            width: 150,
           },
-        ];
+        ].map(this.extendColumn);
       },
     },
     methods: {
@@ -146,10 +138,37 @@ div
           return 0;
         }
       },
+      extendColumn(col) {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
+        };
+        if (col._sort) {
+          _col.customFilterDropdown = false;
+          let sortByNum = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
+          };
+          let sortByStr = (a, b) => {
+            if (a == null) return b == null ? 0 : -1;
+            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+          };
+          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false;
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true;
+        }
+        return _col;
+      },
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single("ae")
+          .single("bd")
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -177,7 +196,7 @@ div
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
           new Probs()
-            .save("ae", record.key, target["handle"])
+            .save("bd", record.key, target["handle"])
             .then((res) => {
               console.log(res);
             })

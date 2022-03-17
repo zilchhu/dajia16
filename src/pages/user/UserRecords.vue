@@ -211,6 +211,14 @@
             fixed: "right",
             _sort: true,
           },
+          {
+            title: "高高跌优化率",
+            dataIndex: `高高跌优化率`,
+            align: "right",
+            width: 80,
+            fixed: "right",
+            _sort: true,
+          },
         ].map(this.extendColumn);
 
         return [

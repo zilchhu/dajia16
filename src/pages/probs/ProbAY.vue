@@ -1,12 +1,12 @@
 <template lang="pug">
-ProbBase(probType="z", :columns="columns")
+ProbBase(probType="ay", :columns="columns")
 </template>
 
 <script>
   import ProbBase from "./ProbBaseS.vue";
 
   export default {
-    name: "ProbZ",
+    name: "ProbAY",
     components: {
       ProbBase,
     },
@@ -21,12 +21,12 @@ ProbBase(probType="z", :columns="columns")
           {
             title: "店铺ID",
             dataIndex: "shop_id",
-            width: 90,
+            width: 80,
           },
           {
-            title: "店铺名称",
+            title: "门店名称",
             dataIndex: "shop_name",
-            width: 260
+            width: 250,
           },
           {
             title: "平台",
@@ -39,15 +39,9 @@ ProbBase(probType="z", :columns="columns")
             width: 80,
           },
           {
-            title: "变化范围/平方千米",
-            dataIndex: "chg",
-            align: "right",
-            _sort: true,
-            width: 200
-          },
-          {
             title: "处理",
             dataIndex: "handle",
+            width: 150,
           },
         ],
       };

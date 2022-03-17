@@ -1,12 +1,12 @@
 <template lang="pug">
-ProbBase(probType="b", :columns="columns")
+ProbBase(probType="ba", :columns="columns")
 </template>
 
 <script>
   import ProbBase from "./ProbBaseS.vue";
 
   export default {
-    name: "ProbB",
+    name: "ProbBA",
     components: {
       ProbBase,
     },
@@ -21,7 +21,7 @@ ProbBase(probType="b", :columns="columns")
           {
             title: "门店ID",
             dataIndex: "shop_id",
-            width: 90,
+            width: 80,
           },
           {
             title: "门店",
@@ -31,41 +31,32 @@ ProbBase(probType="b", :columns="columns")
           {
             title: "平台",
             dataIndex: "platform",
-            width: 70,
+            width: 80,
           },
           {
             title: "物理店",
             dataIndex: "real_shop_name",
-            width: 90,
+            width: 80,
           },
           {
-            title: "分类",
-            dataIndex: "category_name",
-            width: 140,
-          },
-          {
-            title: "商品",
-            dataIndex: "NAME",
-            width: 300,
-          },
-          {
-            title: "原价",
-            dataIndex: "price",
-            align: "right",
+            title: "配送范围",
+            dataIndex: "配送范围",
             width: 100,
-            _sort: true,
           },
           {
-            title: "餐盒费",
-            dataIndex: "package_fee",
-            align: "right",
+            title: "昨日配送范围",
+            dataIndex: "昨日配送范围",
             width: 100,
-            _sort: true,
+          },
+          {
+            title: "变化",
+            dataIndex: "变化",
+            width: 100,
           },
           {
             title: "处理",
             dataIndex: "handle",
-            width: 160
+            width: 150,
           },
         ],
       };

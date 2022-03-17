@@ -220,6 +220,9 @@
           params: { username: this.username, date: date1 },
         });
       },
+      getDisabledDate(date) {
+        return date < dayjs().subtract(30, "days");
+      },
       open_drawer() {
         this.drawer_visible = true;
       },

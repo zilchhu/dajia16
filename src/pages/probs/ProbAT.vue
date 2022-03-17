@@ -1,5 +1,12 @@
 <template lang="pug">
 div
+  .header
+    a-date-picker(
+      v-model:value="probDate",
+      @change="onSelectDate",
+      :allowClear="false",
+      size="small"
+    )
   s-table.ant-table-change(
     :columns="extendedColumns",
     :data-source="table",
@@ -21,12 +28,20 @@ div
         @reset="clearFilters()"
       )
     template(#bodyCell="{ column, text, record }")
-      template(v-if="column.dataIndex == 'handle'")
+      template(v-if="column.dataIndex == '分析'")
         a-input(
           :value="text",
+          :title="text",
           @change="(e) => handleChange(e.target.value, record)",
           size="small"
         )
+      template(
+        v-else-if="['派单日志', '退款原因', '提交原因', '责任判定'].includes(column.dataIndex)"
+      )
+        //- a-tooltip
+        //-   template(#title)
+        //-     .wrap {{ text }}
+        .ellipsis(:title="text") {{ text }}
 
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable") 
@@ -60,9 +75,10 @@ div
   import HandleSelect from "../../components/HandleSelect";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
+  import dayjs from "dayjs";
 
   export default {
-    name: "ProbBase",
+    name: "ProbAT",
     components: {
       HandleSelect,
       TableSelect,
@@ -70,9 +86,79 @@ div
       ExportOutlined,
       DownloadOutlined,
     },
-    props: ["probType", "columns", "xScroll"],
     data() {
       return {
+        probType: "at",
+        probDate: dayjs().subtract(1, "day"),
+        columns: [
+          {
+            title: "负责人",
+            dataIndex: "负责人",
+            width: 80,
+          },
+          {
+            title: "店铺ID",
+            dataIndex: "店铺ID",
+            width: 80,
+            _filter: true,
+            _sort: true,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 150,
+          },
+          {
+            title: "平台",
+            dataIndex: "平台",
+            width: 70,
+          },
+          {
+            title: "城市",
+            dataIndex: "city",
+            width: 70,
+          },
+          {
+            title: "物理店",
+            dataIndex: "物理店",
+            width: 80,
+          },
+          {
+            title: "订单序号",
+            dataIndex: "订单序号",
+            width: 80,
+          },
+          {
+            title: "订单ID",
+            dataIndex: "订单ID",
+            width: 150,
+          },
+          {
+            title: "派单日志",
+            dataIndex: "派单日志",
+            width: 300,
+          },
+          {
+            title: "退款原因",
+            dataIndex: "退款原因",
+            width: 150,
+          },
+          {
+            title: "提交原因",
+            dataIndex: "提交原因",
+            width: 150,
+          },
+          {
+            title: "责任判定",
+            dataIndex: "责任判定",
+            width: 150,
+          },
+          {
+            title: "分析",
+            dataIndex: "分析",
+            width: 200,
+          },
+        ],
         table: [],
         loading: false,
         scrollY: 900,
@@ -110,7 +196,7 @@ div
           .reduce((p, v) => p + v, 0);
       },
       scroll() {
-        if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
+        // if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
         return { y: this.scrollY };
       },
     },
@@ -132,7 +218,7 @@ div
       fetchTable() {
         this.loading = true;
         new Probs()
-          .single(this.probType)
+          .singleDate(this.probType, this.probDate.format("YYYYMMDD"))
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -142,11 +228,14 @@ div
             this.loading = false;
           });
       },
+      onSelectDate() {
+        this.fetchTable();
+      },
       handleChange(value, record) {
         let newTable = [...this.table];
         const i = newTable.findIndex((item) => record.key == item.key);
         if (i > -1) {
-          newTable[i]["handle"] = value;
+          newTable[i]["分析"] = value;
           this.table = newTable;
           this.debounce_save(record);
         }
@@ -154,8 +243,10 @@ div
       save(record) {
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
+          console.log(target);
+
           new Probs()
-            .save(this.probType, record.handle_key ?? record.key, target["handle"])
+            .saveAt({ id: target.id, fill_text: target.分析 })
             .then((res) => {
               message.success(res);
             })
@@ -180,7 +271,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 204;
+      this.scrollY = document.body.clientHeight - 244;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },
@@ -193,3 +284,14 @@ div
     },
   };
 </script>
+
+<style lang="sass" scoped>
+.ellipsis
+  display: -webkit-box
+  overflow: hidden
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+
+.wrap
+  white-space: pre-wrap
+</style>

@@ -56,14 +56,23 @@ div(style="position: relative")
         v-model:value="selected_date",
         @change="date_change",
         :allowClear="false",
-        size="small"
+        size="small",
+        :bordered="false"
       )
 
     a-sub-menu
       template(#title)
         span check
       a-menu-item(key="problems")
-        router-link(:to="{ name: 'probs' }") 问题
+        router-link(:to="{ name: 'probs' }") 自配送
+      a-menu-item(key="problems2")
+        router-link(:to="{ name: 'probs2' }") 管理员
+      a-menu-item(key="problems3")
+        router-link(:to="{ name: 'probs3' }") 日常检查
+      a-menu-item(key="problems4")
+        router-link(:to="{ name: 'probs4' }") 门店沟通
+      a-menu-item(key="problems5")
+        router-link(:to="{ name: 'probs5' }") 基础提醒
       a-menu-item(key="changes")
         router-link(:to="{ name: 'changes' }") 变化
       a-menu-item(key="tasks")
@@ -121,7 +130,11 @@ div(style="position: relative")
           { name: "user-acts", title: "动态" },
           { name: "changes", title: "变化" },
           { name: "tasks", title: "任务" },
-          { name: "probs", title: "问题" },
+          { name: "probs", title: "自配送检查" },
+          { name: "probs2", title: "管理员检查" },
+          { name: "probs3", title: "日常检查" },
+          { name: "probs4", title: "门店沟通" },
+          { name: "probs5", title: "基础提醒" },
           { name: "tools", title: "工具" },
           { name: "tools-add-fresh", title: "新店录入" },
           { name: "tools-add-fengniao", title: "蜂鸟录入" },
@@ -133,6 +146,7 @@ div(style="position: relative")
           { name: "tools-fresh-mt", title: "美团新店" },
           { name: "tools-fresh-elm", title: "饿了么新店" },
           { name: "tools-food", title: "商品★" },
+          { name: "tools-food-diff", title: "商品对比" },
           { name: "tools-act", title: "活动★" },
           { name: "tools-food-mt", title: "美团改价" },
           { name: "tools-food-sub-mt", title: "美团替换" },
@@ -275,7 +289,7 @@ div(style="position: relative")
           .then((res) => {
             message.success("退出登录成功");
             this.$store.commit("setAccount", null);
-            this.$store.commit("token", null);
+            this.$store.commit("setToken", null);
           })
           .catch((err) => message.error(err));
       },

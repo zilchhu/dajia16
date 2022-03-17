@@ -40,8 +40,10 @@ div
 
   .left-bottom-div(v-show="!loading" style="min-width: 400px")
     a-button(type="link", size="small", @click="fetchTable") 刷新
-    div(style="margin-right: 8px; font-size: 10px") 变化天数
-    a-slider(v-model:value="day", :min="1", :max="10", style="width: 160px")
+    div(style="display: flex; align-items: center; column-gap: 6px; margin-right: 8px; font-size: 10px;") 
+      span 变化天数
+      div(style="min-width: 160px")
+        a-slider(v-model:value="day", :min="1", :max="10")
     a-button(
       type="link",
       size="small",
@@ -82,6 +84,13 @@ div
       columns() {
         return [
           {
+            title: "责任人",
+            dataIndex: "person",
+            width: 80,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.person ?? "") == value,
+          },
+          {
             title: "店铺id",
             dataIndex: "shop_id",
             width: 110,
@@ -108,13 +117,6 @@ div
             width: 90,
             customFilterDropdown: true,
             onFilter: (value, record) => (record.real_shop_name ?? "") == value,
-          },
-          {
-            title: "责任人",
-            dataIndex: "person",
-            width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.person ?? "") == value,
           },
           {
             title: "余额变化",

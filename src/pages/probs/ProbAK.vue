@@ -14,8 +14,13 @@ ProbBase(probType="ak", :columns="columns")
       return {
         columns: [
           {
-            title: "店铺id",
-            dataIndex: "店铺id",
+            title: "责任人",
+            dataIndex: "责任人",
+            width: 80,
+          },
+          {
+            title: "店铺ID",
+            dataIndex: "店铺ID",
             width: 90,
           },
           {
@@ -34,11 +39,6 @@ ProbBase(probType="ak", :columns="columns")
             width: 100,
           },
           {
-            title: "责任人",
-            dataIndex: "责任人",
-            width: 80,
-          },
-          {
             title: "分类",
             dataIndex: "分类",
             width: 140,
@@ -46,22 +46,42 @@ ProbBase(probType="ak", :columns="columns")
           {
             title: "商品",
             dataIndex: "商品",
+            width: 250,
+          },
+          {
+            title: "原价",
+            dataIndex: "原价",
+            width: 80,
+            _sort: true,
+          },
+          {
+            title: "餐盒费",
+            dataIndex: "餐盒费",
+            width: 80,
+            _sort: true,
+          },
+          {
+            title: "起购",
+            dataIndex: "起购",
+            width: 80,
+            _sort: true,
           },
           {
             title: "折扣价",
             dataIndex: "折扣价",
-            width: 100,
-            _sort: true
+            width: 80,
+            _sort: true,
           },
           {
-            title: "起购数量",
-            dataIndex: "起购数量",
-            width: 100,
-            _sort: true
+            title: "折扣限购",
+            dataIndex: "折扣限购",
+            width: 80,
+            _sort: true,
           },
           {
-            title: "处理",
+            title: "特殊备注",
             dataIndex: "handle",
+            width: 150
           },
         ],
       };

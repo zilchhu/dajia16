@@ -47,6 +47,15 @@
         ) 取消
 
   a-modal(
+    v-model:visible="loginModalShow",
+    :title="null",
+    :footer="null",
+    centered,
+    :width="650"
+  )
+    Login(@login-success="onLoginSuccess")
+
+  a-modal(
     v-model:visible="modalShow",
     title="新增任务",
     :footer="null",
@@ -96,11 +105,18 @@
           v-model:value="form.execAt"
         )
     a-form-item(:labelCol="{ offset: 2 }")
-      a-button(type="primary", @click="submitTask") 提交
+      a-popconfirm(
+        title="提交前请确保已仔细检查过表单，确定提交？",
+        okText="确定",
+        cancelText="取消",
+        @confirm="submitTask"
+      )
+        a-button(type="primary") 提交
 
   a-modal(
     v-model:visible="viewModalShow",
     :footer="null",
+    :destroyOnClose="false",
     centered,
     :width="bodyRect.width * 0.8"
   )
@@ -122,6 +138,7 @@
   import { UploadOutlined } from "@ant-design/icons-vue";
   import TableSelect from "../../components/TableSelect";
   import ToolsFoodView from "./ToolsFoodView.vue";
+  import Login from "../../components/user/Login";
   import Shop from "../../api/shop";
 
   function throttle(fn, wait) {
@@ -145,15 +162,23 @@
       TableSelect,
       ToolsFoodView,
       UploadOutlined,
+      Login,
     },
     data() {
       return {
         bodyRect: { width: 900, height: 800 },
         columns: [
           {
+            title: "id",
+            dataIndex: "id",
+            width: 80,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.id ?? "") == value,
+          },
+          {
             title: "名称",
             dataIndex: "名称",
-            width: 260,
+            width: 240,
             customFilterDropdown: true,
             onFilter: (value, record) => (record.名称 ?? "") == value,
           },
@@ -198,6 +223,13 @@
             width: 180,
           },
           {
+            title: "操作人",
+            dataIndex: "操作人",
+            width: 80,
+            customFilterDropdown: true,
+            onFilter: (value, record) => (record.操作人 ?? "") == value,
+          },
+          {
             title: "操作",
             dataIndex: "操作",
             width: 100,
@@ -213,6 +245,8 @@
           "修改美团外卖分类",
           "修改饿了么外卖分类",
           "替换美团外卖商品",
+          "修改美团零售商品",
+          "增删美团外卖测试商品",
         ],
         taskModels: {
           修改美团外卖商品: "美团外卖修改商品模板.xlsx",
@@ -220,6 +254,8 @@
           修改美团外卖分类: "美团外卖修改分类模板.xlsx",
           修改饿了么外卖分类: "饿了么外卖修改分类模板.xlsx",
           替换美团外卖商品: "美团外卖替换商品模板.xlsx",
+          修改美团零售商品: "美团零售修改商品模板.xlsx",
+          增删美团外卖测试商品: "美团外卖增删测试商品模板.xlsx",
         },
         cookies: [],
         form: {
@@ -239,6 +275,7 @@
         },
         modalShow: false,
         viewModalShow: false,
+        loginModalShow: false,
         throtFetchTable: () => {},
       };
     },
@@ -261,10 +298,18 @@
         let options = this.cookies.map((s) => ({
           key: `${s.shopId} ${s.shopName}`,
           value: s.auth,
-          label: `${s.shopName} ${s.platform == 1 ? "美团" : "饿了么"}`,
+          label: `${
+            s.platform == 1 ? "**美团*美团*美团**" : "**饿了么*饿了么*饿了么**"
+          } ${s.shopName}`,
           id_name: `${s.shopId} ${s.shopName}`,
         }));
         return options;
+      },
+      account() {
+        return this.$store.state.account ?? localStorage.getItem("account");
+      },
+      token() {
+        return this.$store.state.token ?? localStorage.getItem("token");
       },
     },
     methods: {
@@ -317,7 +362,12 @@
       onCookieFilter(input, option) {
         return option.id_name.includes(input);
       },
+      onLoginSuccess() {
+        this.loginModalShow = false;
+      },
       addTask() {
+        // message.error("有BUG不要用");
+        // return;
         this.modalShow = true;
       },
       submitTask() {
@@ -341,6 +391,17 @@
           return;
         }
 
+        if (this.form.name.length > 100) {
+          message.error("任务名称过长");
+          return;
+        }
+
+        if (!this.account) {
+          message.error("请先登录");
+          this.loginModalShow = true;
+          return;
+        }
+
         app.run("ws://", "add-food-task", {
           name: this.form.name,
           type: this.form.type,
@@ -350,6 +411,10 @@
             cookie: this.form.cookie,
           },
           executedAt: getExecutedAt(),
+          meta: {
+            account: this.account,
+            token: this.token,
+          },
         });
 
         this.modalShow = false;

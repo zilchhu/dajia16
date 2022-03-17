@@ -43,7 +43,10 @@ div
               .truncate(style="width: 100%") {{ text?.a2 }}
         .cell(v-else, :class="{ unsatisfied: isUnsatisfy(record, text) }") {{ text }}
       template(v-else-if="column.dataIndex == 'field'")
-        .cell(:title="record.name", @click="() => showChartModal(record)") {{ text }}
+        .cell.pointer(
+          :title="record.name",
+          @click="() => showChartModal(record)"
+        ) {{ text }}
 
   a-modal(
     v-model:visible="probClickModal",
@@ -530,7 +533,7 @@ div
       this.fetch_fresh_as();
     },
     mounted() {
-      this.scrollY = document.body.clientHeight - 184;
+      this.scrollY = document.body.clientHeight - 164;
     },
     watch: {
       $route(route) {
@@ -550,6 +553,9 @@ div
   display: inline-block
   width: 100%
   text-align: right
+
+.pointer
+  cursor: pointer
 
 .unsatisfied
   color: #fa541c

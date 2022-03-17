@@ -8,7 +8,7 @@ div
     :pagination="{ showSizeChanger: true, defaultPageSize: 50, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
     size="small",
     :scroll="{ y: scrollY, x: scrollX }",
-    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)",
+    :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
@@ -33,7 +33,11 @@ div
         )
       template(v-else-if="column.dataIndex == 'key'")
         a-button(type="link", size="small", @click="() => editRecord(record)") 编辑
-        //- a-button(type="link", size="small", @click="() => delRecord(record)") 删除
+        a-button(
+          type="link",
+          size="small",
+          @click="() => delRecord(record.店铺ID)"
+        ) 删除
 
   a-modal(
     v-model:visible="login_modal_show",
@@ -70,6 +74,14 @@ div
               div {{ label }}
         a-form-item(label="店铺名称")
           a-input(v-model:value="addModel.shop_name")
+        a-form-item(label="城市")
+          a-input(v-model:value="addModel.city")
+        a-form-item(label="负责人")
+          a-input(v-model:value="addModel.person")
+        a-form-item(label="物理店")
+          a-input(v-model:value="addModel.real_shop")
+        a-form-item(label="平台")
+          a-select(v-model:value="addModel.platform", :options="platform_options")
         a-form-item(label="达达账号")
           a-input(v-model:value="addModel.dd_acct")
         a-form-item(label="达达密码")
@@ -145,6 +157,14 @@ div
               div {{ label }}
         a-form-item(label="店铺名称")
           a-input(v-model:value="editModel.shop_name")
+        a-form-item(label="城市")
+          a-input(v-model:value="editModel.city")
+        a-form-item(label="负责人")
+          a-input(v-model:value="editModel.person")
+        a-form-item(label="物理店")
+          a-input(v-model:value="editModel.real_shop")
+        a-form-item(label="平台")
+          a-select(v-model:value="editModel.platform", :options="platform_options")
         a-form-item(label="达达账号")
           a-input(v-model:value="editModel.dd_acct")
         a-form-item(label="达达密码")
@@ -300,6 +320,10 @@ div
           uu_pw: "",
           sjx_acct: "",
           sjx_code: "",
+          city: "",
+          person: "",
+          real_shop: "",
+          platform: "",
           shop_account: "",
           shop_password: "",
           shop_phone: "",
@@ -328,6 +352,10 @@ div
           uu_pw: "",
           sjx_acct: "",
           sjx_code: "",
+          city: "",
+          person: "",
+          real_shop: "",
+          platform: "",
           shop_account: "",
           shop_password: "",
           shop_phone: "",
@@ -342,6 +370,10 @@ div
           { value: "需和老板沟通" },
           { value: "已登记" },
           { value: "已自配" },
+        ],
+        platform_options: [
+          { label: "美团", value: 1 },
+          { label: "饿了么", value: 2 },
         ],
         logs: [],
         logs_modal_show: false,
@@ -359,7 +391,6 @@ div
           "物理店",
           "负责人",
           "平台",
-          "备注",
           "配送方式",
           "达达账号",
           "达达密码",
@@ -382,6 +413,7 @@ div
           "UU密码",
           "送件侠账号",
           "超级验证码",
+          "备注",
         ];
 
         let base_columns = column_names.map((name) => {
@@ -510,6 +542,10 @@ div
         this.editModel = {
           shop_id: String(rec.店铺ID),
           shop_name: rec.店铺名称,
+          city: rec.城市,
+          person: rec.负责人,
+          real_shop: rec.物理店,
+          platform: rec.平台,
           dd_acct: rec.达达账号,
           dd_pw: rec.达达密码,
           fn_acct: rec.蜂鸟账号,
@@ -595,6 +631,10 @@ div
             event: "add-zps",
             ...omitBy(this.addModel, [
               "shop_name",
+              "city",
+              "person",
+              "real_shop",
+              "platform",
               "shop_account",
               "shop_password",
               "shop_phone",
@@ -613,6 +653,10 @@ div
                 ...keepBy(this.addModel, [
                   "shop_id",
                   "shop_name",
+                  "city",
+                  "person",
+                  "real_shop",
+                  "platform",
                   "shop_account",
                   "shop_password",
                   "shop_phone",
@@ -669,6 +713,10 @@ div
             event: "edit-zps",
             ...omitBy(this.editModel, [
               "shop_name",
+              "city",
+              "person",
+              "real_shop",
+              "platform",
               "shop_account",
               "shop_password",
               "shop_phone",
@@ -687,6 +735,10 @@ div
                 ...keepBy(this.editModel, [
                   "shop_id",
                   "shop_name",
+                  "city",
+                  "person",
+                  "real_shop",
+                  "platform",
                   "shop_account",
                   "shop_password",
                   "shop_phone",
@@ -705,16 +757,29 @@ div
           })
           .catch((err) => message.error(err));
       },
-      delRecord() {
-        // new Probs()
-        // .delSss({ id: record.id })
-        // .then((res) => {
-        // message.success(res);
-        // this.fetchTable();
-        // })
-        // .catch((err) => {
-        // message.error(err);
-        // });
+      delRecord(sid) {
+        if (!this.account) {
+          message.error("请先登录");
+          this.login_modal_show = true;
+          return;
+        }
+
+        ins({
+          data: {
+            event: "delete-zps-shop",
+            shop_id: sid,
+            shop_delete: 1,
+            meta: {
+              account: this.account,
+              token: this.token,
+            },
+          },
+        })
+          .then((res) => {
+            message.success("删除成功");
+            this.fetchTable();
+          })
+          .catch((err) => message.error(err));
       },
       onSelectChange(checks) {
         console.log(checks);

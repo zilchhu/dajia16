@@ -1,5 +1,11 @@
 <template lang="pug">
 div
+  .header
+    a-range-picker(
+      v-model:value="probDates",
+      :allowClear="false",
+      size="small"
+    )
   s-table.ant-table-change(
     :columns="extendedColumns",
     :data-source="table",
@@ -24,6 +30,7 @@ div
       template(v-if="column.dataIndex == 'handle'")
         a-input(
           :value="text",
+          :title="text",
           @change="(e) => handleChange(e.target.value, record)",
           size="small"
         )
@@ -60,9 +67,10 @@ div
   import HandleSelect from "../../components/HandleSelect";
   import TableSelect from "../../components/TableSelect";
   import app from "apprun";
+  import dayjs from "dayjs";
 
   export default {
-    name: "ProbBase",
+    name: "ProbAV",
     components: {
       HandleSelect,
       TableSelect,
@@ -70,9 +78,52 @@ div
       ExportOutlined,
       DownloadOutlined,
     },
-    props: ["probType", "columns", "xScroll"],
     data() {
       return {
+        probType: "av",
+        probDates: [],
+        columns: [
+          {
+            title: "差评数",
+            dataIndex: "差评数",
+            width: 70,
+            _sort: true,
+          },
+          {
+            title: "申诉数",
+            dataIndex: "申诉数",
+            width: 70,
+            _sort: true,
+          },
+          {
+            title: "通过数",
+            dataIndex: "通过数",
+            width: 70,
+            _sort: true,
+          },
+          {
+            title: "申诉率",
+            dataIndex: "申诉率",
+            width: 70,
+            _sort: true,
+          },
+          {
+            title: "通过率",
+            dataIndex: "通过率",
+            width: 70,
+            _sort: true,
+          },
+          {
+            title: "评价日期",
+            dataIndex: "评价日期",
+            width: 100,
+          },
+          {
+            title: "处理",
+            dataIndex: "handle",
+            width: 150,
+          },
+        ],
         table: [],
         loading: false,
         scrollY: 900,
@@ -110,7 +161,7 @@ div
           .reduce((p, v) => p + v, 0);
       },
       scroll() {
-        if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
+        // if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
         return { y: this.scrollY };
       },
     },
@@ -126,13 +177,19 @@ div
         let timeout = null;
         return function () {
           clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
+          timeout = setTimeout(() => fn.apply(this, arguments), 1000);
         };
       },
       fetchTable() {
+        if (this.probDates.length != 2) return;
+
         this.loading = true;
         new Probs()
-          .single(this.probType)
+          .multiDates(
+            this.probType,
+            this.probDates[0].format("YYYYMMDD"),
+            this.probDates[1].format("YYYYMMDD")
+          )
           .then((res) => {
             this.table = res;
             this.loading = false;
@@ -154,8 +211,10 @@ div
       save(record) {
         const target = this.table.filter((item) => record.key === item.key)[0];
         if (target) {
+          console.log(target);
+
           new Probs()
-            .save(this.probType, record.handle_key ?? record.key, target["handle"])
+            .save(this.probType, record.handle_key, target["handle"])
             .then((res) => {
               message.success(res);
             })
@@ -180,7 +239,7 @@ div
       },
     },
     created() {
-      this.scrollY = document.body.clientHeight - 204;
+      this.scrollY = document.body.clientHeight - 244;
       this.debounce_save = this.debounce(this.save);
       this.fetchTable();
     },
@@ -191,5 +250,21 @@ div
         this.tableUrl = state.path;
       });
     },
+    watch: {
+      probDates() {
+        this.fetchTable();
+      },
+    },
   };
 </script>
+
+<style lang="sass" scoped>
+.ellipsis
+  display: -webkit-box
+  overflow: hidden
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+
+.wrap
+  white-space: pre-wrap
+</style>

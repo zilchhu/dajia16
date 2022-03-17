@@ -146,7 +146,7 @@ a-table(
               message.success(res);
               // this.data = newData;
               this.saving = false;
-              this.$emit('save', this.record.id, a)
+              this.$emit("save", this.record.id, a);
             })
             .catch((err) => {
               message.error(err);
@@ -175,11 +175,11 @@ a-table(
       },
       isConsumeRatio(text, record) {
         text = this.toNum(text);
-        return text > 6 && record.income > 300;
+        return (text > 6 && record?.income > 500) || (text > 15 && record?.consume > 50);
       },
-      isCostRatio(text) {
+      isCostRatio(text, record) {
         text = this.toNum(text);
-        return text > 53;
+        return text > 53 && record?.income > 500;
       },
       isSettlea30(text) {
         text = this.toNum(text);
@@ -189,6 +189,9 @@ a-table(
         const { income, consume_ratio, cost_ratio, settlea_30, platform } =
           record;
         let list = [];
+        console.log(record);
+        if (record.real_shop?.match(/吴家山|武汉王家湾|钟家村/)) return [];
+
         if (this.isIncome(income, record))
           list.push({
             title: "收入",
@@ -210,14 +213,14 @@ a-table(
             threshold: "6%",
             problem: "高推广",
           });
-        if (this.isCostRatio(cost_ratio))
+        if (this.isCostRatio(cost_ratio, record))
           list.push({
             title: "成本比例",
             value: cost_ratio,
             threshold: "53%",
             problem: "高成本",
           });
-        if (this.isSettlea30(settlea_30))
+        if (this.isSettlea30(settlea_30, record))
           list.push({
             title: "比30日",
             value: settlea_30,

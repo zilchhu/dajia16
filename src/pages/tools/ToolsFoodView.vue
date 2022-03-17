@@ -1,7 +1,7 @@
 <template lang="pug">
 .tool-food-view
   .header(v-if="viewType && viewType != 'plain'")
-    div {{ viewType == 'inputs' ? '文件' : '结果' }}
+    div {{ viewType == 'inputs' ? '文件' : `结果-${taskId}` }}
 
   s-table.ant-table-change(
     :columns="columns",
@@ -23,7 +23,11 @@
         @reset="clearFilters()"
       )
     template(#bodyCell="{ column, text, record }")
-      template(v-if="column.dataIndex == '结果'")
+      template(v-if="column.title == '序号'")
+        div {{ +text + 1 }}
+      template(v-else-if="column.dataIndex == '商品名称'")
+        .cursor-pointer(@click="viewFoodDetail(record._i)") {{ text }}
+      template(v-else-if="column.dataIndex == '结果'")
         div(style="overflow: hidden", :title="text")
           a-tooltip
             template(#title)
@@ -32,10 +36,24 @@
 
             a-tag(v-if="text", :color="text == '失败' ? 'error' : 'success'") {{ text }}
 
+  a-modal(
+    v-model:visible="foodDetailModalShow",
+    :title="`商品-${taskId ?? ''}-${foodDetailI ? foodDetailI + 1 : ''}`",
+    :footer="null",
+    centered,
+    :width="800"
+  )
+    tools-food-detail(:taskId="taskId", :i="foodDetailI")
+
   .footer(v-if="viewType && viewType != 'plain'")
     .controls
       a-button(type="link", @click="fetchTable") 刷新
-      a-button(type="link", size="small", @click="exportTable") 导出
+      a-button(
+        type="link",
+        size="small",
+        @click="exportTable",
+        :loading="exporting"
+      ) 导出
       a(
         v-show="tableUrl",
         :href="`http://192.168.3.3:9005/${tableUrl}`",
@@ -47,7 +65,9 @@
 <script>
   import app from "apprun";
   import { message } from "ant-design-vue";
+  import Shop from "../../api/shop";
   import TableSelect from "../../components/TableSelect";
+  import ToolsFoodDetail from "./ToolsFoodDetail";
 
   function throttle(fn, wait) {
     let timer = null;
@@ -68,15 +88,20 @@
     name: "tools-food-view",
     components: {
       TableSelect,
+      ToolsFoodDetail,
     },
     props: ["plainTable", "viewType", "taskId", "taskType", "scrollY"],
     data() {
       return {
         columns: [],
         table: [],
+        shops: [],
         resultBufs: [],
         throtUpdateTableRes: () => {},
+        exporting: false,
         tableUrl: null,
+        foodDetailModalShow: false,
+        foodDetailI: null,
       };
     },
     computed: {
@@ -117,9 +142,19 @@
       buildElmTagColumns() {
         let columns = [
           {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
           },
           {
             title: "分类名称",
@@ -166,9 +201,19 @@
       buildMtTagColumns() {
         let columns = [
           {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
           },
           {
             title: "分类名称",
@@ -220,9 +265,19 @@
       buildElmFoodColumns() {
         let columns = [
           {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
           },
           {
             title: "分类名称",
@@ -265,6 +320,26 @@
             _sort: true,
           },
           {
+            title: "描述",
+            dataIndex: "描述",
+            width: 200,
+          },
+          {
+            title: "主料",
+            dataIndex: "主料",
+            width: 100,
+          },
+          {
+            title: "单点不送",
+            dataIndex: "单点不送",
+            width: 100,
+          },
+          {
+            title: "排序",
+            dataIndex: "排序",
+            width: 100,
+          },
+          {
             title: "新商品名",
             dataIndex: "新商品名",
             width: 200,
@@ -293,9 +368,19 @@
       buildMtFoodColumns() {
         let columns = [
           {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
           },
           {
             title: "分类名称",
@@ -345,6 +430,11 @@
             dataIndex: "最小购买量",
             width: 100,
             _sort: true,
+          },
+          {
+            title: "单点不送",
+            dataIndex: "单点不送",
+            width: 100,
           },
           {
             title: "折扣价格",
@@ -407,12 +497,60 @@
         }
         return columns.map(this.extendColumn);
       },
-      buildMtFoodSubColumns() {
+      buildMtTestFoodColumns() {
         let columns = [
+          {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
           {
             title: "店铺id",
             dataIndex: "店铺id",
             width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
+          },
+          {
+            title: "删除测试商品",
+            dataIndex: "删除测试商品",
+            width: 140,
+          },
+          {
+            title: "创建测试商品",
+            dataIndex: "创建测试商品",
+            width: 140,
+          },
+        ];
+        if (this.viewType == "results") {
+          columns.push({
+            title: "结果",
+            dataIndex: "结果",
+            width: 100,
+            fixed: "right",
+          });
+        }
+        return columns.map(this.extendColumn);
+      },
+      buildMtFoodSubColumns() {
+        let columns = [
+          {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
+            title: "店铺id",
+            dataIndex: "店铺id",
+            width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
           },
           {
             title: "分类名称",
@@ -445,6 +583,87 @@
         }
         return columns.map(this.extendColumn);
       },
+      buildMtRetailColumns() {
+        let columns = [
+          {
+            title: "序号",
+            dataIndex: "_i",
+            width: 70,
+          },
+          {
+            title: "店铺id",
+            dataIndex: "店铺id",
+            width: 140,
+          },
+          {
+            title: "店铺名称",
+            dataIndex: "店铺名称",
+            width: 200,
+          },
+          {
+            title: "分类名称",
+            dataIndex: "分类名称",
+            width: 140,
+          },
+          {
+            title: "分类id",
+            dataIndex: "分类id",
+            width: 140,
+          },
+          {
+            title: "商品名称",
+            dataIndex: "商品名称",
+            width: 200,
+          },
+          {
+            title: "商品id",
+            dataIndex: "商品id",
+            width: 140,
+          },
+          {
+            title: "规格id",
+            dataIndex: "规格id",
+            width: 140,
+          },
+          {
+            title: "价格",
+            dataIndex: "价格",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣方式",
+            dataIndex: "折扣方式",
+            width: 100,
+          },
+          {
+            title: "折扣价格",
+            dataIndex: "折扣价格",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣限购",
+            dataIndex: "折扣限购",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "删除折扣",
+            dataIndex: "删除折扣",
+            width: 100,
+          },
+        ];
+        if (this.viewType == "results") {
+          columns.push({
+            title: "结果",
+            dataIndex: "结果",
+            width: 100,
+            fixed: "right",
+          });
+        }
+        return columns.map(this.extendColumn);
+      },
       buildColumns() {
         if (this.taskType == "修改饿了么外卖分类")
           this.columns = this.buildElmTagColumns();
@@ -454,16 +673,33 @@
           this.columns = this.buildElmFoodColumns();
         else if (this.taskType == "修改美团外卖商品")
           this.columns = this.buildMtFoodColumns();
+        else if (this.taskType == "增删美团外卖测试商品")
+          this.columns = this.buildMtTestFoodColumns();
         else if (this.taskType == "替换美团外卖商品")
           this.columns = this.buildMtFoodSubColumns();
+        else if (this.taskType == "修改美团零售商品")
+          this.columns = this.buildMtRetailColumns();
       },
       getResultDetail(result) {
         if (result.result == null) return "";
         return JSON.stringify(result.result, null, 2);
       },
+      fetchShops() {
+        new Shop()
+          .all()
+          .then((res) => {
+            this.shops = res;
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      },
       fetchTable() {
         if (this.taskId == null) {
-          this.table = this.plainTable;
+          this.table = this.plainTable?.map((v) => {
+            let shop = this.shops.find((s) => s.shop_id == v.店铺id);
+            return { ...v, 店铺名称: v.店铺名称 || shop?.shop_name };
+          });
           return;
         }
 
@@ -476,6 +712,10 @@
             id: this.taskId,
           });
         }
+      },
+      viewFoodDetail(i) {
+        this.foodDetailI = i;
+        this.foodDetailModalShow = true;
       },
       updateTableResult(state) {
         const updTableRow = (state, newTable) => {
@@ -503,11 +743,19 @@
       },
       onGetFoodTaskInputs(state) {
         if (state.error) message.error(state.error);
-        if (this.viewType == "inputs") this.table = state.result.inputs;
+        if (this.viewType == "inputs")
+          this.table = state.result.inputs.map((v) => {
+            let shop = this.shops.find((s) => s.shop_id == v.店铺id);
+            return { ...v, 店铺名称: v.店铺名称 || shop?.shop_name };
+          });
       },
       onGetFoodTaskResults(state) {
         if (state.error) message.error(state.error);
-        if (this.viewType == "results") this.table = state.result.results;
+        if (this.viewType == "results")
+          this.table = state.result.results.map((v) => {
+            let shop = this.shops.find((s) => s.shop_id == v.店铺id);
+            return { ...v, 店铺名称: v.店铺名称 || shop?.shop_name };
+          });
       },
       onExecTask(state) {
         console.log("res -->", state);
@@ -515,20 +763,27 @@
         this.throtUpdateTableRes(state);
       },
       transformTable() {
-        return this.table.map((row) =>
-          this.columns.reduce(
-            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
-            {}
-          )
-        );
+        return this.table.map((row) => {
+          return {
+            ...this.columns.reduce(
+              (p, c) => ({ ...p, [c.title]: row[c.dataIndex] ?? "" }),
+              {}
+            ),
+            失败原因: row.result.error ?? "",
+          };
+        });
       },
       exportTable() {
+        this.exporting = true;
+        this.tableUrl = null;
+        console.log(this.transformTable());
         app.run("ws://", "@export-table", {
           json: this.transformTable(),
         });
       },
       onExportTable(state) {
         this.tableUrl = state.path;
+        this.exporting = false;
       },
     },
     created() {
@@ -540,6 +795,7 @@
       app.on("@export-table", this.onExportTable);
 
       this.buildColumns();
+      this.fetchShops();
       this.fetchTable();
     },
     watch: {
@@ -570,6 +826,9 @@
 
 
 <style lang="sass" scoped>
+.cursor-pointer
+  cursor: pointer
+
 .tools-food-view
   padding: 8px
 

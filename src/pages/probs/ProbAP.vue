@@ -26,7 +26,7 @@ ProbBase(probType="ap", :columns="columns" :xScroll="true")
           {
             title: "城市",
             dataIndex: "城市",
-            width: 100,
+            width: 80,
           },
           {
             title: "平台",
@@ -36,7 +36,7 @@ ProbBase(probType="ap", :columns="columns" :xScroll="true")
           {
             title: "物理店",
             dataIndex: "物理店",
-            width: 100,
+            width: 80,
           },
           {
             title: "负责人",
@@ -56,60 +56,60 @@ ProbBase(probType="ap", :columns="columns" :xScroll="true")
           {
             title: "原价",
             dataIndex: "原价",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "餐盒费",
             dataIndex: "餐盒费",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "起购量",
             dataIndex: "起购量",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "折扣价",
             dataIndex: "折扣价",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "折扣限购",
             dataIndex: "折扣限购",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "上下架",
             dataIndex: "上下架",
-            width: 250,
+            width: 80,
           },
           {
             title: "10以上的最小满减门槛",
             dataIndex: "10以上的最小满减门槛",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "满减力度",
             dataIndex: "满减力度",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "起购折扣价格",
             dataIndex: "起购折扣价格",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {
             title: "起购满减价格",
             dataIndex: "起购满减价格",
-            width: 100,
+            width: 80,
             _sort: true
           },
           {

@@ -14,9 +14,14 @@ ProbBase(probType="j", :columns="columns")
       return {
         columns: [
           {
+            title: "负责人",
+            dataIndex: "person",
+            width: 80,
+          },
+          {
             title: "门店id",
             dataIndex: "shop_id",
-            width: 90,
+            width: 100,
           },
           {
             title: "店名",
@@ -31,40 +36,28 @@ ProbBase(probType="j", :columns="columns")
           {
             title: "物理店",
             dataIndex: "real_shop_name",
-            width: 90,
-          },
-          {
-            title: "责任人",
-            dataIndex: "person",
-            width: 80,
+            width: 100,
           },
           {
             title: "分类",
-            dataIndex: "分类",
+            dataIndex: "category_name",
             width: 140,
           },
           {
             title: "品名",
-            dataIndex: "品名",
+            dataIndex: "NAME",
             width: 300,
           },
           {
             title: "原价",
-            dataIndex: "原价",
+            dataIndex: "price",
             align: "right",
             width: 100,
             _sort: true,
           },
           {
             title: "餐盒费",
-            dataIndex: "餐盒费",
-            align: "right",
-            width: 100,
-            _sort: true,
-          },
-          {
-            title: "起购数",
-            dataIndex: "起购数",
+            dataIndex: "package_fee",
             align: "right",
             width: 100,
             _sort: true,

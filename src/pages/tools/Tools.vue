@@ -44,7 +44,8 @@
               { title: "修改商品", to: { name: "tools-food" } },
               { title: "美团图片上传", to: { name: "tools-pic-mt" } },
               { title: "饿了么图片上传", to: { name: "tools-pic-elm" } },
-              { title: "美团测试产品", to: { name: "tools-tests" } },
+              { title: "美团商品差异", to: { name: "tools-food-diff" } },
+              // { title: "美团测试产品", to: { name: "tools-tests" } },
             ],
           },
           {

@@ -14,6 +14,11 @@ ProbBase(probType="ab", :columns="columns")
       return {
         columns: [
           {
+            title: "负责人",
+            dataIndex: "person",
+            width: 80,
+          },
+          {
             title: "门店id",
             dataIndex: "shop_id",
             width: 90,
@@ -34,30 +39,59 @@ ProbBase(probType="ab", :columns="columns")
             width: 90,
           },
           {
-            title: "负责",
-            dataIndex: "person",
-            width: 80,
+            title: "分类",
+            dataIndex: "category_name",
+            width: 140,
           },
           {
-            title: "品名",
+            title: "商品",
             dataIndex: "food_name",
-            width: 300,
+            width: 240,
           },
           {
-            title: "活动价",
-            dataIndex: "activi_price",
-            width: 100,
+            title: "原价",
+            dataIndex: "price",
             align: "right",
+            width: 100,
             _sort: true,
           },
           {
-            title: "活动状态",
-            dataIndex: "activi_status",
-            width: 200,
+            title: "餐盒费",
+            dataIndex: "box_price",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "起购",
+            dataIndex: "min_order_count",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣价",
+            dataIndex: "act_price",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣限购",
+            dataIndex: "order_limit",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣状态",
+            dataIndex: "act_state",
+            width: 90,
           },
           {
             title: "处理",
             dataIndex: "handle",
+            width: 160
           },
         ],
       };

@@ -14,12 +14,17 @@ ProbBase(probType="ac", :columns="columns" :xScroll="true")
       return {
         columns: [
           {
+            title: "负责人",
+            dataIndex: "负责人",
+            width: 80,
+          },
+          {
             title: "门店编号",
             dataIndex: "门店编号",
             width: 90,
           },
           {
-            title: "店名",
+            title: "店铺",
             dataIndex: "店铺",
             width: 200,
           },
@@ -27,11 +32,6 @@ ProbBase(probType="ac", :columns="columns" :xScroll="true")
             title: "平台",
             dataIndex: "平台",
             width: 70,
-          },
-          {
-            title: "责任人",
-            dataIndex: "组员",
-            width: 80,
           },
           {
             title: "生效时段",

@@ -14,6 +14,11 @@ ProbBase(probType="aa", :columns="columns")
       return {
         columns: [
           {
+            title: "负责人",
+            dataIndex: "person",
+            width: 80,
+          },
+          {
             title: "门店id",
             dataIndex: "shop_id",
             width: 90,
@@ -34,19 +39,14 @@ ProbBase(probType="aa", :columns="columns")
             width: 90,
           },
           {
-            title: "负责",
-            dataIndex: "person",
-            width: 80,
-          },
-          {
-            title: "分类名",
+            title: "分类",
             dataIndex: "category_name",
             width: 140,
           },
           {
-            title: "品名",
-            dataIndex: "name",
-            width: 300,
+            title: "商品",
+            dataIndex: "food_name",
+            width: 240,
           },
           {
             title: "原价",
@@ -56,8 +56,23 @@ ProbBase(probType="aa", :columns="columns")
             _sort: true,
           },
           {
+            title: "餐盒费",
+            dataIndex: "box_price",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "起购",
+            dataIndex: "min_order_count",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
             title: "处理",
             dataIndex: "handle",
+            width: 160,
           },
         ],
       };

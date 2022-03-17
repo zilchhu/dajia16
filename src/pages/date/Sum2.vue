@@ -1,33 +1,46 @@
 <template lang="pug">
-s-table.ant-table-change(
-  :columns="sum2_columns",
-  :data-source="sum2_data.shops",
-  rowKey="real_shop",
-  :loading="spinning",
-  :pagination="false",
-  size="small",
-  :scroll="{ x: scrollX, y: scrollY }",
-  bordered
-)
-  template(
-    #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
-  )
-    table-select(
-      :columnTitle="column.title",
-      :columnIndex="column.dataIndex",
-      :tableData="sum2_data.shops",
-      @select-change="setSelectedKeys",
-      @confirm="confirm()",
-      @reset="clearFilters()"
-    )
-  template(#bodyCell="{ column, text, record }")
-    template(v-if="column.dataIndex.startsWith('consume_sum_ratio_')")
-      .cell(:class="{ unsatisfied: text ? toNum(text) > 4.5 : false }") {{ text }}
-    template(v-else-if="column.dataIndex.startsWith('cost_sum_ratio_')")
-      .cell(:class="{ unsatisfied: text ? toNum(text) > 50 : false }") {{ text }}
+.op-sum
+  .indice-filter
+    a-checkbox(
+      v-model:checked="indiceAllChecked",
+      :indeterminate="indiceCheckAllIndeter",
+      @change="onCheckAllIndice"
+    ) 全选
+    a-checkbox-group(v-model:value="checkedIndice")
+      span.check-option(v-for="opt in indiceOptions", :key="opt.value")
+        a-checkbox(:value="opt.value") {{ opt.label }}
 
-  //- template(#real_shop="{text, record}")
-  //-   router-link.cell(:to="{ name: 'date', params: { day: 1 }, query: {real_shop: text} }" style="color: rgba(0, 0, 0, 0.65);") {{text}}
+  s-table.ant-table-change(
+    :columns="sum2_columns",
+    :data-source="sum2_data.shops",
+    rowKey="real_shop",
+    :loading="spinning",
+    :pagination="false",
+    size="small",
+    :scroll="{ x: scrollX, y: scrollY }",
+    bordered
+  )
+    template(
+      #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+    )
+      table-select(
+        :columnTitle="column.title",
+        :columnIndex="column.dataIndex",
+        :tableData="sum2_data.shops",
+        @select-change="setSelectedKeys",
+        @confirm="confirm()",
+        @reset="clearFilters()"
+      )
+    template(#headerCell="{ title, column }")
+      .header-cell {{ title }}
+    template(#bodyCell="{ column, text, record }")
+      template(v-if="column.dataIndex.startsWith('consume_sum_ratio_')")
+        .cell(:class="{ unsatisfied: text ? toNum(text) > 4.5 : false }") {{ text }}
+      template(v-else-if="column.dataIndex.startsWith('cost_sum_ratio_')")
+        .cell(:class="{ unsatisfied: text ? toNum(text) > 50 : false }") {{ text }}
+
+    //- template(#real_shop="{text, record}")
+    //-   router-link.cell(:to="{ name: 'date', params: { day: 1 }, query: {real_shop: text} }" style="color: rgba(0, 0, 0, 0.65);") {{text}}
 </template>
 
 <script>
@@ -62,6 +75,34 @@ s-table.ant-table-change(
           dates: [],
           shops: [],
         },
+        indice: [
+          "营业收入",
+          "推广费用",
+          "推广比例",
+          "成本",
+          "成本比例",
+          "房租成本",
+          "人工成本",
+          "水电成本",
+          "好评返现",
+          "运营成本",
+          "利润",
+        ],
+        checkedIndice: [
+          "营业收入",
+          "推广费用",
+          "推广比例",
+          "成本",
+          "成本比例",
+          "房租成本",
+          "人工成本",
+          "水电成本",
+          "好评返现",
+          "运营成本",
+          "利润",
+        ],
+        indiceAllChecked: true,
+        indiceCheckAllIndeter: false,
         spinning: false,
         scrollY: 900,
         defaultPageSize: 40,
@@ -69,6 +110,9 @@ s-table.ant-table-change(
       };
     },
     computed: {
+      indiceOptions() {
+        return this.indice.map((v) => ({ label: v, value: v }));
+      },
       sum2_columns() {
         let fiexed_cols = [
           {
@@ -85,13 +129,13 @@ s-table.ant-table-change(
             width: 70,
             fixed: "left",
           },
-          {
-            title: "组长",
-            dataIndex: "leader",
-            key: "leader",
-            width: 70,
-            fixed: "left",
-          },
+          // {
+          //   title: "组长",
+          //   dataIndex: "leader",
+          //   key: "leader",
+          //   width: 70,
+          //   fixed: "left",
+          // },
           {
             title: "物理店",
             dataIndex: "real_shop",
@@ -195,9 +239,12 @@ s-table.ant-table-change(
               width: 100,
               _sort: true,
             },
-          ].map(this.extendColumn),
+          ]
+            .filter((c) => this.checkedIndice.includes(c.title))
+            .map(this.extendColumn),
         }));
 
+        if (this.checkedIndice.length == 0) return fiexed_cols;
         return [...fiexed_cols, ...dates_cols];
       },
       scrollX() {
@@ -262,12 +309,16 @@ s-table.ant-table-change(
             this.spinning = false;
           });
       },
+      onCheckAllIndice(e) {
+        this.checkedIndice = e.target.checked ? [...this.indice] : [];
+        this.indiceCheckAllIndeter = false;
+      },
     },
     created() {
       this.fetch_sum2_single();
     },
     mounted() {
-      this.scrollY = document.body.clientHeight - 184;
+      this.scrollY = document.body.clientHeight - 192;
     },
     watch: {
       $route(route) {
@@ -277,6 +328,11 @@ s-table.ant-table-change(
           }
           this.last_sum2_route = route;
         }
+      },
+      checkedIndice(val) {
+        this.indiceCheckAllIndeter =
+          !!val.length && val.length < this.indice.length;
+        this.indiceAllChecked = val.length === this.indice.length;
       },
     },
   };
@@ -290,4 +346,16 @@ s-table.ant-table-change(
 
 .unsatisfied
   color: #fa541c
+
+.indice-filter
+  padding: 8px
+
+.check-option
+  padding: 0 2px
+
+.header-cell
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  font-size: 0.886em
 </style>

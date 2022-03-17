@@ -12,7 +12,7 @@ div(ref="date")
     :pagination="false",
     size="small",
     :scroll="{ x: scrollX, y: scrollY }",
-    :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)",
+    :rowClassName="(record, index) => (record.new_person != null ? 'table-new-person-row' : null)"
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
@@ -27,6 +27,8 @@ div(ref="date")
       )
     template(#headerCell="{ title, column }")
       .header-cell {{ title }}
+    template(#emptyText)
+      div 无数据，请找技术处理
     template(#bodyCell="{ column, text, record }")
       template(v-if="column.dataIndex == 'shop_id'")
         .copy-cell
@@ -139,6 +141,13 @@ div(ref="date")
     shop-indices(:shop_meta="shop_meta_rates")
 
   .left-bottom-div(v-show="!tableLoading")
+    a-button(type="link", size="small", @click="() => getTableByDate()") 刷新
+    div(title="强刷新将会删除当前营推表并保存当前工单记录，然后重新创建营推表并恢复工单记录")
+      a-button(
+        type="link",
+        size="small",
+        @click="() => getTableByDate(true)"
+      ) 强刷新
     a(:href="`http://192.168.3.3:9040/营推表${yesterday}.xlsx`", target="_blank") export
     a-button(
       type="link",
@@ -184,12 +193,12 @@ div(ref="date")
         tablesByShop: new Map(),
         tableLoading: false,
         rules: [
-          ["consume_ratio", ">", 5],
-          ["cost_ratio", ">", 50],
-          ["settlea_30", "<", 70],
+          ["consume_ratio", ">", 6],
+          ["cost_ratio", ">", 53],
+          ["settlea_30", "<", 80],
         ],
-        mtRules: [["income", "<", 1500]],
-        elmRules: [["income", "<", 1000]],
+        mtRules: [["income", "<", 900]],
+        elmRules: [["income", "<", 700]],
         ruleIdx: ["income", "consume_ratio", "settlea_30"],
         collapseKey: [],
         selectedRowKeys: [],
@@ -240,11 +249,11 @@ div(ref="date")
             dataIndex: "person",
             width: 60,
           },
-          {
-            title: "组长",
-            dataIndex: "leader",
-            width: 60,
-          },
+          // {
+          //   title: "组长",
+          //   dataIndex: "leader",
+          //   width: 60,
+          // },
           {
             title: "物理店",
             dataIndex: "real_shop",
@@ -421,7 +430,7 @@ div(ref="date")
         map.set("cost_ratio", "成本比例");
         map.set("cost_sum_ratio", "总成本比例");
         map.set("wait_for_improve_cost", "待优化成本"),
-          map.set("consume", "推广");
+        map.set("consume", "推广");
         map.set("consume_avg", "平均推广");
         map.set("consume_sum", "总推广");
         map.set("consume_ratio", "推广比例");
@@ -441,11 +450,11 @@ div(ref="date")
         let mt = [...this.rules, ...this.mtRules];
         let elm = [...this.rules, ...this.elmRules];
         const fnBody = (r) => `
-                                                                                                let v = 0
-                                                                                                try {
-                                                                                                  v = parseFloat(val)
-                                                                                                } catch (e) { console.error(e) }
-                                                                                                return v ${r[1]} ${r[2]}`;
+                                                                                                  let v = 0
+                                                                                                  try {
+                                                                                                    v = parseFloat(val)
+                                                                                                  } catch (e) { console.error(e) }
+                                                                                                  return v ${r[1]} ${r[2]}`;
         mt = mt.reduce((o, r) => {
           return {
             ...o,
@@ -503,19 +512,17 @@ div(ref="date")
       withPersonName(rec) {
         if (rec.person == "于松民") {
           let suffix = "";
-          if (rec.real_shop.match(/^白石洲|爱联|狮岭|龙华|大岭山|白石厦|福州$/))
-            suffix = "-小廖";
-          if (
-            rec.real_shop.match(/^长安沙头|东城|龙归|富士康|坪地|石牌|杨浦|横岗$/)
-          )
-            suffix = "-朋飞";
+          // if (rec.real_shop.match(/^白石洲|杨浦|爱联|狮岭|龙华|大岭山|白石厦$/))
+          //   suffix = "-小廖";
+          // if (rec.real_shop.match(/^长安沙头|东城|龙归|富士康|坪地|石牌|横岗$/))
+          //   suffix = "-朋飞";
           return { ...rec, person: "于" + suffix };
         }
         return rec;
       },
-      getTableByDate() {
+      getTableByDate(forceRefresh) {
         this.tableLoading = true;
-        getTableByDate(this.day)
+        getTableByDate(this.day, forceRefresh)
           .then((res) => {
             this.table = res;
             this.collapseKey = this.table.map((v) => `${v.id}-a`);
@@ -583,10 +590,10 @@ div(ref="date")
         return this.toNum(text) < 1500;
       },
       isConsumeRatio(text, record) {
-        return this.toNum(text) > 6 && record.income > 300;
+        return (this.toNum(text) > 6 && record.income > 500) || (this.toNum(text) > 15 && record.consume > 50);
       },
       isCostRatio(text, record) {
-        return this.toNum(text) > 53 && record.income > 300;
+        return this.toNum(text) > 53 && record.income > 500;
       },
       isSettlea30(text) {
         return this.toNum(text) < 80;
@@ -696,7 +703,7 @@ div(ref="date")
         app.run("ws://", "@export-table", {
           json: this.transformTable(),
         });
-      }
+      },
     },
     created() {
       app.on("@export-table", (state) => {

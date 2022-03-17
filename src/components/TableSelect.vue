@@ -17,12 +17,14 @@
       ) 全选
       .filter-addon(@click="onClearFilter") 清除筛选
     .scroll(:style="`height: ${containerHeight}px;`", @scroll="onScroll")
-      a-checkbox-group(
-        v-model:value="checkedList",
+      .checkbox-group(
         :style="`width: 100%; padding-top: ${paddingTop}px; padding-bottom: ${paddingBottom}px;`"
       )
         .check-option(v-for="opt in realCheckOptions", :key="opt.value")
-          a-checkbox(:value="opt.value") {{ opt.label }}
+          a-checkbox(
+            :checked="checkedList.includes(opt.value)",
+            @change="(e) => onCheck(e.target.checked, opt)"
+          ) {{ opt.label }}
           .filter-addon(@click="onFilterOnly(opt)") 筛选此项
 
     .btn-list 
@@ -117,6 +119,11 @@
         //   return;
         // }
         this.confirmSelect();
+      },
+      onCheck(checked, opt) {
+        // console.log(checked, opt.value);
+        if (checked) this.checkedList = this.checkedList.concat([opt.value]);
+        else this.checkedList = this.checkedList.filter((v) => v != opt.value);
       },
       onCheckAll(e) {
         this.checkedList = e.target.checked
