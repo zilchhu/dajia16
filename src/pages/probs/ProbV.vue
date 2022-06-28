@@ -15,124 +15,126 @@ a-table(:columns="columns" :data-source="table" rowKey="key" :loading="loading"
 </template>
 
 <script>
-import Probs from '../../api/probs'
-import { message } from 'ant-design-vue'
+  import Probs from "../../api/probs"
+  import { message } from "ant-design-vue"
 
-export default {
-  name: 'ProbV',
-  data() {
-    return {
-      table: [],
-      loading: false,
-      scrollY: 900
-    }
-  },
-  computed: {
-    columns() {
-      return [
-        {
-          title: '门店id',
-          dataIndex: '门店id',
-          width: 90,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.门店id == value
-        },
-        {
-          title: '门店',
-          dataIndex: '门店',
-          width: 250,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.门店 == value
-        },
-        {
-          title: '分类',
-          dataIndex: '分类',
-          width: 140,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.分类 == value
-        },
-        {
-          title: '品名',
-          dataIndex: '品名',
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.品名 == value
-        },
-        {
-          title: '原价',
-          dataIndex: '原价',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.原价) - this.toNum(b.原价)
-        },
-        {
-          title: '折扣价',
-          dataIndex: '折扣价',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价)
-        },
-        {
-          title: '餐盒费',
-          dataIndex: '餐盒费',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费)
-        },
-        {
-          title: '起购数',
-          dataIndex: '起购数',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.起购数) - this.toNum(b.起购数)
-        },
-        {
-          title: '销量',
-          dataIndex: '销量',
-          align: 'right',
-          width: 100,
-          sorter: (a, b) => this.toNum(a.销量) - this.toNum(b.销量)
-        },
-        {
-          title: '上下架状态',
-          dataIndex: '上下架状态',
-          width: 120,
-          slots: { filterDropdown: 'filterDropdown' },
-          onFilter: (value, record) => record.上下架状态 == value
-        }
-      ]
-    }
-  },
-  methods: {
-    getColFilters(colName) {
-      return Array.from(new Set(this.table.map(row => row[colName]))).map(col => ({
-        text: col,
-        value: col
-      }))
-    },
-    toNum(str) {
-      try {
-        return parseFloat(str)
-      } catch (error) {
-        return 0
+  export default {
+    name: "ProbV",
+    data() {
+      return {
+        table: [],
+        loading: false,
+        scrollY: 900,
       }
     },
-    fetchTable() {
-      this.loading = true
-      new Probs()
-        .single('v')
-        .then(res => {
-          this.table = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    }
-  },
-  created() {
-    this.scrollY = document.body.clientHeight - 204
-    this.fetchTable()
+    computed: {
+      columns() {
+        return [
+          {
+            title: "门店id",
+            dataIndex: "门店id",
+            width: 90,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.门店id == value,
+          },
+          {
+            title: "门店",
+            dataIndex: "门店",
+            width: 250,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.门店 == value,
+          },
+          {
+            title: "分类",
+            dataIndex: "分类",
+            width: 140,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.分类 == value,
+          },
+          {
+            title: "品名",
+            dataIndex: "品名",
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.品名 == value,
+          },
+          {
+            title: "原价",
+            dataIndex: "原价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.原价) - this.toNum(b.原价),
+          },
+          {
+            title: "折扣价",
+            dataIndex: "折扣价",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.折扣价) - this.toNum(b.折扣价),
+          },
+          {
+            title: "餐盒费",
+            dataIndex: "餐盒费",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.餐盒费) - this.toNum(b.餐盒费),
+          },
+          {
+            title: "起购数",
+            dataIndex: "起购数",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.起购数) - this.toNum(b.起购数),
+          },
+          {
+            title: "销量",
+            dataIndex: "销量",
+            align: "right",
+            width: 100,
+            sorter: (a, b) => this.toNum(a.销量) - this.toNum(b.销量),
+          },
+          {
+            title: "上下架状态",
+            dataIndex: "上下架状态",
+            width: 120,
+            slots: { filterDropdown: "filterDropdown" },
+            onFilter: (value, record) => record.上下架状态 == value,
+          },
+        ]
+      },
+    },
+    methods: {
+      getColFilters(colName) {
+        return Array.from(new Set(this.table.map((row) => row[colName]))).map((col) => ({
+          text: col,
+          value: col,
+        }))
+      },
+      toNum(str) {
+        try {
+          let f = parseFloat(str)
+          if (isNaN(f)) return 0
+          return f
+        } catch (err) {
+          return 0
+        }
+      },
+      fetchTable() {
+        this.loading = true
+        new Probs()
+          .single("v")
+          .then((res) => {
+            this.table = res
+            this.loading = false
+          })
+          .catch((err) => {
+            message.error(err)
+            this.loading = false
+          })
+      },
+    },
+    created() {
+      this.scrollY = document.body.clientHeight - 204
+      this.fetchTable()
+    },
   }
-}
 </script>

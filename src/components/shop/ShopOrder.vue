@@ -39,163 +39,170 @@ a-table.ant-table-change(
 </template>
 
 <script>
-  import { message } from "ant-design-vue";
-  import Shop from "../../api/shop";
-  import TableSelect from "../TableSelect";
-  // import dayjs from "dayjs";
+import { message } from "ant-design-vue";
+import TableSelect from "../TableSelect";
+import baseFetch from "../../api/base";
+// import dayjs from "dayjs";
 
-  export default {
-    name: "shop-order",
-    components: {
-      TableSelect,
+export default {
+  name: "shop-order",
+  components: {
+    TableSelect,
+  },
+  props: ["goods_meta"],
+  data() {
+    return {
+      cols: [
+        {
+          title: "订单编号",
+          dataIndex: "订单编号",
+          width: 110,
+          align: "right",
+        },
+        {
+          title: "订单信息",
+          dataIndex: "订单信息",
+          align: "right",
+        },
+        {
+          title: "理论成本",
+          dataIndex: "理论成本",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "商家收入",
+          dataIndex: "商家收入",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "成本比例",
+          dataIndex: "成本比例",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "订单配送",
+          dataIndex: "订单配送",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "减配支出",
+          dataIndex: "减配支出",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "新客立减",
+          dataIndex: "新客立减",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "红包支出",
+          dataIndex: "红包支出",
+          width: 70,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "代金券支出",
+          dataIndex: "代金券支出",
+          width: 90,
+          align: "right",
+          _sort: true,
+        },
+        {
+          title: "订单距离/m",
+          dataIndex: "订单距离/m",
+          width: 90,
+          align: "right",
+          _sort: true,
+        },
+      ].map(this.extendColumn),
+      data: [],
+      loading: false,
+    };
+  },
+  computed: {
+    scrollX() {
+      return this.cols.map((v) => v.width ?? 200).reduce((s, w) => s + w, 10);
     },
-    props: ["goods_meta"],
-    data() {
-      return {
-        cols: [
-          {
-            title: "订单编号",
-            dataIndex: "订单编号",
-            width: 110,
-            align: "right",
-          },
-          {
-            title: "订单信息",
-            dataIndex: "订单信息",
-            align: "right",
-          },
-          {
-            title: "理论成本",
-            dataIndex: "理论成本",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "商家收入",
-            dataIndex: "商家收入",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "成本比例",
-            dataIndex: "成本比例",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "订单配送",
-            dataIndex: "订单配送",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "减配支出",
-            dataIndex: "减配支出",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "新客立减",
-            dataIndex: "新客立减",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "红包支出",
-            dataIndex: "红包支出",
-            width: 70,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "代金券支出",
-            dataIndex: "代金券支出",
-            width: 90,
-            align: "right",
-            _sort: true,
-          },
-          {
-            title: "订单距离/m",
-            dataIndex: "订单距离/m",
-            width: 90,
-            align: "right",
-            _sort: true,
-          },
-        ].map(this.extendColumn),
-        data: [],
-        loading: false,
+  },
+  methods: {
+    toNum(str) {
+      try {
+        return parseFloat(str);
+      } catch (error) {
+        return 0;
+      }
+    },
+    extendColumn(col) {
+      let _col = {
+        ...col,
+        customFilterDropdown: true,
+        onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+        showSorterTooltip: false,
       };
-    },
-    computed: {
-      scrollX() {
-        return this.cols.map((v) => v.width ?? 200).reduce((s, w) => s + w, 10);
-      },
-    },
-    methods: {
-      toNum(str) {
-        try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
-        }
-      },
-      extendColumn(col) {
-        let _col = {
-          ...col,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
-          showSorterTooltip: false,
+      if (col._sort) {
+        _col.customFilterDropdown = false;
+        let sortByNum = (a, b) => {
+          if (a == null) return b == null ? 0 : -1;
+          return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
         };
-        if (col._sort) {
-          _col.customFilterDropdown = false;
-          let sortByNum = (a, b) => {
-            if (a == null) return b == null ? 0 : -1;
-            return this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
-          };
-          let sortByStr = (a, b) => {
-            if (a == null) return b == null ? 0 : -1;
-            return a[col.dataIndex].localeCompare(b[col.dataIndex]);
-          };
-          _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
-        }
-        if (col._notFilter) {
-          _col.customFilterDropdown = false;
-        }
-        if (col._filter) {
-          _col.customFilterDropdown = true;
-        }
-        return _col;
-      },
-      fetchOrder() {
-        this.loading = true;
-        let { shopId, activi, counts, date } = this.goods_meta;
-        new Shop(shopId)
-          .order(activi, counts, date)
-          .then((res) => {
-            this.data = res;
-            this.loading = false;
-          })
-          .catch((err) => {
-            message.error(err);
-            this.loading = false;
-          });
-      },
+        let sortByStr = (a, b) => {
+          if (a == null) return b == null ? 0 : -1;
+          return a[col.dataIndex].localeCompare(b[col.dataIndex]);
+        };
+        _col.sorter = col._sort == "str" ? sortByStr : sortByNum;
+      }
+      if (col._notFilter) {
+        _col.customFilterDropdown = false;
+      }
+      if (col._filter) {
+        _col.customFilterDropdown = true;
+      }
+      return _col;
     },
-    mounted() {
+    fetchOrder() {
+      this.loading = true;
+      let { shopId, activi, counts, date } = this.goods_meta;
+      baseFetch({
+        url: "/v1/operatings/exts/order_dimensions/detail",
+        params: {
+          shop_id: shopId,
+          activi,
+          counts,
+          date,
+        },
+      })
+        .then((res) => {
+          this.data = res;
+          this.loading = false;
+        })
+        .catch((err) => {
+          message.error(err.message);
+          this.loading = false;
+        });
+    },
+  },
+  mounted() {
+    this.fetchOrder();
+  },
+  watch: {
+    goods_meta() {
       this.fetchOrder();
     },
-    watch: {
-      goods_meta() {
-        this.fetchOrder();
-      },
-    },
-  };
+  },
+};
 </script>
 
 <style lang="sass" scoped>

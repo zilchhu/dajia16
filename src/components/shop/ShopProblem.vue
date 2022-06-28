@@ -33,9 +33,9 @@ s-table(
 
 <script>
   import { message } from "ant-design-vue";
-  import Shop from "../../api/shop";
   import TableSelect from "../TableSelect";
   import ShopOrder from "./ShopOrder";
+  import baseFetch from '../../api/base'
 
   export default {
     name: "shop-problem",
@@ -109,9 +109,11 @@ s-table(
     methods: {
       toNum(str) {
         try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
+          let f = parseFloat(str)
+          if (isNaN(f)) return 0
+          return f
+        } catch (err) {
+          return 0
         }
       },
       extendColumn(col) {
@@ -144,14 +146,19 @@ s-table(
       fetchProb() {
         this.loading = true;
         let { shopId, date } = this.shop_meta;
-        new Shop(shopId)
-          .prob(date)
+        baseFetch({
+          url: '/v1/operatings/exts/order_dimensions',
+          params: {
+            shop_id: shopId,
+            date
+          }
+        })
           .then((res) => {
             this.data = res;
             this.loading = false;
           })
           .catch((err) => {
-            message.error(err);
+            message.error(err.message);
             this.loading = false;
           });
       },

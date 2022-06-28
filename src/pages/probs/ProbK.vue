@@ -46,6 +46,7 @@ ProbBase(probType="k", :columns="columns")
           {
             title: "品名",
             dataIndex: "name",
+             width: 200,
           },
           {
             title: "商品原价",
@@ -71,6 +72,20 @@ ProbBase(probType="k", :columns="columns")
           {
             title: "凑满减/起送价格",
             dataIndex: "凑满减/起送价格",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "折扣价",
+            dataIndex: "折扣价",
+            align: "right",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "起送价",
+            dataIndex: "起送价",
             align: "right",
             width: 100,
             _sort: true,

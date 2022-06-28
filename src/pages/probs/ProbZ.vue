@@ -39,10 +39,13 @@ ProbBase(probType="z", :columns="columns")
             width: 80,
           },
           {
-            title: "变化范围/平方千米",
-            dataIndex: "chg",
-            align: "right",
-            _sort: true,
+            title: "范围",
+            dataIndex: "logisticsAreas",
+            width: 200
+          },
+          {
+            title: "前一天范围",
+            dataIndex: "lastLogisticsAreas",
             width: 200
           },
           {

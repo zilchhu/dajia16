@@ -11,25 +11,25 @@ a-tabs(
 </template>
 
 <script>
-  import ProbBB from "./ProbBB";
-  import ProbBC from "./ProbBC";
-  import ProbAI2 from "./ProbAI2";
+import ProbBB from "./ProbBB";
+import ProbBC from "./ProbBC";
+import BadMedComms from "./BadMedComms.vue";
 
-  export default {
-    name: "Prob5",
-    components: {
-      ProbBB,
-      ProbBC,
-      ProbAI2,
-    },
-    data() {
-      return {
-        tabs: [
-          { key: 1, tab: '下架商品销量', comp: 'ProbBB' },
-          { key: 2, tab: '早晨推广费', comp: 'ProbBC' },
-          { key: 3, tab: '差评', comp: 'ProbAI2' },
-        ].map((v, i) => ({ ...v, tab: `${i + 1}.${v.tab}` })),
-      };
-    },
-  };
+export default {
+  name: "Prob5",
+  components: {
+    ProbBB,
+    ProbBC,
+    BadMedComms,
+  },
+  data() {
+    return {
+      tabs: [
+        { key: 3, tab: "差评", comp: "BadMedComms" },
+        { key: 1, tab: "下架商品销量", comp: "ProbBB" },
+        { key: 2, tab: "早晨推广费", comp: "ProbBC" },
+      ].map((v, i) => ({ ...v, tab: `${i + 1}.${v.tab}` })),
+    };
+  },
+};
 </script>

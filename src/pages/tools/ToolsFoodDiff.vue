@@ -193,8 +193,8 @@
     created() {
       console.log("tool-food created!");
       this.throtFetchTable = throttle(this.fetchTable, 800);
-      app.on("get-food-diffs-res", this.onGetFoodDiffs);
-      app.on("unchange-food-res", this.onUnchangeFood);
+      app.on("get-food-diffs-res", this.onGetFoodDiffs.bind(this));
+      app.on("unchange-food-res", this.onUnchangeFood.bind(this));
 
       setTimeout(() => {
         this.fetchTable();
@@ -205,8 +205,8 @@
     },
     unmounted() {
       console.log("tool-food unmounted!");
-      app.off("get-food-diffs-res", this.onGetFoodDiffs);
-      app.off("unchange-food-res", this.onUnchangeFood);
+      app.off("get-food-diffs-res", this.onGetFoodDiffs.bind(this));
+      app.off("unchange-food-res", this.onUnchangeFood.bind(this));
     },
   };
 </script>

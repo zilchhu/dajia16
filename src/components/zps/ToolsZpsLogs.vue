@@ -28,112 +28,106 @@ div
             span {{ prop.label }}
             span {{ prop.value }}
 
-  .left-bottom-div(v-show="!loading", style="bottom: 10px")
+  div
     a-button(type="link", size="small", @click="initTable") 刷新
 </template>
 
 <script>
-  import dayjs from "dayjs";
-  import { message } from "ant-design-vue";
-  import ins from "../../api/base4";
-  import TableSelect from "../TableSelect";
+import dayjs from "dayjs";
+import { message } from "ant-design-vue";
+import TableSelect from "../TableSelect";
+import baseFetch from '../../api/base'
 
-  export default {
-    name: "tools-zps-logs",
-    components: {
-      TableSelect,
+export default {
+  name: "tools-zps-logs",
+  components: {
+    TableSelect,
+  },
+  data() {
+    return {
+      table: [],
+      columns: [],
+      loading: false,
+      scrollY: 400,
+    };
+  },
+  computed: {
+    scrollX() {
+      return this.columns.map((col) => col.width ?? 100).reduce((p, v) => p + v, 50);
     },
-    data() {
-      return {
-        table: [],
-        columns: [],
-        loading: false,
-        scrollY: 400,
-      };
-    },
-    computed: {
-      scrollX() {
-        return this.columns
-          .map((col) => col.width ?? 100)
-          .reduce((p, v) => p + v, 50);
-      },
-    },
-    methods: {
-      getColFilters(colName) {
-        let distincts = Array.from(
-          new Set(this.table.map((row) => row[colName] ?? ""))
-        );
+  },
+  methods: {
+    getColFilters(colName) {
+      let distincts = Array.from(new Set(this.table.map((row) => row[colName] ?? "")));
 
-        if (colName == "时间") {
-          distincts = Array.from(
-            new Set(
-              this.table.map((row) =>
-                row[colName] ? dayjs(row[colName]).format("YYYY-MM-DD") : ""
-              )
+      if (colName == "时间") {
+        distincts = Array.from(
+          new Set(
+            this.table.map((row) =>
+              row[colName] ? dayjs(row[colName]).format("YYYY-MM-DD") : ""
             )
-          );
+          )
+        );
+      }
+
+      return distincts.map((col) => ({
+        label: col || "",
+        value: col || "",
+      }));
+    },
+    initColumns() {
+      const columnNames = ["类型", "店铺", "详情", "用户", "时间"];
+      let columns = columnNames.map((name) => {
+        let column = {
+          title: name,
+          dataIndex: name,
+          width: 70,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[name] ?? "") == value,
+        };
+
+        if (name == "详情") {
+          return { ...column, width: 200 };
         }
 
-        return distincts.map((col) => ({
-          label: col || "",
-          value: col || "",
-        }));
-      },
-      initColumns() {
-        const columnNames = ["账号", "姓名", "类型", "店铺", "详情", "时间"];
-        let columns = columnNames.map((name) => {
-          let column = {
-            title: name,
-            dataIndex: name,
-            width: 70,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record[name] ?? "") == value,
+        if (name == "店铺") {
+          return { ...column, width: 140 };
+        }
+
+        if (name == "时间") {
+          return {
+            ...column,
+            width: 120,
+            // onFilter: (value, record) =>
+            //   record[name]
+            //     ? dayjs(record[name]).isSame(dayjs(value), "day")
+            //     : "" == value,
+            sorter: (a, b) => (dayjs(a.时间).isBefore(dayjs(b.时间)) ? -1 : 1),
           };
+        }
 
-          if (name == "详情") {
-            return { ...column, width: 200 };
-          }
-
-          if (name == "店铺") {
-            return { ...column, width: 140 };
-          }
-
-          if (name == "时间") {
-            return {
-              ...column,
-              width: 120,
-              // onFilter: (value, record) =>
-              //   record[name]
-              //     ? dayjs(record[name]).isSame(dayjs(value), "day")
-              //     : "" == value,
-              sorter: (a, b) => (dayjs(a.时间).isBefore(dayjs(b.时间)) ? -1 : 1),
-            };
-          }
-
-          return column;
-        });
-        this.columns = columns;
-      },
-      initTable() {
-        this.loading = true;
-        ins({
-          data: {
-            event: "get-zps-ops",
-          },
+        return column;
+      });
+      this.columns = columns;
+    },
+    initTable() {
+      this.loading = true;
+      baseFetch({
+        url: "/v1/deliver_accounts/logs",
+      })
+        .then((res) => {
+          this.table = res.ops;
         })
-          .then((res) => {
-            this.table = res.ops;
-          })
-          .catch((err) => message.error(err))
-          .finally(() => (this.loading = false));
-      },
+        .catch((err) => message.error(err.message))
+        .finally(() => (this.loading = false));
     },
-    mounted() {
-      this.scrollY = document.body.clientHeight - 340;
-      this.initColumns();
-      this.initTable();
-    },
-  };
+  },
+  mounted() {
+    this.scrollY = document.body.clientHeight - 340;
+    this.initColumns();
+    this.initTable();
+  },
+};
 </script>
 
 <style lang="sass" scoped>

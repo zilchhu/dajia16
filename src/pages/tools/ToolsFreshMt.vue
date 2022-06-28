@@ -28,73 +28,84 @@
 </template>
 
 <script>
-import Fresh from '../../api/fresh'
-import { message } from 'ant-design-vue'
+import { message } from "ant-design-vue";
+import baseFetch from "../../api/base";
 
 export default {
-  name: 'tools-fresh-mt',
+  name: "tools-fresh-mt",
   data() {
     return {
-      wmPoiId: '10085676',
-      sourcePoiId: '',
-      poi_type: '甜品',
-      reducSourcePoiId: '',
+      wmPoiId: "10085676",
+      sourcePoiId: "",
+      poi_type: "甜品",
+      reducSourcePoiId: "",
       tasks: [
-        { key: 1, name: '下单返券', checked: true, res: null },
-        { key: 2, name: '店内领券', checked: true, res: null },
-        { key: 3, name: '收藏有礼', checked: true, res: null },
-        { key: 4, name: '代金券包', checked: true, res: null },
-        { key: 5, name: '集点返券', checked: true, res: null },
-        { key: 6, name: '满减活动', checked: true, res: null },
-        { key: 7, name: '超值换购', checked: true, res: null },
+        { key: 1, name: "下单返券", checked: true, res: null },
+        { key: 2, name: "店内领券", checked: true, res: null },
+        { key: 3, name: "收藏有礼", checked: true, res: null },
+        { key: 4, name: "代金券包", checked: true, res: null },
+        { key: 5, name: "集点返券", checked: true, res: null },
+        { key: 6, name: "满减活动", checked: true, res: null },
+        { key: 7, name: "超值换购", checked: true, res: null },
 
-        { key: 8, name: '老板推荐', checked: true, res: null },
-        { key: 9, name: '减配送费', checked: true, res: null },
-        { key: 10, name: '到店自取', checked: true, res: null },
-        { key: 11, name: '极速退款', checked: true, res: null },
-        { key: 12, name: '青山公益', checked: true, res: null },
-        { key: 13, name: '营业设置', checked: true, res: null },
-        { key: 14, name: '开具发票', checked: true, res: null },
-        { key: 15, name: '门店公告', checked: true, res: null },
-        { key: 16, name: '折扣商品', checked: true, res: null },
-        { key: 17, name: '品类头像', checked: true, res: null },
-        { key: 18, name: '店内海报', checked: true, res: null },
-        { key: 19, name: '品牌故事', checked: true, res: null },
-        { key: 20, name: '店铺招牌', checked: true, res: null },
-        { key: 21, name: '删除商品', checked: true, res: null },
+        { key: 8, name: "老板推荐", checked: true, res: null },
+        { key: 9, name: "减配送费", checked: true, res: null },
+        { key: 10, name: "到店自取", checked: true, res: null },
+        { key: 11, name: "极速退款", checked: true, res: null },
+        { key: 12, name: "青山公益", checked: true, res: null },
+        { key: 13, name: "营业设置", checked: true, res: null },
+        { key: 14, name: "开具发票", checked: true, res: null },
+        { key: 15, name: "门店公告", checked: true, res: null },
+        { key: 16, name: "折扣商品", checked: true, res: null },
+        { key: 17, name: "品类头像", checked: true, res: null },
+        { key: 18, name: "店内海报", checked: true, res: null },
+        { key: 19, name: "品牌故事", checked: true, res: null },
+        { key: 20, name: "店铺招牌", checked: true, res: null },
+        { key: 21, name: "删除商品", checked: true, res: null },
       ],
-      loading: false
-    }
+      loading: false,
+    };
   },
   methods: {
     run() {
-      this.loading = true
-      let userTasks = this.tasks.filter(v => v.checked).map(v => ({ name: v.name }))
-      let userRule = { wmPoiId: this.wmPoiId, wmPoiType: this.poi_type, sourcePoiId: this.sourcePoiId, reducSourcePoiId: this.reducSourcePoiId }
-      new Fresh(userTasks, userRule)
-        .mt()
-        .then(result => {
-          this.tasks = this.tasks.map(v => {
-            let res = result.find(k => k.name == v.name)
+      this.loading = true;
+      let userTasks = this.tasks.filter((v) => v.checked).map((v) => ({ name: v.name }));
+      let userRule = {
+        wmPoiId: this.wmPoiId,
+        wmPoiType: this.poi_type,
+        sourcePoiId: this.sourcePoiId,
+        reducSourcePoiId: this.reducSourcePoiId,
+      };
+      baseFetch({
+        method: "POST",
+        url: "/v1/tools/update-fresh-shop/mt",
+        data: {
+          user_tasks: userTasks,
+          user_rule: userRule,
+        },
+      })
+        .then((result) => {
+          this.tasks = this.tasks.map((v) => {
+            let res = result.find((k) => k.name == v.name);
             if (res) {
               return {
                 ...v,
-                checked: res.status == 'fail',
-                res: res.status == 'succ' ? res.value : res.reason
-              }
+                checked: res.status == "fail",
+                res: res.status == "succ" ? res.value : res.reason,
+              };
             }
-            return v
-          })
-          console.log(this.tasks)
-          this.loading = false
+            return v;
+          });
+          console.log(this.tasks);
+          this.loading = false;
         })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    }
-  }
-}
+        .catch((err) => {
+          message.error(err.message);
+          this.loading = false;
+        });
+    },
+  },
+};
 </script>
 
 <style lang="sass" scoped>

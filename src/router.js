@@ -1,98 +1,80 @@
+import { createWebHistory, createRouter, createWebHashHistory } from "vue-router"
 // import App2 from './App2.vue'
 import NotFound from "./NotFound"
+import Date from "./pages/date/Date"
 import User from "./pages/user/User"
-import UserActsOvTable from "./pages/user/UserActsOvTable"
 import UserRecords from "./pages/user/UserRecords"
 import Shop from "./pages/shop/Shop"
 import FreshShop from "./pages/shop/FreshShop"
 import Change from "./pages/change/Change"
-import Tasks from "./pages/change/Tasks"
+// import Tasks from "./pages/change/Tasks"
 import Prob from "./pages/probs/Prob"
 import Prob2 from "./pages/probs/Prob2"
 import Prob3 from "./pages/probs/Prob3"
 import Prob4 from "./pages/probs/Prob4"
 import Prob5 from "./pages/probs/Prob5"
-import Tools from "./pages/tools/Tools"
+import Prob6 from "./pages/probs/Prob6"
+import Prob7 from "./pages/probs/Prob7"
+
 import ToolsFood from "./pages/tools/ToolsFood"
 import ToolsFoodDiff from "./pages/tools/ToolsFoodDiff"
-import ToolsAct from "./pages/tools/ToolsAct"
-import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
-import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
-import ToolsAddDada from "./pages/tools/ToolsAddDada"
-import ToolsAddShunfeng from "./pages/tools/ToolsAddShunfeng"
-import ToolsAddMyt from "./pages/tools/ToolsAddMyt"
-import ToolsAddSss from "./pages/tools/ToolsAddSss"
-import ToolsAddZps from "./pages/tools/ToolsAddZps"
+// import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
+// import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
+// import ToolsAddDada from "./pages/tools/ToolsAddDada"
+// import ToolsAddShunfeng from "./pages/tools/ToolsAddShunfeng"
+// import ToolsAddMyt from "./pages/tools/ToolsAddMyt"
 import ToolsFreshMt from "./pages/tools/ToolsFreshMt"
 import ToolsFreshElm from "./pages/tools/ToolsFreshElm"
-import ToolsTests from "./pages/tools/ToolsTests"
+// import ToolsTests from "./pages/tools/ToolsTests"
 // import ToolsFoodMt from "./pages/tools/ToolsFoodMt"
 // import ToolsFoodElm from "./pages/tools/ToolsFoodElm"
 // import ToolsFoodSubMt from "./pages/tools/ToolsFoodSubMt"
-import ToolsDelivery from "./pages/tools/ToolsDelivery"
-import ToolsFullDiscount from "./pages/tools/ToolsFullDiscount"
-import ToolsOrderCoupon from "./pages/tools/ToolsOrderCoupon"
-import ToolsSealFullDiscountCoupon from "./pages/tools/ToolsSealFullDiscountCoupon"
-import ToolsPoiInnerCoupon from "./pages/tools/ToolsPoiInnerCoupon"
-import ToolsCollectCoupon from "./pages/tools/ToolsCollectCoupon"
+// import ToolsDelivery from "./pages/tools/ToolsDelivery"
+// import ToolsFullDiscount from "./pages/tools/ToolsFullDiscount"
+// import ToolsOrderCoupon from "./pages/tools/ToolsOrderCoupon"
+// import ToolsSealFullDiscountCoupon from "./pages/tools/ToolsSealFullDiscountCoupon"
+// import ToolsPoiInnerCoupon from "./pages/tools/ToolsPoiInnerCoupon"
+// import ToolsCollectCoupon from "./pages/tools/ToolsCollectCoupon"
 import ToolsPicMt from "./pages/tools/ToolsPicMt"
 import ToolsPicElm from "./pages/tools/ToolsPicElm"
+import ToolsImReply from "./pages/tools/ToolsImReply"
 // import ToolsWhiteList from './pages/tools/ToolsWhiteList'
-import ToolsWhiteListRedirect from "./pages/tools/ToolsWhiteListRedirect"
-import Date from "./pages/date/Date"
+// import ToolsWhiteListRedirect from "./pages/tools/ToolsWhiteListRedirect"
+
 import Sum from "./pages/date/Sum"
 import Sum2 from "./pages/date/Sum2"
 import Perf from "./pages/date/Perf"
 import Perf2 from "./pages/date/Perf2"
 import Note from "./pages/notes/Note"
 import ActivityComments from "./components/user/ActivityComments"
-import { createWebHistory, createRouter } from "vue-router"
 
 export const routes = [
   { path: "/shop/:shopid(\\d+)", name: "shop", component: Shop },
   { path: "/user/:username/:date(\\d+)", name: "user", component: User },
-  { path: "/user/:username/acts", name: "user-acts", component: UserActsOvTable },
   { path: "/changes", name: "changes", component: Change },
-  { path: "/tasks", name: "tasks", component: Tasks },
+  // { path: "/tasks", name: "tasks", component: Tasks },
   { path: "/probs", name: "probs", component: Prob },
   { path: "/probs2", name: "probs2", component: Prob2 },
   { path: "/probs3", name: "probs3", component: Prob3 },
   { path: "/probs4", name: "probs4", component: Prob4 },
   { path: "/probs5", name: "probs5", component: Prob5 },
-  {
-    path: "/tools",
-    component: Tools,
-    name: "tools",
-    // children: [
-
-    // ]
-  },
+  { path: "/probs6", name: "probs6", component: Prob6 },
+  { path: "/probs7", name: "probs7", component: Prob7 },
+  
   { path: "/tools/food", name: "tools-food", component: ToolsFood },
   { path: "/tools/fooddiff", name: "tools-food-diff", component: ToolsFoodDiff },
-  { path: "/tools/act", name: "tools-act", component: ToolsAct },
 
-  { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },
-  { path: "/tools/add/fengniao", name: "tools-add-fengniao", component: ToolsAddFengniao },
-  { path: "/tools/add/dada", name: "tools-add-dada", component: ToolsAddDada },
-  { path: "/tools/add/shunfeng", name: "tools-add-shunfeng", component: ToolsAddShunfeng },
-  { path: "/tools/add/myt", name: "tools-add-myt", component: ToolsAddMyt },
-  { path: "/tools/add/sss", name: "tools-add-sss", component: ToolsAddSss },
-  { path: "/tools/add/zps", name: "tools-add-zps", component: ToolsAddZps },
+  // { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },
   { path: "/tools/fresh/mt", name: "tools-fresh-mt", component: ToolsFreshMt },
   { path: "/tools/fresh/elm", name: "tools-fresh-elm", component: ToolsFreshElm },
-  // { path: "/tools/food/mt", name: "tools-food-mt", component: ToolsFoodMt },
-  // { path: "/tools/food/elm", name: "tools-food-elm", component: ToolsFoodElm },
-  // { path: "/tools/food/sub/mt", name: "tools-food-sub-mt", component: ToolsFoodSubMt },
-  { path: "/tools/delivery", name: "tools-delivery", component: ToolsDelivery },
-  { path: "/tools/fulldiscount", name: "tools-full-discount", component: ToolsFullDiscount },
-  { path: "/tools/ordercoupon", name: "tools-order-coupon", component: ToolsOrderCoupon },
-  { path: "/tools/sealfullcoupon", name: "tools-seal-full-discount-coupon", component: ToolsSealFullDiscountCoupon },
-  { path: "/tools/poiinnercoupon", name: "tools-poi-inner-coupon", component: ToolsPoiInnerCoupon },
-  { path: "/tools/collectcoupon", name: "tools-collect-coupon", component: ToolsCollectCoupon },
+ 
+  // { path: "/tools/delivery", name: "tools-delivery", component: ToolsDelivery },
+
   { path: "/tools/pic/mt", name: "tools-pic-mt", component: ToolsPicMt },
   { path: "/tools/pic/elm", name: "tools-pic-elm", component: ToolsPicElm },
-  { path: "/tools/whitelist", name: "tools-white-list", component: ToolsWhiteListRedirect },
-  { path: "/tools/tests", name: "tools-tests", component: ToolsTests },
+  
+  { path: "/tools/im/reply", name: "tools-im-reply", component: ToolsImReply },
+
   { path: "/date/:day", name: "date", component: Date },
   { path: "/sum/:day", name: "sum", component: Sum },
   { path: "/sum2", name: "sum2", component: Sum2 },

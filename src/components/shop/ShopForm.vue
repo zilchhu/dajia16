@@ -44,7 +44,7 @@ a-card(size="small")
       template(v-else-if="column.dataIndex == 'a'")
         a-textarea(
           :value="text",
-          @change="(e) => handleChange(e.target.value, record, 'a')",
+          @change="(e) => handleChange(e.target.value, record, 'a')", 
           :autoSize="{ minRows: 1 }"
         )
       template(v-else-if="column.dataIndex == 'time'")
@@ -53,157 +53,164 @@ a-card(size="small")
 </template>
 
 <script>
-  import dayjs from "dayjs";
-  import mcopy from "modern-copy";
-  import { CopyOutlined } from "@ant-design/icons-vue";
-  import { message } from "ant-design-vue";
-  import { updateTableById } from "../../api";
+import dayjs from "dayjs"
+import mcopy from "modern-copy"
+import { CopyOutlined } from "@ant-design/icons-vue"
+import { message } from "ant-design-vue"
+import baseFetch from "../../api/base"
 
-  function omit(obj, ks) {
-    let newKs = Object.keys(obj).filter((v) => !ks.includes(v));
-    let newObj = newKs.reduce((res, k) => {
-      return { ...res, [k]: obj[k] };
-    }, {});
-    return newObj;
-  }
+function omit(obj, ks) {
+  let newKs = Object.keys(obj).filter((v) => !ks.includes(v))
+  let newObj = newKs.reduce((res, k) => {
+    return { ...res, [k]: obj[k] }
+  }, {})
+  return newObj
+}
 
-  export default {
-    name: "shop-form",
-    props: {
-      // id: Number,
-      as: Array,
-      shop_meta: Object,
-    },
-    components: {
-      CopyOutlined,
-    },
-    data() {
-      const columns = [
-        {
-          title: "问题",
-          dataIndex: "q",
-          width: 100,
-        },
-        {
-          title: "姓名",
-          dataIndex: "name",
-          width: 100,
-        },
-        {
-          title: "优化",
-          dataIndex: "a",
-          width: 500,
-        },
-        {
-          title: "时间",
-          dataIndex: "time",
-          width: 180,
-        },
-      ];
-      return {
-        columns,
-        tags: this.as
-          .map((a) => ({ ...a, checked: false, saved: a.a.trim().length > 0 }))
-          .map((a) => ({
-            ...a,
-            tag_color: a.saved
-              ? "#91d5ff99"
-              : ["低收入", "高推广", "高成本", "严重超跌"].includes(a.q)
+export default {
+  name: "shop-form",
+  props: {
+    // id: Number,
+    as: Array,
+    shop_meta: Object,
+  },
+  components: {
+    CopyOutlined,
+  },
+  data() {
+    const columns = [
+      {
+        title: "问题",
+        dataIndex: "q",
+        width: 100,
+      },
+      {
+        title: "姓名",
+        dataIndex: "name",
+        width: 100,
+      },
+      {
+        title: "优化",
+        dataIndex: "a",
+        width: 500,
+      },
+      {
+        title: "时间",
+        dataIndex: "time",
+        width: 180,
+      },
+    ]
+    return {
+      columns,
+      tags: this.as
+        .map((a) => ({ ...a, checked: false, saved: a.a.trim().length > 0 }))
+        .map((a) => ({
+          ...a,
+          tag_color: a.saved
+            ? "#91d5ff99"
+            : ["低收入", "高推广", "高成本", "严重超跌"].includes(a.q)
               ? "#ffa39e"
               : "#fefefe",
-          })),
-        debounce_save: null,
-        saving: false,
-        copyTipShow: false,
-      };
+        })),
+      debounce_save: null,
+      saving: false,
+      copyTipShow: false,
+    }
+  },
+  computed: {
+    items_show() {
+      return this.tags.filter((v) => v.checked)
     },
-    computed: {
-      items_show() {
-        return this.tags.filter((v) => v.checked);
-      },
-      card_title() {
-        return `${this.shop_meta.shop_name}  ${this.shop_meta.platform}`;
-      },
+    card_title() {
+      return `${this.shop_meta.shop_name}  ${this.shop_meta.platform}`
     },
-    methods: {
-      handleChange(value, record, column) {
-        if (/^\s+$/.test(value)) return;
-        const newTags = [...this.tags];
-        const target = newTags.filter((item) => record.q === item.q)[0];
-        if (target) {
-          target[column] = value;
-          this.tags = newTags;
-          this.debounce_save(record);
-        }
-      },
-      save(record) {
-        const newItems = [...this.tags];
-        const target = newItems.filter((item) => record.q === item.q)[0];
-        if (target) {
-          this.saving = true;
-          target["time"] = dayjs().format("YYYY/MM/DD HH:mm:ss");
-          let a = JSON.stringify(
-            newItems.map((v) =>
-              omit(v, [
-                "checked",
-                "time_parsed",
-                "saved",
-                "tag_color",
-                "value",
-                "threshold",
-              ])
-            )
-          );
-          updateTableById(this.shop_meta.id, a)
-            .then((res) => {
-              message.success(res);
-              this.tags = newItems;
-              this.saving = false;
-            })
-            .catch((err) => {
-              message.error(err);
-              this.saving = false;
-            });
-          console.log(a);
-        }
-      },
-      shopname_click() {
-        this.$router.push({
-          name: "shop",
-          params: { shopid: this.shop_meta.shop_id },
-        });
-      },
-      copy(text) {
-        mcopy(`${text}`);
-        this.copyTipShow = true;
-        setTimeout(() => (this.copyTipShow = false), 400);
-      },
-      debounce(fn) {
-        let timeout = null;
-        return function () {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 600);
-        };
-      },
+  },
+  methods: {
+    handleChange(value, record, column) {
+      if (/^\s+$/.test(value)) return
+      const newTags = [...this.tags]
+      const target = newTags.filter((item) => record.q === item.q)[0]
+      if (target) {
+        target[column] = value
+        this.tags = newTags
+        this.debounce_save(record)
+      }
     },
-    created() {
-      this.debounce_save = this.debounce(this.save);
+    save(record) {
+      const newItems = [...this.tags]
+      const target = newItems.filter((item) => record.q === item.q)[0]
+      if (target) {
+        this.saving = true
+        target["time"] = dayjs().format("YYYY/MM/DD HH:mm:ss")
+        let a = JSON.stringify(
+          newItems.map((v) =>
+            omit(v, [
+              "checked",
+              "time_parsed",
+              "saved",
+              "tag_color",
+              "value",
+              "threshold",
+            ])
+          )
+        )
+        
+        baseFetch({
+          method: "PUT",
+          url: `/v1/operatings/${this.shop_meta.id}`,
+          data: {
+            a,
+          },
+        })
+          .then((res) => {
+            message.success(res)
+            this.tags = newItems
+            this.saving = false
+          })
+          .catch((err) => {
+            message.error(err)
+            this.saving = false
+          })
+        console.log(a)
+      }
     },
-    watch: {
-      as(n) {
-        this.tags = n
-          .map((a) => ({ ...a, checked: false, saved: a.a.trim().length > 0 }))
-          .map((a) => ({
-            ...a,
-            tag_color: a.saved
-              ? "#91d5ff99"
-              : ["低收入", "高推广", "高成本", "严重超跌"].includes(a.q)
+    shopname_click() {
+      this.$router.push({
+        name: "shop",
+        params: { shopid: this.shop_meta.shop_id },
+      })
+    },
+    copy(text) {
+      mcopy(`${text}`)
+      this.copyTipShow = true
+      setTimeout(() => (this.copyTipShow = false), 400)
+    },
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 600)
+      }
+    },
+  },
+  created() {
+    this.debounce_save = this.debounce(this.save)
+  },
+  watch: {
+    as(n) {
+      this.tags = n
+        .map((a) => ({ ...a, checked: false, saved: a.a.trim().length > 0 }))
+        .map((a) => ({
+          ...a,
+          tag_color: a.saved
+            ? "#91d5ff99"
+            : ["低收入", "高推广", "高成本", "严重超跌"].includes(a.q)
               ? "#ffa39e"
               : "#fefefe",
-          }));
-      },
+        }))
     },
-  };
+  },
+}
 </script>
 
 <style lang="sass">

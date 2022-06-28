@@ -55,59 +55,66 @@ div.note
 </template>
 
 <script>
-import { message } from 'ant-design-vue'
-import { DownOutlined, CloudUploadOutlined, LikeOutlined, MessageOutlined  } from '@ant-design/icons-vue'
-import moment from 'moment'
-import { v4 as uuidv4 } from 'uuid'
-import Notes from '../../api/notes'
-import Shop from '../../api/shop'
+import { message } from "ant-design-vue";
+import {
+  DownOutlined,
+  CloudUploadOutlined,
+  LikeOutlined,
+  MessageOutlined,
+} from "@ant-design/icons-vue";
+import moment from "moment";
+import { v4 as uuidv4 } from "uuid";
+import baseFetch from "../../api/base";
 
 export default {
-  name: 'Note',
+  name: "Note",
   components: {
     DownOutlined,
     CloudUploadOutlined,
     LikeOutlined,
-    MessageOutlined 
+    MessageOutlined,
   },
   data() {
     return {
-      user: '匿名',
-      editorText: '',
+      user: "匿名",
+      editorText: "",
       noteList: [],
-      realShops: [],
       loading: false,
       moment,
       imageUploaderVis: false,
       commentsVis: {},
       commentsEditors: {},
-      imageList: []
-    }
+      imageList: [],
+    };
   },
   computed: {
-    realShopPersons() {
-      return Array.from(new Set(this.realShops.map(v => v.person).filter(v => v)))
-    },
-    realShopNewPersons() {
-      return Array.from(new Set(this.realShops.map(v => v.new_person).filter(v => v)))
-    },
     users() {
-      return ['匿名', '苏其昌', ...this.realShopPersons, ...this.realShopNewPersons]
-    }
+      return ["匿名"];
+    },
   },
   methods: {
     pub() {
-      if (this.editorText.trim() == '' || this.user.trim() == '') return
-      this.loading = true
-      let key = uuidv4()
-      let description = ''
+      if (this.editorText.trim() == "" || this.user.trim() == "") return;
+      this.loading = true;
+      let key = uuidv4();
+      let description = "";
       let images = this.imageList
-        .filter(v => v.status == 'done' && v.response.code == 1)
-        .map(v => v.response.res.filename)
-        .join('|')
-      new Notes()
-        .save(key, this.user, description, this.editorText, images)
-        .then(res => {
+        .filter((v) => v.status == "done" && v.response.code == 1)
+        .map((v) => v.response.res.filename)
+        .join("|");
+
+      baseFetch({
+        method: "POST",
+        url: "/v1/tools/notes",
+        data: {
+          key,
+          title: this.user,
+          description,
+          content: this.editorText,
+          images,
+        },
+      })
+        .then((res) => {
           this.noteList = [
             {
               key,
@@ -115,95 +122,91 @@ export default {
               description,
               content: this.editorText,
               images,
-              likes: 0
+              likes: 0,
             },
-            ...this.noteList
-          ]
-          this.editorText = ''
-          this.imageList = []
-          this.imageUploaderVis = false
-          message.success(res)
-          this.loading = false
+            ...this.noteList,
+          ];
+          this.editorText = "";
+          this.imageList = [];
+          this.imageUploaderVis = false;
+          message.success(res);
+          this.loading = false;
         })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
+        .catch((err) => {
+          message.error(err.message);
+          this.loading = false;
+        });
     },
     del(item) {
-      this.loading = true
-      new Notes()
-        .delete(item.key)
-        .then(res => {
+      this.loading = true;
+      baseFetch({
+        method: "DELETE",
+        url: `/v1/tools/notes/${item.key}`,
+      })
+        .then((res) => {
           this.noteList.splice(
-            this.noteList.findIndex(v => v.key == item.key),
+            this.noteList.findIndex((v) => v.key == item.key),
             1
-          )
-          message.success(res)
-          this.loading = false
+          );
+          message.success(res);
+          this.loading = false;
         })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
+        .catch((err) => {
+          message.error(err.message);
+          this.loading = false;
+        });
     },
     like(key) {
-      new Notes()
-        .like(key)
-        .then(res => {
-          console.log(res)
-          let i = this.noteList.findIndex(v => v.key == key)
-          if (i >= 0) this.noteList[i].likes += 1
+      baseFetch({
+        method: "PUT",
+        url: `/v1/tools/notes/${key}/likes`,
+      })
+        .then((res) => {
+          console.log(res);
+          let i = this.noteList.findIndex((v) => v.key == key);
+          if (i >= 0) this.noteList[i].likes += 1;
         })
-        .catch(err => {
-          message.error(err)
-        })
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     commentEnter(e, key) {
-      if(e.target.value.trim() == '') return
-      new Notes()
-        .comm(key, e.target.value)
-        .then(res => {
-          let i = this.noteList.findIndex(v => v.key == key)
-          if (i >= 0) this.noteList[i].comments = res
-          this.commentsEditors[key] = ''
+      if (e.target.value.trim() == "") return;
+      baseFetch({
+        method: "POST",
+        url: `/v1/tools/notes/${key}/comments`,
+        data: {
+          comment: e.target.value,
+        },
+      })
+        .then((res) => {
+          let i = this.noteList.findIndex((v) => v.key == key);
+          if (i >= 0) this.noteList[i].comments = res;
+          this.commentsEditors[key] = "";
         })
-        .catch(err => {
-          message.error(err)
-        })
+        .catch((err) => {
+          message.error(err.message);
+        });
     },
     fetchNotes() {
-      this.loading = true
-      new Notes()
-        .base()
-        .then(res => {
-          this.noteList = res
-          this.loading = false
+      this.loading = true;
+      baseFetch({
+        url: "/v1/tools/notes",
+      })
+        .then((res) => {
+          this.noteList = res;
+          this.loading = false;
         })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
+        .catch((err) => {
+          message.error(err.message);
+          this.loading = false;
+        });
     },
-    fetchRealShops() {
-      this.loading = false
-      new Shop()
-        .real()
-        .then(res => {
-          this.realShops = res
-          this.loading = false
-        })
-        .catch(err => {
-          message.error(err)
-          this.loading = false
-        })
-    }
   },
   created() {
-    this.fetchNotes()
-    this.fetchRealShops()
-  }
-}
+    this.fetchNotes();
+  },
+};
 </script>
 
 <style lang="sass" scoped>

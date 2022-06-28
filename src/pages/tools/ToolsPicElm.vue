@@ -1,36 +1,36 @@
 <template lang="pug">
-.tools-food-mt
+.tools-pic-uploader
   div(
     style="display: flex; flex-direction: column; height: 100%; align-items: flex-start; justify-content: flex-start; row-gap: 0.75rem"
   )
     a-auto-complete(
       v-model:value="auth",
-      :filterOption="onFilterAuth",
-      placeholder="请输入Cookie",
-      size="small",
+      :options="authOpts",
+      placeholder="选择或输入cookie"
+      size="small"
       style="width: 300px"
     )
-      template(#dataSource)
-        a-select-option(v-for="au in auths", :key="`${au.shopId}||${au.auth}`") {{ au.shopId }} {{ au.shopName }}
-
-    a-button(@click="run", size="small", :loading="loading") 开始上传
+      template(#option="{ value, label }")
+        div {{ label }}
 
     a-upload(
       v-model:file-list="fileList",
-      action="http://192.168.3.3:9005/upload"
+      :action="uploadUrl"
     )
-      a-button(size="small")
+      a-button(style="width: 300px")
         UploadOutlined
         span 上传图片
 
     a-upload(
       v-model:file-list="fileListDir",
-      action="http://192.168.3.3:9005/upload",
+      :action="uploadUrl",
       :directory="true"
     )
-      a-button(size="small")
+      a-button(style="width: 300px")
         UploadOutlined
-        span 上传图片文件夹
+        span 上传图集
+
+    a-button(type="primary" :loading="loading" @click="run" style="width: 300px") 开始上传
 
   div(style="flex-grow: 1")
     div(v-if="table.length > 0")
@@ -43,7 +43,7 @@
       ) 导出
       a(
         v-show="picTableUrl",
-        :href="`http://192.168.3.3:9005/${picTableUrl}`",
+        :href="picTableUrl",
         target="_blank"
       ) 下载
 
@@ -72,203 +72,187 @@
         template(v-if="column.dataIndex == '商品名称'")
           a-tooltip
             template(#title)
-              div(style="white-space: pre-wrap") {{ record?._res?.code == 0 ? record?._res?.data : record?._res?.err }}
+              div(style="white-space: pre-wrap") {{ record.result?.code == 0 ? JSON.stringify(record.result.data) : record.result?.message }}
             div(
-              :class="[{ 'succ-text': record?._res?.code == 0 }, { 'error-text': record?._res?.code == 1 }]"
+              :class="[{ 'succ-text': record.result?.code == 0 }, { 'error-text': record.result?.code == 1 }]"
             ) {{ text }}
         template(v-else-if="column.title == '图片'")
           a-image(:width="100", :src="record.图片链接")
+
 </template>
 
 <script>
-  import { UploadOutlined } from "@ant-design/icons-vue";
-  // import SockJS from "sockjs-client";
-  import { message } from "ant-design-vue";
-  import Shop from "../../api/shop";
-  import TableSelect from "../../components/TableSelect";
-  import app from "apprun";
+import { UploadOutlined } from "@ant-design/icons-vue"
+import { message } from "ant-design-vue"
+import TableSelect from "../../components/TableSelect"
+import app from "apprun"
+import baseFetch, { HOST } from "../../api/base"
 
-  export default {
-    name: "tools-pic-elm",
-    components: {
-      UploadOutlined,
-      TableSelect,
+export default {
+  name: "tools-pic-elm",
+  components: {
+    UploadOutlined,
+    TableSelect,
+  },
+  data() {
+    return {
+      uploadUrl: `${HOST}/api/common/v1/upload`,
+      fileList: [],
+      fileListDir: [],
+      results: [],
+      auths: [],
+      auth: "",
+      jsonTable: [],
+      table: [],
+      scrollY: 900,
+      loading: false,
+      exporting: false,
+      picTableUrl: null,
+      tableName: "",
+    }
+  },
+  computed: {
+    columns() {
+      return [
+        {
+          title: "商品名称",
+          dataIndex: "商品名称",
+          width: 200,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.商品名称 ?? "") == value,
+        },
+        {
+          title: "图片",
+          dataIndex: "图片链接",
+          width: 120,
+        },
+        {
+          title: "图片链接",
+          dataIndex: "图片链接",
+          width: 300,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.图片链接 ?? "") == value,
+        },
+      ]
     },
-    data() {
-      return {
-        fileList: [],
-        fileListDir: [],
-        // sock: new SockJS("http://192.168.3.3:9998/price_update"),
-        results: [],
-        auths: [],
-        auth: "",
-        jsonTable: [],
-        table: [],
-        scrollY: 900,
-        loading: false,
-        exporting: false,
-        picTableUrl: null,
-        tableName: "",
-      };
+    allFileList() {
+      return this.fileList.concat(this.fileListDir)
     },
-    computed: {
-      columns() {
-        return [
-          {
-            title: "商品名称",
-            dataIndex: "商品名称",
-            width: 200,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.商品名称 ?? '') == value,
-          },
-          {
-            title: "图片",
-            dataIndex: "图片链接",
-            width: 120
-          },
-          {
-            title: "图片链接",
-            dataIndex: "图片链接",
-            width: 300,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.图片链接 ?? '') == value,
-          },
-        ];
-      },
-      allFileList() {
-        return this.fileList.concat(this.fileListDir);
-      },
+    authOpts() {
+      return this.auths.map((s) => ({
+        key: s.shopId,
+        value: s.auth,
+        label: `${s.platform == 1 ? "*美团*" : "*饿了么*"} ${s.shopName}`
+      }))
     },
-    methods: {
-      getColFilters(colName) {
-        return Array.from(new Set(this.table.map((row) => row[colName]))).map(
-          (col) => ({
-            label: col || "",
-            value: col || "",
-          })
-        );
-      },
-      toNum(str) {
-        try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
-        }
-      },
-      flattenObj(obj) {
-        if (obj == null) return "";
-        if (typeof obj != "object") return obj;
-        return Object.entries(obj)
-          .map(([k, v]) => `${k} ${typeof v == "string" ? v : JSON.stringify(v)}`)
-          .join("\n");
-      },
-      onFilterAuth(input, option) {
-        console.log(input, option);
-        return true;
-      },
-      run() {
-        if (this.auth.length == 0) {
-          message.error("please input cookie");
-          return;
-        }
+  },
+  methods: {
+    getColFilters(colName) {
+      return Array.from(new Set(this.table.map((row) => row[colName]))).map((col) => ({
+        label: col || "",
+        value: col || "",
+      }))
+    },
+    toNum(str) {
+      try {
+        return parseFloat(str)
+      } catch (error) {
+        return 0
+      }
+    },
+    fetchAuths() {
+      this.loading = false
+      baseFetch({
+        url: "/v1/shops/cookies",
+      })
+        .then((res) => {
+          this.auths = res.filter((v) => v.platform == 2)
+          this.loading = false
+        })
+        .catch((err) => {
+          message.error(err.message)
+          this.loading = false
+        })
+    },
+    flattenObj(obj) {
+      if (obj == null) return ""
+      if (typeof obj != "object") return obj
+      return Object.entries(obj)
+        .map(([k, v]) => `${k} ${typeof v == "string" ? v : JSON.stringify(v)}`)
+        .join("\n")
+    },
+    run() {
+      if (this.auth.length == 0) {
+        message.error("please input cookie")
+        return
+      }
 
-        app.run("ws://", "@upload-pic", {
-          auth: this.auth.split("||")[1],
-          platform: 2,
-          shopId: this.auth.split("||")[0],
-          pics: this.allFileList.map((f) => ({
-            uid: f.uid,
-            filename: f?.response?.res?.filename,
+      this.loading = true
+      baseFetch({
+        method: "POST",
+        url: '/v1/tools/upload-imgs/elm',
+        data: {
+          cookie: this.auth,
+          images: this.allFileList.map((f) => ({
+            _i: f.uid,
+            filename: f?.response?.data?.filename,
           })),
-        });
-
-        this.loading = true;
-      },
-      fetchAuths() {
-        this.loading = false;
-        new Shop()
-          .auths()
-          .then((res) => {
-            this.auths = res.filter((v) => v.platform == 2);
-            this.loading = false;
-          })
-          .catch((err) => {
-            message.error(err);
-            this.loading = false;
-          });
-      },
-      updateRow(_i, state) {
-        let newTable = [...this.table];
-        let targetIdx = newTable.findIndex((v) => v._i == _i);
-        if (targetIdx > -1) {
-          newTable[targetIdx]._res = {
-            code: state.code,
-            data: this.flattenObj(state.data),
-            err: this.flattenObj(state.err),
-          };
-          newTable[targetIdx]["图片链接"] = state.data.imageUrl;
-          this.table = newTable;
-          console.log("row", newTable);
         }
-      },
-      exportPicTable() {
-        this.exporting = true;
-        app.run("ws://", "@export-table", {
-          json: this.table,
-        });
-      },
+      })
+        .then(res => {
+          this.table = this.table.map(v => {
+            let resRow = res.find(k => k._i == v._i)
+            return {
+              ...v,
+              result: resRow?.result,
+              图片链接: resRow?.result?.code == 0 ? resRow.result.data.imageUrl : ''
+            }
+          })
+          this.loading = false
+        })
+        .catch((err) => {
+          message.error(err.message)
+          this.loading = false
+        })
     },
-    created() {
-      this.scrollY = document.body.clientHeight - 276;
-
-      // this.sock.onopen = function () {
-      //   console.log("open");
-      // };
-
-      // this.sock.onclose = function () {
-      //   console.log("close");
-      // };
-
-      this.fetchAuths();
+    exportPicTable() {
+      this.exporting = true
+      app.run("ws://", "excel/export-excel", {
+        baseName: "上传图片表",
+        rows: this.table,
+      })
     },
-    mounted() {
-      app.on("@upload-pic", (state) => {
-        console.log(state);
-        if (state._i == -1) this.loading = false;
-        this.results.push(JSON.stringify(state));
-        this.updateRow(state._i, state);
-        // window.scrollTo(0, document.body.scrollHeight + 20);
-      });
+  },
+  created() {
+    app.on("excel/export-excel-res", (json) => {
+      if (json.code != 0) {
+        message.error(json.message)
+        return
+      }
 
-      app.on("@upload-pic-end", () => {
-        this.loading = false;
-      });
+      this.exporting = false
+      this.picTableUrl = json.data
+    })
 
-      app.on("@export-table", (state) => {
-        console.log(state);
-        this.exporting = false;
-        this.picTableUrl = state.path;
-      });
+    this.fetchAuths()
+  },
+  mounted() {
+    this.scrollY = document.body.clientHeight - 276
+  },
+  watch: {
+    allFileList(n) {
+      this.table = n.map((v) => ({
+        _i: v.uid,
+        商品名称: v.name.slice(0, v.name.lastIndexOf(".")),
+        图片链接: "",
+      }))
     },
-    watch: {
-      auth() {
-        console.log(this.auth);
-      },
-      allFileList(n) {
-        console.log(n);
-        this.table = n.map((v) => ({
-          商品名称: v.name.slice(0, v.name.lastIndexOf('.')),
-          图片链接: "",
-          _i: v.uid,
-        }));
-        console.log("table", this.table);
-      },
-    },
-  };
+  },
+}
 </script>
 
 <style lang="sass" scoped>
-.tools-food-mt
+.tools-pic-uploader
   display: flex
   column-gap: 0.75rem
   width: 100%

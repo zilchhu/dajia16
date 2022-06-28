@@ -23,7 +23,9 @@ div
       )
     template(#bodyCell="{ column, text, record }")
       template(v-if="['创建日期', '更新日期'].includes(column.dataIndex)")
-        .pre-wrap {{ text?.replace('T', '\n')?.replace(/\.\d{3}Z/, '') }}
+        .pre-wrap {{ formatTime(text) }}
+      template(v-else-if="['老板的诉求', '门店的问题'].includes(column.dataIndex)")
+        .pre-line {{ text }}
       template(v-else-if="column.dataIndex == 'key'")
         .op-bar
           a-button(
@@ -55,7 +57,7 @@ div
     )
       a-form-item(label="物理店名")
         a-select(
-          v-model:value="addModel.a",
+          v-model:value="addModel['物理店名']",
           show-search,
           @select="(value) => onRealShopSelect(value, 'add')"
         )
@@ -65,17 +67,15 @@ div
             :value="rs.real_shop_name"
           ) {{ rs.real_shop_name }}
       a-form-item(label="组员")
-        a-input(v-model:value="addModel.b")
-      a-form-item(label="组长")
-        a-input(v-model:value="addModel.c")
+        a-input(v-model:value="addModel['组员']")
       a-form-item(label="门店人数")
-        a-input(v-model:value="addModel.d")
+        a-input(v-model:value="addModel['门店人数']")
       a-form-item(label="老板是否好沟通")
-        a-input(v-model:value="addModel.e")
+        a-input(v-model:value="addModel['老板是否好沟通']")
       a-form-item(label="老板的诉求")
-        a-textarea(v-model:value="addModel.f")
+        a-textarea(v-model:value="addModel['老板的诉求']")
       a-form-item(label="门店的问题")
-        a-textarea(v-model:value="addModel.g")
+        a-textarea(v-model:value="addModel['门店的问题']")
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
 
@@ -95,7 +95,7 @@ div
     )
       a-form-item(label="物理店名")
         a-select(
-          v-model:value="editModel.a",
+          v-model:value="editModel['物理店名']",
           show-search,
           @select="(value) => onRealShopSelect(value, 'edit')"
         )
@@ -105,22 +105,58 @@ div
             :value="rs.real_shop_name"
           ) {{ rs.real_shop_name }}
       a-form-item(label="组员")
-        a-input(v-model:value="editModel.b")
-      a-form-item(label="组长")
-        a-input(v-model:value="editModel.c")
+        a-input(v-model:value="editModel['组员']")
       a-form-item(label="门店人数")
-        a-input(v-model:value="editModel.d")
+        a-input(v-model:value="editModel['门店人数']")
       a-form-item(label="老板是否好沟通")
-        a-input(v-model:value="editModel.e")
+        a-input(v-model:value="editModel['老板是否好沟通']")
       a-form-item(label="老板的诉求")
-        a-textarea(v-model:value="editModel.f")
+        a-textarea(v-model:value="editModel['老板的诉求']")
       a-form-item(label="门店的问题")
-        a-textarea(v-model:value="editModel.g")
+        a-textarea(v-model:value="editModel['门店的问题']")
       a-form-item(:wrapper-col="{ span: 12, offset: 5 }")
         a-button(type="primary", html-type="submit") 提交
 
+  a-modal(
+    v-model:visible="isLogModalVis",
+    title="操作记录",
+    :footer="null",
+    centered,
+    :width="800"
+  )
+    div
+      a-table.ant-table-change(
+        :columns="logColumns",
+        :data-source="logTable",
+        rowKey="key",
+        :loading="logLoading",
+        :pagination="{ showSizeChanger: true, defaultPageSize: 100, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
+        size="small",
+        :scroll="{ y: 500 }",
+        :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+      )
+        template(
+          #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
+        )
+          table-select(
+            :columnTitle="column.title",
+            :columnIndex="column.dataIndex",
+            :tableData="logTable",
+            @select-change="setSelectedKeys",
+            @confirm="confirm()",
+            @reset="clearFilters()"
+          )
+        template(#bodyCell="{ column, text, record }")
+          template(v-if="column.title == '详情'")
+            .pre-wrap {{ Object.entries(text).map(([k, v]) => `${k}: ${v}`).join('\n') }}
+          template(v-else-if="column.title == '时间'")
+            div {{ formatTime(text) }}
+      div
+        a-button(type="link", size="small", @click="fetchLogTable") 刷新
+
   .left-bottom-div(v-show="!loading")
     a-button(type="link", size="small", @click="addRecord") 新增
+    a-button(type="link", size="small", @click="openLogTable") 记录
     a-button(type="link", size="small", @click="fetchTable") 刷新
     a-button(
       type="link",
@@ -130,285 +166,366 @@ div
     ) 导出
     a(
       v-show="tableUrl",
-      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      :href="tableUrl",
       target="_blank"
     ) 下载
 </template>
 
 <script>
-  import Probs from "../../api/probs";
-  import Shop from "../../api/shop";
-  import { message } from "ant-design-vue";
-  import TableSelect from "../../components/TableSelect";
-  import app from "apprun";
+import { message } from "ant-design-vue"
+import TableSelect from "../../components/TableSelect"
+import app from "apprun"
+import dayjs from "dayjs"
+import baseFetch from "../../api/base"
 
-  export default {
-    name: "ProbAN",
-    components: {
-      TableSelect,
-    },
-    data() {
-      return {
-        table: [],
-        loading: false,
-        scrollY: 900,
-        debounce_save: null,
-        exporting: false,
-        tableUrl: null,
-        isAddModalVis: false,
-        isEditModalVis: false,
-        realShops: [],
-        addModel: {
-          a: "",
-          b: "",
-          c: "",
-          d: "",
-          e: "",
-          f: "",
-          g: "",
+export default {
+  name: "ProbAN",
+  components: {
+    TableSelect,
+  },
+  data() {
+    return {
+      table: [],
+      loading: false,
+      columns: [
+        {
+          title: "物理店名",
+          dataIndex: "物理店名",
+          width: 90,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.物理店名 ?? "") == value,
+          fixed: "left",
         },
-        editModel: {
-          id: 0,
-          a: "",
-          b: "",
-          c: "",
-          d: "",
-          e: "",
-          f: "",
-          g: "",
+        {
+          title: "组员",
+          dataIndex: "组员",
+          width: 80,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.组员 ?? "") == value,
         },
-      };
-    },
-    computed: {
-      columns() {
-        // 日期	物理店名	组员	组长	门店人数	老板是否好沟通	老板的诉求	门店的问题
-        return [
-          {
-            title: "物理店名",
-            dataIndex: "物理店名",
-            width: 90,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.物理店名 ?? "") == value,
-          },
-          {
-            title: "组员",
-            dataIndex: "组员",
-            width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.组员 ?? "") == value,
-          },
-          {
-            title: "组长",
-            dataIndex: "组长",
-            width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.组长 ?? "") == value,
-          },
-          {
-            title: "门店人数",
-            dataIndex: "门店人数",
-            width: 80,
-            sorter: (a, b) => this.toNum(a.门店人数) - this.toNum(b.门店人数),
-          },
-          {
-            title: "老板是否好沟通",
-            dataIndex: "老板是否好沟通",
-            width: 140,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.老板是否好沟通 ?? "") == value,
-          },
-          {
-            title: "老板的诉求",
-            dataIndex: "老板的诉求",
-          },
-          {
-            title: "门店的问题",
-            dataIndex: "门店的问题",
-          },
-          {
-            title: "创建日期",
-            dataIndex: "创建日期",
-            width: 120,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.创建日期 ?? "") == value,
-          },
-          {
-            title: "更新日期",
-            dataIndex: "更新日期",
-            width: 120,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.更新日期 ?? "") == value,
-          },
-          {
-            title: "操作",
-            dataIndex: "key",
-            customFilterDropdown: true,
-            width: 80,
-          },
-        ];
+        {
+          title: "门店人数",
+          dataIndex: "门店人数",
+          width: 80,
+          sorter: (a, b) => this.toNum(a.门店人数) - this.toNum(b.门店人数),
+        },
+        {
+          title: "老板是否好沟通",
+          dataIndex: "老板是否好沟通",
+          width: 140,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.老板是否好沟通 ?? "") == value,
+        },
+        {
+          title: "老板的诉求",
+          dataIndex: "老板的诉求",
+          width: 300,
+        },
+        {
+          title: "门店的问题",
+          dataIndex: "门店的问题",
+          width: 400,
+        },
+        {
+          title: "创建日期",
+          dataIndex: "创建日期",
+          width: 120,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.创建日期 ?? "") == value,
+        },
+        {
+          title: "更新日期",
+          dataIndex: "更新日期",
+          width: 120,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.更新日期 ?? "") == value,
+        },
+        {
+          title: "操作",
+          dataIndex: "key",
+          customFilterDropdown: true,
+          width: 80,
+        },
+      ],
+      scrollY: 900,
+      debounce_save: null,
+      exporting: false,
+      tableUrl: null,
+      isAddModalVis: false,
+      isEditModalVis: false,
+      realShops: [],
+      addModel: {
+        物理店名: "",
+        组员: "",
+        门店人数: "",
+        老板是否好沟通: "",
+        老板的诉求: "",
+        门店的问题: "",
       },
+      editModel: {
+        id: "",
+        物理店名: "",
+        组员: "",
+        门店人数: "",
+        老板是否好沟通: "",
+        老板的诉求: "",
+        门店的问题: "",
+      },
+      isLogModalVis: false,
+      logTable: [],
+      logLoading: false,
+      logColumns: [
+        {
+          title: "类型",
+          dataIndex: "type",
+          width: 90,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.type ?? "") == value,
+        },
+        {
+          title: "物理店",
+          dataIndex: "物理店",
+          width: 90,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.物理店 ?? "") == value,
+        },
+        {
+          title: "详情",
+          dataIndex: "detail",
+          customFilterDropdown: true,
+        },
+        {
+          title: "用户",
+          dataIndex: "user_name",
+          width: 120,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.user_name ?? "") == value,
+        },
+        {
+          title: "时间",
+          dataIndex: "created_at",
+          width: 120,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.created_at ?? "") == value,
+        },
+      ],
+      logTypes: {
+        add: "新增",
+        edit: "修改",
+        del: "删除",
+      },
+    }
+  },
+  computed: {
+    account() {
+      return this.$store.state.account ?? localStorage.getItem("account")
     },
-    methods: {
-      getColFilters(colName) {
-        return Array.from(
-          new Set(this.table.map((row) => row[colName] ?? ""))
-        ).map((col) => ({
+    token() {
+      return this.$store.state.token ?? localStorage.getItem("token")
+    },
+  },
+  methods: {
+    getColFilters(colName) {
+      return Array.from(new Set(this.table.map((row) => row[colName] ?? ""))).map(
+        (col) => ({
           label: col || "",
           value: col || "",
-        }));
-      },
-      toNum(str) {
-        try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
-        }
-      },
-      fetchTable() {
-        this.loading = true;
-        new Probs()
-          .single("an")
-          .then((res) => {
-            this.table = res;
-            this.loading = false;
-          })
-          .catch((err) => {
-            message.error(err);
-            this.loading = false;
-          });
-      },
-      fetchRealShops() {
-        new Shop()
-          .real2()
-          .then((res) => {
-            this.realShops = res;
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      },
-      debounce(fn) {
-        let timeout = null;
-        return function () {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
-        };
-      },
-      handleChange(value, record) {
-        const target = this.table.filter((item) => record.key === item.key)[0];
-        if (target) {
-          target["handle"] = value;
-          this.debounce_save(record);
-        }
-      },
-      save(record) {
-        const target = this.table.filter((item) => record.key === item.key)[0];
-        if (target) {
-          new Probs()
-            .save("a", record.key, target["handle"])
-            .then((res) => {
-              console.log(res);
-            })
-            .catch((err) => {
-              message.error(err);
-            });
-        }
-      },
-      onRealShopSelect(value, mode) {
-        const rs = this.realShops.find((v) => v.real_shop_name == value);
-        if (!rs) return;
-        switch (mode) {
-          case "add":
-            this.addModel.b = rs.person;
-            this.addModel.c = rs.leader;
-        }
-      },
-      addRecord() {
-        this.isAddModalVis = true;
-      },
-      delRecord(record) {
-        new Probs()
-          .delAn({ id: record.id })
-          .then((res) => {
-            message.success(res);
-            this.fetchTable();
-          })
-          .catch((err) => {
-            message.error(err);
-          });
-      },
-      editRecord(record) {
-        console.log(record);
-        this.editModel = {
-          id: record.id,
-          a: record.物理店名,
-          b: record.组员,
-          c: record.组长,
-          d: record.门店人数,
-          e: record.老板是否好沟通,
-          f: record.老板的诉求,
-          g: record.门店的问题,
-        };
-        this.isEditModalVis = true;
-      },
-      handleAddSubmit() {
-        console.log(this.addModel);
-        new Probs()
-          .addAn(this.addModel)
-          .then((res) => {
-            message.success(res);
-            this.isAddModalVis = false;
-            this.fetchTable();
-          })
-          .catch((err) => {
-            message.error(err);
-          });
-      },
-      handleEditSubmit() {
-        console.log(this.editModel);
-        new Probs()
-          .editAn(this.editModel)
-          .then((res) => {
-            message.success(res);
-            this.isEditModalVis = false;
-            this.fetchTable();
-          })
-          .catch((err) => {
-            message.error(err);
-          });
-      },
-      onSelectChange(checks) {
-        console.log(checks);
-      },
-      transformTable() {
-        return this.table.map((row) =>
-          this.columns.reduce(
-            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
-            {}
-          )
-        );
-      },
-      exportTable() {
-        this.exporting = true;
-        app.run("ws://", "@export-table", {
-          json: this.transformTable(),
-        });
-      },
+        })
+      )
     },
-    created() {
-      this.scrollY = document.body.clientHeight - 204;
-      this.debounce_save = this.debounce(this.save);
-      this.fetchRealShops();
-      this.fetchTable();
+    isEmpty(val) {
+      return val == null || val == ""
     },
-    mounted() {
-      app.on("@export-table", (state) => {
-        console.log(state);
-        this.exporting = false;
-        this.tableUrl = state.path;
-      });
+    toNum(str) {
+      try {
+        let f = parseFloat(str)
+        if (isNaN(f)) return 0
+        return f
+      } catch (err) {
+        return 0
+      }
     },
-  };
+    formatTime(t) {
+      return dayjs(t).format("YYYY-MM-DD HH:mm:ss")
+    },
+    fetchTable() {
+      this.loading = true
+      baseFetch({
+        url: "/v1/checks/an",
+      })
+        .then((res) => {
+          this.table = res
+          this.loading = false
+        })
+        .catch((err) => {
+          message.error(err)
+          this.loading = false
+        })
+    },
+    fetchLogTable() {
+      this.logLoading = true
+      baseFetch({
+        url: "/v1/checks/an/logs",
+      })
+        .then((res) => {
+          this.logTable = res.map((item) => ({
+            ...item,
+            type: this.logTypes[item.type],
+            物理店: item.detail?.物理店名,
+          }))
+          this.logLoading = false
+        })
+        .catch((err) => {
+          message.error(err)
+          this.logLoading = false
+        })
+    },
+    fetchRealShops() {
+      baseFetch({
+        url: "/v1/real_shops",
+      })
+        .then((res) => {
+          this.realShops = res
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    },
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 800)
+      }
+    },
+    onRealShopSelect(value, mode) {
+      const rs = this.realShops.find((v) => v.real_shop_name == value)
+      if (!rs) return
+
+      switch (mode) {
+        case "add":
+          this.addModel.组员 = rs.person
+      }
+    },
+    addRecord() {
+      this.isAddModalVis = true
+    },
+    delRecord(record) {
+      baseFetch({
+        method: "DELETE",
+        url: `/v1/checks/an/${record.id}`,
+        data: {
+          auth: {
+            account: this.account,
+            token: this.token,
+          },
+        },
+      })
+        .then((res) => {
+          message.success(res)
+          this.fetchTable()
+        })
+        .catch((err) => {
+          message.error(err)
+        })
+    },
+    editRecord(record) {
+      this.editModel = {
+        id: record.id,
+        物理店名: record.物理店名,
+        组员: record.组员,
+        组长: record.组长,
+        门店人数: record.门店人数,
+        老板是否好沟通: record.老板是否好沟通,
+        老板的诉求: record.老板的诉求,
+        门店的问题: record.门店的问题,
+      }
+      this.isEditModalVis = true
+    },
+    handleAddSubmit() {
+      console.log(this.addModel)
+      baseFetch({
+        method: "POST",
+        url: "/v1/checks/an",
+        data: {
+          ...this.addModel,
+          门店人数: this.isEmpty(this.addModel.门店人数) ? null : +this.addModel.门店人数,
+          auth: {
+            account: this.account,
+            token: this.token,
+          },
+        },
+      })
+        .then((res) => {
+          message.success(res)
+          this.isAddModalVis = false
+          this.fetchTable()
+        })
+        .catch((err) => {
+          message.error(err)
+        })
+    },
+    handleEditSubmit() {
+      console.log(this.editModel)
+      baseFetch({
+        method: "PUT",
+        url: `/v1/checks/an/${this.editModel.id}`,
+        data: {
+          ...this.editModel,
+          门店人数: this.isEmpty(this.editModel.门店人数)
+            ? null
+            : +this.editModel.门店人数,
+          auth: {
+            account: this.account,
+            token: this.token,
+          },
+        },
+      })
+        .then((res) => {
+          message.success(res)
+          this.isEditModalVis = false
+          this.fetchTable()
+        })
+        .catch((err) => {
+          message.error(err.message)
+        })
+    },
+    transformTable() {
+      return this.table.map((row) =>
+        this.columns.reduce((p, c) => ({ ...p, [c.title]: row[c.dataIndex] }), {})
+      )
+    },
+    exportTable() {
+      this.exporting = true
+      app.run("ws://", "excel/export-excel", {
+        baseName: "门店沟通表",
+        rows: this.transformTable(),
+      })
+    },
+    openLogTable() {
+      this.fetchLogTable()
+      this.isLogModalVis = true
+    },
+  },
+  created() {
+    app.on("excel/export-excel-res", (json) => {
+      if (json.code != 0) {
+        message.error(json.message)
+        return
+      }
+
+      this.exporting = false
+      this.tableUrl = json.data
+    })
+
+    this.debounce_save = this.debounce(this.save)
+    this.fetchRealShops()
+    this.fetchTable()
+  },
+  mounted() {
+    this.scrollY = document.body.clientHeight - 204
+  },
+}
 </script>
 
 <style lang="sass" scoped>
@@ -416,4 +533,7 @@ div
   display: flex
   align-items: center
   column-gap: 6px
+
+.pre-line
+  white-space: pre-line
 </style>

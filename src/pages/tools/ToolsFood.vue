@@ -4,43 +4,53 @@
     .title 商品任务
     .controls
       a-button(size="small", @click="fetchTable") 刷新列表
-      a-button(size="small", @click="addTask") 新增任务
+      a-button(type="primary", size="small", @click="addTask") 新增任务
 
   s-table.ant-table-change(
+    rowKey="key",
     :columns="columns",
     :data-source="table",
-    rowKey="key",
     :loading="loading",
     :pagination="false",
-    size="small",
     :scroll="{ y: scrollY }"
+    size="small",
+    @change="onTableChange"
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
-      table-select(
-        :columnTitle="column.title",
-        :columnIndex="column.dataIndex",
-        :tableData="table",
+      column-filter(
+        :column="column",
+        :table="table"
+        :filters="tableFilters"
+        :selected-keys="selectedKeys"
         @select-change="setSelectedKeys",
-        @confirm="confirm()",
-        @reset="clearFilters()"
+        @confirm="confirm",
+        @reset="clearFilters"
       )
+      //- table-select(
+      //-   :columnTitle="column.title",
+      //-   :columnIndex="column.dataIndex",
+      //-   :tableData="table",
+      //-   @select-change="values => setSelectedKeys(values)",
+      //-   @confirm="confirm()",
+      //-   @reset="clearFilters()"
+      //- )
     template(#bodyCell="{ column, text, record }")
-      template(v-if="column.dataIndex == '文件'")
+      template(v-if="column.dataIndex == 'fileName'")
         div(style="overflow: hidden", :title="text")
           a-button(type="link", size="small", @click="viewTaskInputs(record)") {{ text }}
-      template(v-else-if="column.dataIndex == '状态'")
+      template(v-else-if="column.dataIndex == 'status'")
         div(style="cursor: pointer", title="点此查看实时结果")
           a-tag(
             :color="getStatusTagColor(text)",
             @click="viewTaskResults(record)"
           ) {{ text }}
-      template(v-else-if="column.dataIndex == '结果'")
+      template(v-else-if="column.dataIndex == 'resultTitle'")
         a-button(type="link", @click="viewTaskResults(record)") {{ text }}
-      template(v-else-if="column.dataIndex == '操作'")
+      template(v-else-if="column.dataIndex == 'op'")
         a-button(
-          v-if="record.状态 == '待执行'",
+          v-if="record.status?.match(/待执行|进行中/)",
           type="link",
           size="small",
           @click="cancelTask(record.id)"
@@ -60,7 +70,8 @@
     title="新增任务",
     :footer="null",
     centered,
-    :width="bodyRect.width * 0.8"
+    :width="bodyRect.width * 0.86"
+    :destroyOnClose="true",
   )
     .add-modal
       a-form-item(label="任务名称", :labelCol="{ span: 2 }")
@@ -78,7 +89,7 @@
       a-form-item(label="文件", :labelCol="{ span: 2 }")
         .updown-table
           a-upload(
-            action="http://192.168.3.3:9005/upload",
+            :action="uploadUrl",
             @change="onFileChange"
           )
             a-button(size="small")
@@ -86,9 +97,11 @@
               span 上传表格
           a(
             v-show="form.type",
-            :href="`http://192.168.3.3:9007/${taskModels[form.type]}`",
+            :href="`${HOST}/templates/${taskTemplateNames[form.type]}`",
             download
           ) 下载模板
+
+          a-button(v-show="form.type" type="link" @click="downloadPoiFoodsTemp") 下载单店商品
       ToolsFoodView(
         viewType="plain",
         :taskType="form.type",
@@ -114,9 +127,18 @@
         a-button(type="primary") 提交
 
   a-modal(
+    v-model:visible="foodsTempModalShow"
+    title="单店模板",
+    :footer="null",
+    centered,
+    :width="bodyRect.width * 0.8"
+  )
+    ToolsFoodTempView(:cookie="form.cookie")
+
+  a-modal(
     v-model:visible="viewModalShow",
     :footer="null",
-    :destroyOnClose="false",
+    :destroyOnClose="true",
     centered,
     :width="bodyRect.width * 0.8"
   )
@@ -126,358 +148,470 @@
       :viewType="viewType",
       :taskType="viewedTask.type",
       :taskId="viewedTask.id",
-      :scrollY="bodyRect.height * 0.7"
+      :scrollY="bodyRect.height * 0.7",
+      @retryTasks="submitRetryTasks"
+      @restoreSubs="submitRestoreSubTasks"
     ) 
 </template>
 
 <script>
-  import app from "apprun";
-  import moment from "moment";
-  import dayjs from "dayjs";
-  import { message } from "ant-design-vue";
-  import { UploadOutlined } from "@ant-design/icons-vue";
-  import TableSelect from "../../components/TableSelect";
-  import ToolsFoodView from "./ToolsFoodView.vue";
-  import Login from "../../components/user/Login";
-  import Shop from "../../api/shop";
+import app from "apprun"
+import moment from "moment"
+import dayjs from "dayjs"
+import { message } from "ant-design-vue"
+import { UploadOutlined } from "@ant-design/icons-vue"
+import TableSelect from "../../components/TableSelect"
+import ColumnFilter from "../../components/ColumnFilter"
+import ToolsFoodView from "./ToolsFoodView.vue"
+import ToolsFoodTempView from "./ToolsFoodTempView.vue"
+import Login from "../../components/user/Login"
+import baseFetch, { HOST } from "../../api/base"
 
-  function throttle(fn, wait) {
-    let timer = null;
-    return function () {
-      let context = this;
-      let args = arguments;
+function throttle(fn, wait) {
+  let timer = null
+  return function () {
+    let context = this
+    let args = arguments
 
-      if (!timer) {
-        timer = setTimeout(function () {
-          fn.apply(context, args);
-          timer = null;
-        }, wait);
-      }
-    };
+    if (!timer) {
+      timer = setTimeout(function () {
+        fn.apply(context, args)
+        timer = null
+      }, wait)
+    }
   }
+}
 
-  export default {
-    name: "tool-food",
-    components: {
-      TableSelect,
-      ToolsFoodView,
-      UploadOutlined,
-      Login,
-    },
-    data() {
-      return {
-        bodyRect: { width: 900, height: 800 },
-        columns: [
-          {
-            title: "id",
-            dataIndex: "id",
-            width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.id ?? "") == value,
-          },
-          {
-            title: "名称",
-            dataIndex: "名称",
-            width: 240,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.名称 ?? "") == value,
-          },
-          {
-            title: "类型",
-            dataIndex: "类型",
-            width: 160,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.类型 ?? "") == value,
-          },
-          {
-            title: "文件",
-            dataIndex: "文件",
-            width: 260,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.文件 ?? "") == value,
-          },
-          {
-            title: "状态",
-            dataIndex: "状态",
-            width: 140,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.状态 ?? "") == value,
-          },
-          {
-            title: "结果",
-            dataIndex: "结果",
-            width: 140,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.结果 ?? "") == value,
-          },
-          {
-            title: "执行时间",
-            dataIndex: "执行时间",
-            width: 180,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.执行时间 ?? "") == value,
-          },
-          {
-            title: "结束时间",
-            dataIndex: "结束时间",
-            width: 180,
-          },
-          {
-            title: "操作人",
-            dataIndex: "操作人",
-            width: 80,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record.操作人 ?? "") == value,
-          },
-          {
-            title: "操作",
-            dataIndex: "操作",
-            width: 100,
-          },
-        ],
-        table: [],
-        fileTable: [],
-        loading: false,
-        // form
-        taskTypes: [
-          "修改美团外卖商品",
-          "修改饿了么外卖商品",
-          "修改美团外卖分类",
-          "修改饿了么外卖分类",
-          "替换美团外卖商品",
-          "修改美团零售商品",
-          "增删美团外卖测试商品",
-        ],
-        taskModels: {
-          修改美团外卖商品: "美团外卖修改商品模板.xlsx",
-          修改饿了么外卖商品: "饿了么外卖修改商品模板.xlsx",
-          修改美团外卖分类: "美团外卖修改分类模板.xlsx",
-          修改饿了么外卖分类: "饿了么外卖修改分类模板.xlsx",
-          替换美团外卖商品: "美团外卖替换商品模板.xlsx",
-          修改美团零售商品: "美团零售修改商品模板.xlsx",
-          增删美团外卖测试商品: "美团外卖增删测试商品模板.xlsx",
+export default {
+  name: "tool-food",
+  components: {
+    TableSelect,
+    ColumnFilter,
+    ToolsFoodView,
+    ToolsFoodTempView,
+    UploadOutlined,
+    Login,
+  },
+  data() {
+    return {
+      HOST,
+      bodyRect: { width: 900, height: 800 },
+      v: 1,
+      columns: [
+        {
+          key: "id",
+          title: "id",
+          dataIndex: "id",
+          width: 80,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.id ?? "") == value,
+          onFilterDropdownVisibleChange: visible => this.onColFilterVisChange(visible, 'id')
         },
-        cookies: [],
-        form: {
-          name: "",
-          type: "",
-          cookie: "",
-          filename: "",
-          filepath: "",
-          execType: "立即",
-          execAt: moment("23:00:00", "HH:mm:ss"),
+        {
+          key: 'name',
+          title: "名称",
+          dataIndex: "name",
+          width: 240,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.name ?? "") == value,
+          onFilterDropdownVisibleChange: visible => this.onColFilterVisChange(visible, 'id')
         },
-        // modal
-        viewType: null,
-        viewedTask: {
-          type: null,
-          id: null,
+        {
+          key: "type",
+          title: "类型",
+          dataIndex: "type",
+          width: 160,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.type ?? "") == value,
         },
-        modalShow: false,
-        viewModalShow: false,
-        loginModalShow: false,
-        throtFetchTable: () => {},
-      };
+        {
+          key: 'fileName',
+          title: "文件",
+          dataIndex: "fileName",
+          width: 260,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.fileName ?? "") == value,
+        },
+        {
+          key: 'status',
+          title: "状态",
+          dataIndex: "status",
+          width: 140,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.status ?? "") == value,
+        },
+        {
+          key: "resultTitle",
+          title: "结果",
+          dataIndex: "resultTitle",
+          width: 140,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.resultTitle ?? "") == value,
+        },
+        {
+          key: "executedAt",
+          title: "执行时间",
+          dataIndex: "executedAt",
+          width: 180,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.executedAt ?? "") == value,
+          _customFilterOption: (value) => ({ label: dayjs(value).format('YYYY-MM-DD'), value })
+        },
+        {
+          key: "doneAt",
+          title: "结束时间",
+          dataIndex: "doneAt",
+          width: 180,
+        },
+        {
+          key: "operator",
+          title: "操作人",
+          dataIndex: "operator",
+          width: 80,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record.operator ?? "") == value,
+        },
+        {
+          key: 'op',
+          title: "操作",
+          dataIndex: "op",
+          width: 100,
+        },
+      ],
+      table: [],
+      tableFilters: {},
+      loading: false,
+      uploadUrl: `${HOST}/api/common/v1/upload`,
+      fileTable: [],
+      // form
+      taskTypes: [
+        "修改美团外卖商品",
+        "修改美团外卖分类",
+        "替换美团外卖商品",
+        "恢复已替换美团外卖商品",
+        "修改美团零售商品",
+        "增删美团外卖测试商品",
+        "修改饿了么外卖商品",
+        "修改饿了么外卖分类",
+        "修改美团收藏有礼",
+        "修改美团店内领券",
+        "删除美团售卖代金券",
+        "修改美团下单返券",
+        "修改美团满减活动",
+        "修改美团减配送费",
+      ],
+      taskTemplateNames: {
+        修改美团外卖商品: "美团外卖修改商品模板.xlsx",
+        修改饿了么外卖商品: "饿了么外卖修改商品模板.xlsx",
+        修改美团外卖分类: "美团外卖修改分类模板.xlsx",
+        修改饿了么外卖分类: "饿了么外卖修改分类模板.xlsx",
+        替换美团外卖商品: "美团外卖替换商品模板.xlsx",
+        修改美团零售商品: "美团零售修改商品模板.xlsx",
+        增删美团外卖测试商品: "美团外卖增删测试商品模板.xlsx",
+        修改美团收藏有礼: "美团外卖修改收藏有礼模板.xlsx",
+        修改美团店内领券: "美团外卖修改店内领券模板.xlsx",
+        删除美团售卖代金券: "美团外卖删除售卖代金券模板.xlsx",
+        修改美团下单返券: "美团外卖修改下单返券模板.xlsx",
+        修改美团满减活动: "美团外卖修改满减活动模板.xlsx",
+        修改美团减配送费: "美团外卖修改减配送费模板.xlsx",
+      },
+      cookies: [],
+      form: {
+        name: "",
+        type: "",
+        cookie: "",
+        filename: "",
+        filepath: "",
+        table: null,
+        execType: "立即",
+        execAt: moment("23:00:00", "HH:mm:ss"),
+      },
+      // modal
+      viewType: null,
+      viewedTask: {
+        type: null,
+        id: null,
+      },
+      modalShow: false,
+      viewModalShow: false,
+      loginModalShow: false,
+      foodsTempModalShow: false,
+      throtFetchTable: () => { },
+    }
+  },
+  computed: {
+    scrollX() {
+      return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
     },
-    computed: {
-      scrollX() {
-        return this.columns
-          .map((col) => col.width ?? 200)
-          .reduce((p, v) => p + v, 0);
-      },
-      scrollY() {
-        return this.bodyRect.height - 204;
-      },
-      scroll() {
-        return { y: this.scrollY, x: this.scrollX };
-      },
-      taskTypeOpts() {
-        return this.taskTypes.map((v) => ({ label: v, value: v }));
-      },
-      cookieOpts() {
-        let options = this.cookies.map((s) => ({
-          key: `${s.shopId} ${s.shopName}`,
-          value: s.auth,
-          label: `${
-            s.platform == 1 ? "**美团*美团*美团**" : "**饿了么*饿了么*饿了么**"
-          } ${s.shopName}`,
-          id_name: `${s.shopId} ${s.shopName}`,
-        }));
-        return options;
-      },
-      account() {
-        return this.$store.state.account ?? localStorage.getItem("account");
-      },
-      token() {
-        return this.$store.state.token ?? localStorage.getItem("token");
-      },
+    scrollY() {
+      return this.bodyRect.height - 204
     },
-    methods: {
-      toNum(str) {
-        try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
-        }
-      },
-      debounce(fn) {
-        let timeout = null;
-        return function () {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
-        };
-      },
-      getStatusTagColor(status) {
-        if (status == "全部成功") return "success";
-        if (status.match(/部分成功|全部失败|异常/)) return "error";
-        if (status == "进行中") return "processing";
-        return "default";
-      },
-      fetchTable() {
-        this.loading = true;
-        app.run("ws://", "get-food-tasks");
-      },
-      fetchCookies() {
-        new Shop()
-          .auths()
-          .then((res) => {
-            this.cookies = res;
-          })
-          .catch((err) => {
-            message.error(err);
-          });
-      },
-      onFileChange({ file }) {
-        if (file.status == "done" && file?.response?.res?.filename) {
-          this.form.filename = file.response.res.filename;
-          this.form.filepath = file.response.res.path;
+    scroll() {
+      return { y: this.scrollY, x: this.scrollX }
+    },
+    tableFilterOpts() {
+      return this.columns.reduce((p, col) => {
+        let baseOpts = Array.from(new Set(this.table.map(row => row[col.dataIndex])))
+          .map(value => ({ value, label: typeof value == 'string' ? value : JSON.stringify(value) }))
+        let opts = [...baseOpts]
 
-          setTimeout(() => {
-            app.run("ws://", "@upload-table", {
-              table: file.response.res.filename,
-            });
-          }, 800);
-        }
-      },
-      onCookieFilter(input, option) {
-        return option.id_name.includes(input);
-      },
-      onLoginSuccess() {
-        this.loginModalShow = false;
-      },
-      addTask() {
-        // message.error("有BUG不要用");
-        // return;
-        this.modalShow = true;
-      },
-      submitTask() {
-        const getExecutedAt = () => {
-          if (this.form.execType == "立即") return ":now";
-          if (this.form.execAt.isBefore(moment(), "hour")) {
-            return this.form.execAt.add(1, "day").format("YYYY-MM-DD HH:mm:ss");
+        if (col.dataIndex == 'status') opts = opts.map(o => ({ ...o, color: this.getStatusRGBColor(o.value) }))
+
+        return { ...p, [col.dataIndex]: opts }
+      }, {})
+    },
+    taskTypeOpts() {
+      return this.taskTypes.map((v) => ({ label: v, value: v }))
+    },
+    cookieOpts() {
+      let options = this.cookies.map((s) => ({
+        key: `${s.shopId} ${s.shopName}`,
+        value: s.auth,
+        label: `${s.platform == 1 ? "**美团*美团*美团**" : "**饿了么*饿了么*饿了么**"} ${s.shopName
+          }`,
+        id_name: `${s.shopId} ${s.shopName}`,
+      }))
+      return options
+    },
+    account() {
+      return this.$store.state.account ?? localStorage.getItem("account")
+    },
+    token() {
+      return this.$store.state.token ?? localStorage.getItem("token")
+    },
+  },
+  methods: {
+    toNum(str) {
+      try {
+        let f = parseFloat(str)
+        if (isNaN(f)) return 0
+        return f
+      } catch (err) {
+        return 0
+      }
+    },
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 800)
+      }
+    },
+    getStatusTagColor(status) {
+      if (status == "全部成功") return "success"
+      if (status.match(/部分成功|全部失败|异常/)) return "error"
+      if (status == "进行中") return "processing"
+      return "default"
+    },
+    getStatusRGBColor(status) {
+      if (status == "全部成功") return "#52c41a"
+      if (status.match(/部分成功|全部失败|异常/)) return "ff4d4f"
+      if (status == "进行中") return "#1890ff"
+      return "#ffffff"
+    },
+    fetchTable() {
+      this.loading = true
+      baseFetch({
+        url: `/v1/tools/update-foods/tasks`
+      })
+        .then((res) => {
+          this.table = res.tasks
+          this.loading = false
+        })
+        .catch((e) => {
+          message.error(e.message)
+          this.loading = false
+        })
+    },
+    onTableChange(pagination, filters) {
+      console.log('filters', filters)
+      this.tableFilters = filters
+      // this.currentTable = currentDataSource
+      // console.log('tools-food-ct', this.currentTable)
+      // console.log('tools-food-cds', currentDataSource)
+    },
+    onColFilterVisChange(visible, key) {
+      let i = this.columns.findIndex(col => col.key == key)
+      if (i != -1) this.v += 1
+    },
+    fetchCookies() {
+      baseFetch({
+        url: "/v1/shops/cookies",
+      })
+        .then((res) => {
+          this.cookies = res
+        })
+        .catch((err) => {
+          message.error(err.message)
+        })
+    },
+    onCookieFilter(input, option) {
+      return option.id_name.includes(input)
+    },
+    onFileChange({ file }) {
+      if (file.status == "done" && file?.response?.code == 0) {
+        console.log(file)
+        this.form.filename = file.response.data.filename
+        this.form.filepath = file.response.data.path
+
+        baseFetch({
+          baseURL: `${HOST}/api/common`,
+          url: '/v1/excel',
+          params: {
+            path: file.response.data.path
           }
-          return this.form.execAt.format("YYYY-MM-DD HH:mm:ss");
-        };
-
-        if (
-          [
-            this.form.name,
-            this.form.type,
-            this.form.cookie,
-            this.form.filename,
-          ].some((v) => v == "")
-        ) {
-          message.error("表单填写不完整");
-          return;
+        })
+          .then(res => {
+            this.fileTable = res.filter(v => Object.values(v).join("") != "").map((v, i) => ({ ...v, _i: i }))
+          })
+          .catch(err => {
+            message.error(err.message)
+          })
+      }
+    },
+    addTask() {
+      this.modalShow = true
+    },
+    submitTask() {
+      const getExecutedAt = () => {
+        if (this.form.execType == "立即") return ":now"
+        if (this.form.execAt.isBefore(moment(), "hour")) {
+          return this.form.execAt.add(1, "day").format("YYYY-MM-DD HH:mm:ss")
         }
+        return this.form.execAt.format("YYYY-MM-DD HH:mm:ss")
+      }
 
-        if (this.form.name.length > 100) {
-          message.error("任务名称过长");
-          return;
-        }
+      if (
+        [this.form.name, this.form.type, this.form.cookie, this.form.filename].some(
+          (v) => v == ""
+        )
+      ) {
+        message.error("表单填写不完整")
+        return
+      }
 
-        if (!this.account) {
-          message.error("请先登录");
-          this.loginModalShow = true;
-          return;
-        }
+      if (this.form.name.length > 100) {
+        message.error("任务名称过长")
+        return
+      }
 
-        app.run("ws://", "add-food-task", {
-          name: this.form.name,
-          type: this.form.type,
-          input: {
-            name: this.form.filename,
-            path: this.form.filepath,
-            cookie: this.form.cookie,
-          },
-          executedAt: getExecutedAt(),
-          meta: {
-            account: this.account,
-            token: this.token,
-          },
-        });
+      if (!this.account) {
+        message.error("请先登录")
+        this.loginModalShow = true
+        return
+      }
 
-        this.modalShow = false;
-      },
-      cancelTask(id) {
-        app.run("ws://", "cancel-food-task", { id });
-      },
-      viewTaskInputs(rec) {
-        this.viewType = "inputs";
-        this.viewedTask = { type: rec.类型, id: rec.id };
-        this.viewModalShow = true;
-      },
-      viewTaskResults(rec) {
-        this.viewType = "results";
-        this.viewedTask = { type: rec.类型, id: rec.id };
-        this.viewModalShow = true;
-      },
-      onGetFoodTasks(state) {
-        if (state.error) message.error(state.error);
-        this.table = state.result.tasks;
-        this.loading = false;
-      },
-      onUploadTable(state) {
-        this.fileTable = state.jsonTable;
-      },
-      onAddFoodTask(state) {
-        if (state.error) message.error(state.error);
-      },
-      onCancelFoodTask(state) {
-        if (state.error) message.error(state.error);
-      },
-      onFoodTaskStatus(state) {
-        this.throtFetchTable();
-      },
+      app.run("ws://", "update-foods/v1/add-task", {
+        name: this.form.name,
+        type: this.form.type,
+        input: {
+          name: this.form.filename,
+          cookie: this.form.cookie,
+          table: this.form.table,
+        },
+        executedAt: getExecutedAt(),
+        meta: {
+          account: this.account,
+          token: this.token,
+        },
+      })
+
+      this.modalShow = false
     },
-    created() {
-      console.log("tool-food created!");
-      this.throtFetchTable = throttle(this.fetchTable, 800);
-      app.on("get-food-tasks-res", this.onGetFoodTasks);
-      app.on("@upload-table", this.onUploadTable);
-      app.on("add-food-task-res", this.onAddFoodTask);
-      app.on("cancel-food-task-res", this.onCancelFoodTask);
-      app.on("food-task-status", this.onFoodTaskStatus);
+    cancelTask(id) {
+      app.run("ws://", "update-foods/v1/cancel-task", { id })
+    },
+    submitRestoreSubTasks(recs) {
+      if (recs.length == 0) return
 
-      this.fetchCookies();
-      setTimeout(() => {
-        this.fetchTable();
-      }, 600);
+      this.form.name = `恢复已替换美团外卖商品-${recs[0].替换任务id}`
+      this.form.type = "恢复已替换美团外卖商品"
+      this.form.filename = `恢复已替换美团外卖商品-${recs[0].替换任务id}.x-${+dayjs()}.xlsx`
+
+      this.form.table = recs.map((rec, i) => ({
+        _i: i,
+        店铺id: rec.店铺id,
+        店铺名称: rec.店铺名称,
+        分类名称: rec.分类名称,
+        商品名称: rec.商品名称,
+        替换后分类名称: rec.替换后分类名称,
+        替换后商品名称: rec.替换后商品名称,
+        替换任务id: rec.替换任务id,
+        替换i: rec._i,
+      }))
+      this.fileTable = this.form.table
+
+      this.viewModalShow = false
+      this.addTask()
     },
-    mounted() {
-      this.bodyRect = document.body.getBoundingClientRect();
+    submitRetryTasks(recs) {
+      if (recs.length == 0) return
+
+      this.form.name = `重试-${recs[0].重试任务类型}-${recs[0].重试任务id}`
+      this.form.type = recs[0].重试任务类型
+      this.form.filename = `重试-${recs[0].重试任务类型}-${recs[0].重试任务id}.x-${+dayjs()}.xlsx`
+
+      this.form.table = recs.map((rec, i) => ({
+        ...rec,
+        _i: i,
+        result: null,
+      }))
+      this.fileTable = this.form.table
+
+      this.viewModalShow = false
+      this.addTask()
     },
-    unmounted() {
-      console.log("tool-food unmounted!");
-      app.off("get-food-tasks-res", this.onGetFoodTasks);
-      app.off("@upload-table", this.onUploadTable);
-      app.off("add-food-task-res", this.onAddFoodTask);
-      app.off("cancel-food-task-res", this.onCancelFoodTask);
-      app.off("food-task-status", this.onFoodTaskStatus);
+    downloadPoiFoodsTemp() {
+      this.foodsTempModalShow = true
     },
-  };
+    onLoginSuccess() {
+      this.loginModalShow = false
+    },
+    onAddFoodTask(json) {
+      if (json.code != 0) {
+        message.error(json.message)
+        return
+      }
+    },
+    onCancelFoodTask(json) {
+      if (json.code != 0) {
+        message.error(json.message)
+        return
+      }
+    },
+    onFoodTaskStatus() {
+      this.throtFetchTable()
+    },
+    viewTaskInputs(rec) {
+      this.viewType = "inputs"
+      this.viewedTask = { type: rec.type, id: rec.id }
+      this.viewModalShow = true
+    },
+    viewTaskResults(rec) {
+      this.viewType = "results"
+      this.viewedTask = { type: rec.type, id: rec.id }
+      this.viewModalShow = true
+    },
+  },
+  created() {
+    this.throtFetchTable = throttle(this.fetchTable, 800)
+
+    app.on("update-foods/v1/add-task-res", this.onAddFoodTask.bind(this))
+    app.on("update-foods/v1/cancel-task-res", this.onCancelFoodTask.bind(this))
+    app.on("update-foods/v1/task-status-change", this.onFoodTaskStatus.bind(this))
+
+    this.fetchTable()
+  },
+  mounted() {
+    this.bodyRect = document.body.getBoundingClientRect()
+  },
+  unmounted() {
+    app.off("update-foods/v1/add-task-res", this.onAddFoodTask.bind(this))
+    app.off("update-foods/v1/cancel-task-res", this.onCancelFoodTask.bind(this))
+    app.off("update-foods/v1/task-status-change", this.onFoodTaskStatus.bind(this))
+  },
+}
 </script>
-
 
 <style lang="sass" scoped>
 .tools-food
@@ -497,14 +631,14 @@
     .controls
       display: flex
       align-items: center
-      column-gap: 6px
+      column-gap: 12px
+
+  .exec-form-item
+    display: flex
+    align-items: center
 
 .updown-table
   display: flex
   align-items: center
   column-gap: 18px
-
-.exec-form-item
-  display: flex
-  align-items: center
 </style>

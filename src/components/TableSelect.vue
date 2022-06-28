@@ -67,7 +67,7 @@
         // .map((v, i) => ({ ...v, label: i + " " + v.label }));
       },
       containerHeight() {
-        return Math.min(300, this.filterOptions.length * this.checkOptHeight);
+        return Math.min(300, this.filterOptions.length * this.checkOptHeight + 20);
       },
       checkBegin() {
         return Math.floor(this.scrollTop / this.checkOptHeight);
@@ -164,7 +164,6 @@
     },
     watch: {
       checkedList(val) {
-        console.log(val);
         this.indeterminate =
           !!val.length && val.length < this.checkOptions.length;
         this.allChecked = val.length == this.checkOptions.length;

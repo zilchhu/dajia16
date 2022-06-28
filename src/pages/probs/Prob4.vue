@@ -11,19 +11,22 @@ a-tabs(
 </template>
 
 <script>
-  import ProbAN from "./ProbAN";
+  import ProbAN from "./ProbAN"
+  import ProbBH from "./ProbBH"
 
   export default {
     name: "Prob4",
     components: {
       ProbAN,
+      ProbBH,
     },
     data() {
       return {
         tabs: [
-          { key: 40, tab: '门店沟通', comp: 'ProbAN' },
+          { key: 40, tab: "门店沟通", comp: "ProbAN" },
+          { key: 41, tab: "门店通讯", comp: "ProbBH" },
         ].map((v, i) => ({ ...v, tab: `${i + 1}.${v.tab}` })),
-      };
+      }
     },
-  };
+  }
 </script>

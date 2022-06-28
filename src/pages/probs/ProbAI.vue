@@ -159,9 +159,11 @@ div
       },
       toNum(str) {
         try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
+          let f = parseFloat(str)
+          if (isNaN(f)) return 0
+          return f
+        } catch (err) {
+          return 0
         }
       },
       fetchTable() {

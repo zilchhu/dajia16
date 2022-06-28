@@ -15,7 +15,7 @@ ProbBase(probType="am", :columns="columns")
         columns: [
           {
             title: "店铺id",
-            dataIndex: "shop_id",
+            dataIndex: "wmpoiid",
             width: 90,
           },
           {
@@ -47,19 +47,19 @@ ProbBase(probType="am", :columns="columns")
           // },
           {
             title: "起送价",
-            dataIndex: "起送价",
-            width: 100,
+            dataIndex: "minPrice",
+            width: 150,
             _sort: true
           },
           {
             title: "前一天起送价",
-            dataIndex: "前一天起送价",
+            dataIndex: "lastMinPrice",
             width: 150,
             _sort: true
           },
           {
             title: "查询日期",
-            dataIndex: "查询日期",
+            dataIndex: "date",
             width: 120,
             _sort: true,
             _filter: true

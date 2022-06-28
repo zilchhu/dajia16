@@ -16,22 +16,22 @@
       //-   shop-form-simple(:as="shop_as" :shop_meta="shop_meta")
       //-   shop-data(v-if="shop_data_show" :shop_data="shop_data")
       //-   shop-history(v-if="shop_history_show" :shopid="shop_meta.shop_id")
-      activity-card-simple(v-if="history_one.qs.length > 0 && history_one.a.length == 0" :activity="history_one")
+      activity-card-simple(v-if="history_one.qs.length > 0 && !history_one.a" :activity="history_one")
       user-activities(:activities="shops")
   a-back-top
 </template>
 
 <script>
-import { message } from 'ant-design-vue'
-import Shop from '../../api/shop'
-import UserActivities from '../user/UserActivities'
-import ActivityCardSimple from '../../components/user/ActivityCardSimple'
+import { message } from "ant-design-vue";
+import UserActivities from "../user/UserActivities";
+import ActivityCardSimple from "../../components/user/ActivityCardSimple";
+import baseFetch from "../../api/base";
 
 export default {
-  name: 'shop',
+  name: "shop",
   components: {
     UserActivities,
-    ActivityCardSimple
+    ActivityCardSimple,
   },
   data() {
     return {
@@ -39,64 +39,69 @@ export default {
       shops: [],
       history_one: {
         a: [],
-        qs: []
-      }
-    }
+        qs: [],
+      },
+    };
   },
   computed: {
     shop_name() {
-      return this.shops.length > 0 ? this.shops[0].shop_name : ''
+      return this.shops.length > 0 ? this.shops[0].shop_name : "";
     },
     platform() {
-      return this.shops.length > 0 ? this.shops[0].platform : ''
+      return this.shops.length > 0 ? this.shops[0].platform : "";
     },
     shopid() {
-      return this.$route.params.shopid
-    }
+      return this.$route.params.shopid;
+    },
   },
   methods: {
     fetch_shop_single() {
-      this.spinning = true
-      new Shop(this.shopid)
-        .single()
-        .then(res => {
-          this.shops = res
-          this.spinning = false
+      this.spinning = true;
+      baseFetch({
+        url: `/v1/shops/${this.shopid}/operatings/as`,
+      })
+        .then((res) => {
+          this.shops = res;
+          this.spinning = false;
         })
-        .catch(e => {
-          console.error(e)
-          message.error(e)
-          this.spinning = false
-        })
+        .catch((e) => {
+          console.error(e);
+          message.error(e.message);
+          this.spinning = false;
+        });
     },
     fetch_shop_history_one() {
-      this.spinning = true
-      new Shop(this.shopid)
-        .single_history(true)
-        .then(res => {
-          this.history_one = res
-          this.spinning = false
+      this.spinning = true;
+      baseFetch({
+        url: `/v1/shops/${this.shopid}/operatings`,
+        params: {
+          oneday: 1,
+        },
+      })
+        .then((res) => {
+          this.history_one = res;
+          this.spinning = false;
         })
-        .catch(e => {
-          console.error(e)
-          message.error(e)
-          this.spinning = false
-        })
+        .catch((e) => {
+          console.error(e);
+          message.error(e.message);
+          this.spinning = false;
+        });
     },
     init() {
-      this.fetch_shop_history_one()
-      this.fetch_shop_single()
-    }
+      this.fetch_shop_history_one();
+      this.fetch_shop_single();
+    },
   },
   created() {
-    this.init()
+    this.init();
   },
   watch: {
     $route(route) {
-      if (route.name == 'shop') this.init()
-    }
-  }
-}
+      if (route.name == "shop") this.init();
+    },
+  },
+};
 </script>
 
 <style lang="sass" scoped>

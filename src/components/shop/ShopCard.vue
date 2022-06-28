@@ -5,8 +5,8 @@ a-list-item(:key="shop.id")
       .title
         span.num {{title_num}}
         div
-          a-button(size="small" type="link" @click="history_click") history
-          a-button(size="small" type="link" @click="detail_click") detail
+          a-button(size="small" type="link" @click="history_click") 历史数据
+          a-button(size="small" type="link" @click="detail_click") 详情
     template(#description)
       shop-form(:as="shop_as" :shop_meta="shop_meta")
       shop-data(v-if="shop_data_show" :shop_data="shop_data" :shop_meta="shop_meta")

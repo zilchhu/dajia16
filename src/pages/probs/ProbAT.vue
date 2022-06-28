@@ -32,7 +32,7 @@ div
         a-input(
           :value="text",
           :title="text",
-          @change="(e) => handleChange(e.target.value, record)",
+          @change="(e) => handleChange(e.target.value, record)", 
           size="small"
         )
       template(
@@ -57,7 +57,7 @@ div
       span(style="margin-left: 4px") 导出
     a(
       v-show="tableUrl",
-      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      :href="tableUrl",
       target="_blank"
     ) 
       DownloadOutlined
@@ -65,224 +65,230 @@ div
 </template>
 
 <script>
-  import Probs from "../../api/probs";
-  import { message } from "ant-design-vue";
-  import {
+import { message } from "ant-design-vue"
+import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue"
+import TableSelect from "../../components/TableSelect"
+import app from "apprun"
+import dayjs from "dayjs"
+import baseFetch from "../../api/base"
+
+export default {
+  name: "ProbAT",
+  components: {
+    TableSelect,
     SyncOutlined,
     ExportOutlined,
     DownloadOutlined,
-  } from "@ant-design/icons-vue";
-  import HandleSelect from "../../components/HandleSelect";
-  import TableSelect from "../../components/TableSelect";
-  import app from "apprun";
-  import dayjs from "dayjs";
-
-  export default {
-    name: "ProbAT",
-    components: {
-      HandleSelect,
-      TableSelect,
-      SyncOutlined,
-      ExportOutlined,
-      DownloadOutlined,
-    },
-    data() {
-      return {
-        probType: "at",
-        probDate: dayjs().subtract(1, "day"),
-        columns: [
-          {
-            title: "负责人",
-            dataIndex: "负责人",
-            width: 80,
-          },
-          {
-            title: "店铺ID",
-            dataIndex: "店铺ID",
-            width: 80,
-            _filter: true,
-            _sort: true,
-          },
-          {
-            title: "店铺名称",
-            dataIndex: "店铺名称",
-            width: 150,
-          },
-          {
-            title: "平台",
-            dataIndex: "平台",
-            width: 70,
-          },
-          {
-            title: "城市",
-            dataIndex: "city",
-            width: 70,
-          },
-          {
-            title: "物理店",
-            dataIndex: "物理店",
-            width: 80,
-          },
-          {
-            title: "订单序号",
-            dataIndex: "订单序号",
-            width: 80,
-          },
-          {
-            title: "订单ID",
-            dataIndex: "订单ID",
-            width: 150,
-          },
-          {
-            title: "派单日志",
-            dataIndex: "派单日志",
-            width: 300,
-          },
-          {
-            title: "退款原因",
-            dataIndex: "退款原因",
-            width: 150,
-          },
-          {
-            title: "提交原因",
-            dataIndex: "提交原因",
-            width: 150,
-          },
-          {
-            title: "责任判定",
-            dataIndex: "责任判定",
-            width: 150,
-          },
-          {
-            title: "分析",
-            dataIndex: "分析",
-            width: 200,
-          },
-        ],
-        table: [],
-        loading: false,
-        scrollY: 900,
-        debounce_save: null,
-        exporting: false,
-        tableUrl: null,
-      };
-    },
-    computed: {
-      extendedColumns() {
-        return this.columns.map((col) => {
-          let _col = {
-            ...col,
-            customFilterDropdown: true,
-            onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
-            showSorterTooltip: false,
-          };
-          if (col._sort) {
-            _col.customFilterDropdown = false;
-            _col.sorter = (a, b) =>
-              this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]);
-          }
-          if (col._notFilter) {
-            _col.customFilterDropdown = false;
-          }
-          if (col._filter) {
-            _col.customFilterDropdown = true;
-          }
-          return _col;
-        });
-      },
-      scrollX() {
-        return this.columns
-          .map((col) => col.width ?? 200)
-          .reduce((p, v) => p + v, 0);
-      },
-      scroll() {
-        // if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
-        return { y: this.scrollY };
-      },
-    },
-    methods: {
-      toNum(str) {
-        try {
-          return parseFloat(str);
-        } catch (error) {
-          return 0;
+  },
+  data() {
+    return {
+      probType: "at",
+      probDate: dayjs().subtract(1, "day"),
+      columns: [
+        {
+          title: "负责人",
+          dataIndex: "负责人",
+          width: 80,
+        },
+        {
+          title: "店铺ID",
+          dataIndex: "店铺ID",
+          width: 80,
+          _filter: true,
+          _sort: true,
+        },
+        {
+          title: "店铺名称",
+          dataIndex: "店铺名称",
+          width: 150,
+        },
+        {
+          title: "平台",
+          dataIndex: "平台",
+          width: 70,
+        },
+        {
+          title: "城市",
+          dataIndex: "city",
+          width: 70,
+        },
+        {
+          title: "物理店",
+          dataIndex: "物理店",
+          width: 80,
+        },
+        {
+          title: "订单序号",
+          dataIndex: "订单序号",
+          width: 80,
+        },
+        {
+          title: "订单ID",
+          dataIndex: "订单ID",
+          width: 150,
+        },
+        {
+          title: "派单日志",
+          dataIndex: "派单日志",
+          width: 300,
+        },
+        {
+          title: "退款原因",
+          dataIndex: "退款原因",
+          width: 150,
+        },
+        {
+          title: "提交原因",
+          dataIndex: "提交原因",
+          width: 150,
+        },
+        {
+          title: "责任判定",
+          dataIndex: "责任判定",
+          width: 150,
+        },
+        {
+          title: "分析",
+          dataIndex: "分析",
+          width: 200,
+        },
+      ],
+      table: [],
+      loading: false,
+      scrollY: 900,
+      debounce_save: null,
+      exporting: false,
+      tableUrl: null,
+    }
+  },
+  computed: {
+    extendedColumns() {
+      return this.columns.map((col) => {
+        let _col = {
+          ...col,
+          customFilterDropdown: true,
+          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+          showSorterTooltip: false,
         }
-      },
-      debounce(fn) {
-        let timeout = null;
-        return function () {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, arguments), 800);
-        };
-      },
-      fetchTable() {
-        this.loading = true;
-        new Probs()
-          .singleDate(this.probType, this.probDate.format("YYYYMMDD"))
+        if (col._sort) {
+          _col.customFilterDropdown = false
+          _col.sorter = (a, b) =>
+            this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex])
+        }
+        if (col._notFilter) {
+          _col.customFilterDropdown = false
+        }
+        if (col._filter) {
+          _col.customFilterDropdown = true
+        }
+        return _col
+      })
+    },
+    scrollX() {
+      return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
+    },
+    scroll() {
+      // if (this.xScroll) return { y: this.scrollY, x: this.scrollX };
+      return { y: this.scrollY }
+    },
+  },
+  methods: {
+    toNum(str) {
+      try {
+        let f = parseFloat(str)
+        if (isNaN(f)) return 0
+        return f
+      } catch (err) {
+        return 0
+      }
+    },
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 800)
+      }
+    },
+    fetchTable() {
+      this.loading = true
+      baseFetch({
+        url: "/v1/checks/at",
+        params: {
+          date: this.probDate.format("YYYYMMDD"),
+        },
+      })
+        .then((res) => {
+          this.table = res
+          this.loading = false
+        })
+        .catch((err) => {
+          message.error(err.message)
+          this.loading = false
+        })
+    },
+    onSelectDate() {
+      this.fetchTable()
+    },
+    handleChange(value, record) {
+      let newTable = [...this.table]
+      const i = newTable.findIndex((item) => record.key == item.key)
+      if (i > -1) {
+        newTable[i]["分析"] = value
+        this.table = newTable
+        this.debounce_save(record)
+      }
+    },
+    save(record) {
+      const target = this.table.filter((item) => record.key === item.key)[0]
+      if (target) {
+        console.log(target)
+
+        baseFetch({
+          method: "PUT",
+          url: `/v1/checks/at/${target.id}`,
+          data: {
+            fill_text: target.分析,
+          },
+        })
           .then((res) => {
-            this.table = res;
-            this.loading = false;
+            message.success(res)
           })
           .catch((err) => {
-            message.error(err);
-            this.loading = false;
-          });
-      },
-      onSelectDate() {
-        this.fetchTable();
-      },
-      handleChange(value, record) {
-        let newTable = [...this.table];
-        const i = newTable.findIndex((item) => record.key == item.key);
-        if (i > -1) {
-          newTable[i]["分析"] = value;
-          this.table = newTable;
-          this.debounce_save(record);
-        }
-      },
-      save(record) {
-        const target = this.table.filter((item) => record.key === item.key)[0];
-        if (target) {
-          console.log(target);
+            message.error(err.message)
+          })
+      }
+    },
+    transformTable() {
+      return this.table.map((row) =>
+        this.columns.reduce((p, c) => ({ ...p, [c.title]: row[c.dataIndex] }), {})
+      )
+    },
+    exportTable() {
+      this.exporting = true
+      app.run("ws://", "excel/export-excel", {
+        baseName: '自配送取消订单表',
+        rows: this.transformTable(),
+      })
+    },
+  },
+  created() {
+    app.on("excel/export-excel-res", (json) => {
+      if (json.code != 0) {
+        message.error(json.message)
+        return
+      }
 
-          new Probs()
-            .saveAt({ id: target.id, fill_text: target.分析 })
-            .then((res) => {
-              message.success(res);
-            })
-            .catch((err) => {
-              message.error(err);
-            });
-        }
-      },
-      transformTable() {
-        return this.table.map((row) =>
-          this.columns.reduce(
-            (p, c) => ({ ...p, [c.title]: row[c.dataIndex] }),
-            {}
-          )
-        );
-      },
-      exportTable() {
-        this.exporting = true;
-        app.run("ws://", "@export-table", {
-          json: this.transformTable(),
-        });
-      },
-    },
-    created() {
-      this.scrollY = document.body.clientHeight - 244;
-      this.debounce_save = this.debounce(this.save);
-      this.fetchTable();
-    },
-    mounted() {
-      app.on("@export-table", (state) => {
-        console.log(state);
-        this.exporting = false;
-        this.tableUrl = state.path;
-      });
-    },
-  };
+      this.exporting = false
+      this.tableUrl = json.data
+    })
+
+    this.debounce_save = this.debounce(this.save)
+    this.fetchTable()
+  },
+  mounted() {
+    this.scrollY = document.body.clientHeight - 244
+  },
+}
 </script>
 
 <style lang="sass" scoped>

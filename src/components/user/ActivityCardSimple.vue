@@ -7,8 +7,8 @@ a-list-item(:key="activity.time")
         div
           i.num {{title_num}}
         div
-          a-button(size="small" type="link" @click="history_click") history
-          a-button(size="small" type="link" @click="detail_click") detail
+          a-button(size="small" type="link" @click="history_click") 历史数据
+          a-button(size="small" type="link" @click="detail_click") 详情
     template(#description)
       shop-form(:as="shop_as" :shop_meta="shop_meta")
       shop-data(v-if="shop_data_show" :shop_data="shop_data" :shop_meta="shop_meta")
@@ -156,7 +156,7 @@ export default {
 
 .ant-btn-link
   font-size: 9px
-  color: rgba(0, 0, 0, 0.38)
+  color: #1890ddcc
 
 .name:hover, .time-href:hover
   color: #40a9ff
