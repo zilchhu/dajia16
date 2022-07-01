@@ -8,9 +8,9 @@
 
   s-table.ant-table-change(
     rowKey="key",
-    :columns="columns",
-    :data-source="table",
     :loading="loading",
+    :columns="extendedCols",
+    :data-source="table",
     :pagination="false",
     :scroll="{ y: scrollY }"
     size="small",
@@ -20,13 +20,15 @@
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
       column-filter(
-        :column="column",
+        :column="column"
         :table="table"
-        :filters="tableFilters"
-        :selected-keys="selectedKeys"
-        @select-change="setSelectedKeys",
-        @confirm="confirm",
-        @reset="clearFilters"
+        :tableFilters="tableFilters"
+        :filterPanes="column._filterPanes"
+        :customFilterOption="column._customFilterOption",
+        :selectedKeys="selectedKeys"
+        :setSelectedKeys="setSelectedKeys"
+        :confirm="confirm"
+        :clearFilters="clearFilters"
       )
       //- table-select(
       //-   :columnTitle="column.title",
@@ -203,73 +205,77 @@ export default {
           title: "id",
           dataIndex: "id",
           width: 80,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.id ?? "") == value,
-          onFilterDropdownVisibleChange: visible => this.onColFilterVisChange(visible, 'id')
+          _filter: true,
         },
         {
           key: 'name',
           title: "名称",
           dataIndex: "name",
           width: 240,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.name ?? "") == value,
-          onFilterDropdownVisibleChange: visible => this.onColFilterVisChange(visible, 'id')
+          _filter: true,
         },
         {
           key: "type",
           title: "类型",
           dataIndex: "type",
           width: 160,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.type ?? "") == value,
+          _filter: true,
         },
         {
           key: 'fileName',
           title: "文件",
           dataIndex: "fileName",
           width: 260,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.fileName ?? "") == value,
+          _filter: true,
         },
         {
           key: 'status',
           title: "状态",
           dataIndex: "status",
           width: 140,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.status ?? "") == value,
+          _filter: true,
         },
         {
           key: "resultTitle",
           title: "结果",
           dataIndex: "resultTitle",
           width: 140,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.resultTitle ?? "") == value,
+          _filter: true,
         },
         {
           key: "executedAt",
           title: "执行时间",
           dataIndex: "executedAt",
+          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '内容' }],
+          _customFilterOption: (row, col) => ({
+            value: row[col.dataIndex],
+            text: this.toString(row[col.dataIndex]),
+            date: this.toYYYYMMDD(row[col.dataIndex]),
+            color: 'white'
+          }),
           width: 180,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.executedAt ?? "") == value,
-          _customFilterOption: (value) => ({ label: dayjs(value).format('YYYY-MM-DD'), value })
+          _filter: true,
         },
         {
           key: "doneAt",
           title: "结束时间",
           dataIndex: "doneAt",
+          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '内容' }],
+          _customFilterOption: (row, col) => ({
+            value: row[col.dataIndex],
+            text: this.toString(row[col.dataIndex]),
+            date: this.toYYYYMMDD(row[col.dataIndex]),
+            color: 'white'
+          }),
           width: 180,
+          _filter: true,
         },
         {
           key: "operator",
           title: "操作人",
           dataIndex: "operator",
           width: 80,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record.operator ?? "") == value,
+          _filter: true,
         },
         {
           key: 'op',
@@ -340,6 +346,23 @@ export default {
     }
   },
   computed: {
+    account() {
+      return this.$store.state.account ?? localStorage.getItem("account")
+    },
+    token() {
+      return this.$store.state.token ?? localStorage.getItem("token")
+    },
+    extendedCols() {
+      return this.columns.map(col => ({
+        customFilterDropdown: col._filter,
+        onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+        _filterPanes: [{ key: 'text', label: '内容' }],
+        _customFilterOption: (row, col) => ({ value: row[col.dataIndex], text: this.toString(row[col.dataIndex]), color: 'white' }),
+        showSorterTooltip: false,
+        sorter: col._sort ? (a, b) => this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]) : null,
+        ...col
+      }))
+    },
     scrollX() {
       return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
     },
@@ -349,38 +372,27 @@ export default {
     scroll() {
       return { y: this.scrollY, x: this.scrollX }
     },
-    tableFilterOpts() {
-      return this.columns.reduce((p, col) => {
-        let baseOpts = Array.from(new Set(this.table.map(row => row[col.dataIndex])))
-          .map(value => ({ value, label: typeof value == 'string' ? value : JSON.stringify(value) }))
-        let opts = [...baseOpts]
-
-        if (col.dataIndex == 'status') opts = opts.map(o => ({ ...o, color: this.getStatusRGBColor(o.value) }))
-
-        return { ...p, [col.dataIndex]: opts }
-      }, {})
-    },
     taskTypeOpts() {
       return this.taskTypes.map((v) => ({ label: v, value: v }))
     },
     cookieOpts() {
-      let options = this.cookies.map((s) => ({
+      return this.cookies.map((s) => ({
         key: `${s.shopId} ${s.shopName}`,
         value: s.auth,
         label: `${s.platform == 1 ? "**美团*美团*美团**" : "**饿了么*饿了么*饿了么**"} ${s.shopName
           }`,
         id_name: `${s.shopId} ${s.shopName}`,
       }))
-      return options
-    },
-    account() {
-      return this.$store.state.account ?? localStorage.getItem("account")
-    },
-    token() {
-      return this.$store.state.token ?? localStorage.getItem("token")
     },
   },
   methods: {
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 800)
+      }
+    },
     toNum(str) {
       try {
         let f = parseFloat(str)
@@ -390,24 +402,19 @@ export default {
         return 0
       }
     },
-    debounce(fn) {
-      let timeout = null
-      return function () {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => fn.apply(this, arguments), 800)
-      }
+    toString(val) {
+      if (val == null) return ''
+      if (typeof val == 'string') return val
+      return JSON.stringify(val)
+    },
+    toYYYYMMDD(val) {
+      return dayjs(val).format('YYYYMMDD')
     },
     getStatusTagColor(status) {
       if (status == "全部成功") return "success"
       if (status.match(/部分成功|全部失败|异常/)) return "error"
       if (status == "进行中") return "processing"
       return "default"
-    },
-    getStatusRGBColor(status) {
-      if (status == "全部成功") return "#52c41a"
-      if (status.match(/部分成功|全部失败|异常/)) return "ff4d4f"
-      if (status == "进行中") return "#1890ff"
-      return "#ffffff"
     },
     fetchTable() {
       this.loading = true
@@ -423,10 +430,9 @@ export default {
           this.loading = false
         })
     },
-    onTableChange(pagination, filters) {
+    onTableChange(pagination, filters, sorter, { currentDataSource }) {
       console.log('filters', filters)
       this.tableFilters = filters
-      // this.currentTable = currentDataSource
       // console.log('tools-food-ct', this.currentTable)
       // console.log('tools-food-cds', currentDataSource)
     },
@@ -470,6 +476,7 @@ export default {
       }
     },
     addTask() {
+      this.fetchCookies()
       this.modalShow = true
     },
     submitTask() {

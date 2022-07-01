@@ -17,7 +17,6 @@ import Prob6 from "./pages/probs/Prob6"
 import Prob7 from "./pages/probs/Prob7"
 
 import ToolsFood from "./pages/tools/ToolsFood"
-import ToolsFoodDiff from "./pages/tools/ToolsFoodDiff"
 // import ToolsAddFresh from "./pages/tools/ToolsAddFresh"
 // import ToolsAddFengniao from "./pages/tools/ToolsAddFengniao"
 // import ToolsAddDada from "./pages/tools/ToolsAddDada"
@@ -60,9 +59,8 @@ export const routes = [
   { path: "/probs5", name: "probs5", component: Prob5 },
   { path: "/probs6", name: "probs6", component: Prob6 },
   { path: "/probs7", name: "probs7", component: Prob7 },
-  
+
   { path: "/tools/food", name: "tools-food", component: ToolsFood },
-  { path: "/tools/fooddiff", name: "tools-food-diff", component: ToolsFoodDiff },
 
   // { path: "/tools/add/fresh", name: "tools-add-fresh", component: ToolsAddFresh },
   { path: "/tools/fresh/mt", name: "tools-fresh-mt", component: ToolsFreshMt },
@@ -89,7 +87,7 @@ export const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 })
 

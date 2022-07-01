@@ -41,6 +41,8 @@ import ProbBD from "./ProbBD"
 import ProbBF from "./ProbBF"
 import ProbBG from "./ProbBG"
 import ProbBJ from "./ProbBJ"
+import ProbBK from "./ProbBK"
+import ToolsFoodDiff from "./ToolsFoodDiff"
 
 export default {
   name: "Prob3",
@@ -74,7 +76,9 @@ export default {
     ProbBD,
     ProbBF,
     ProbBG,
-    ProbBJ
+    ProbBJ,
+    ProbBK,
+    ToolsFoodDiff
   },
   data() {
     return {
@@ -88,6 +92,7 @@ export default {
         { key: 39, tab: "起送价变化", comp: "ProbAM" },
         { key: 26, tab: "配送面积变化", comp: "ProbZ" },
         { key: 54, tab: "配送费变化", comp: "ProbBJ" },
+        { key: 55, tab: "非24h配送", comp: "ProbBK" },
         { key: 37, tab: "低折扣起购错误", comp: "ProbAK" },
         { key: 38, tab: "低折扣限购错误", comp: "ProbAL" },
         // { key: 35, tab: "差评", comp: "ProbAI2" },
@@ -111,8 +116,9 @@ export default {
         { key: 32, tab: "库存过少检查", comp: "ProbAF" },
         { key: 33, tab: "查询商品多规格", comp: "ProbAG" },
         { key: 34, tab: "推广费余额", comp: "ProbAH" },
-        { key: 46, tab: "商品差异", comp: "ProbBF" },
         { key: 47, tab: "单点不送", comp: "ProbBG" },
+        { key: 46, tab: "商品差异", comp: "ProbBF" },
+        { key: 56, tab: "商品变化", comp: "ToolsFoodDiff" },
       ].map((v, i) => ({ ...v, tab: `${i + 1}.${v.tab}` })),
     }
   },

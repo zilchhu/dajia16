@@ -25,7 +25,7 @@
             :checked="checkedList.includes(opt.value)",
             @change="(e) => onCheck(e.target.checked, opt)"
           ) {{ opt.label }}
-          .filter-addon(@click="onFilterOnly(opt)") 筛选此项
+          .filter-addon(@click="onFilterOnly(opt)") 仅筛选此项
 
     .btn-list 
       a-button(size="small", @click="onResetClick") reset
@@ -101,14 +101,14 @@
           return;
         }
 
-        let reg;
-        try {
-          reg = new RegExp(this.searchText);
-        } catch (e) {
-          return;
-        }
+        // let reg;
+        // try {
+        //   reg = new RegExp(this.searchText);
+        // } catch (e) {
+        //   return;
+        // }
 
-        this.checkOptions = this.filterOptions.filter((v) => reg.test(v.value));
+        this.checkOptions = this.filterOptions.filter((v) => String(v.value).includes(this.searchText));
         this.checkedList = this.checkOptions.map((v) => v.value);
       },
       onSearch() {
@@ -203,6 +203,7 @@
   font-size: 0.88em
   background-color: white
   cursor: pointer
+  color: #3b82f6
 
 .check-option:hover .filter-addon
   visibility: visible

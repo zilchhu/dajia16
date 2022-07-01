@@ -75,11 +75,17 @@ ProbBase(probType="al", :columns="columns")
           {
             title: "折扣限购",
             dataIndex: "折扣限购",
-            width: 80,
+            width: 100,
             _sort: true,
           },
           {
-            title: "特殊备注",
+            title: "顾客实付",
+            dataIndex: "顾客实付",
+            width: 100,
+            _sort: true,
+          },
+          {
+            title: "处理",
             dataIndex: "handle",
             width: 160,
           },

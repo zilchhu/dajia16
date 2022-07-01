@@ -5,7 +5,7 @@ div
   )
     a-upload(
       v-model:file-list="fileList",
-      action="http://192.168.3.3:9005/upload",
+      :action="uploadUrl",
       @change="onShopInfoFileChange"
     )
       a-button(size="small")
@@ -45,7 +45,7 @@ import app from "apprun";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
 import TableSelect from "../TableSelect";
-import baseFetch from "../../api/base";
+import baseFetch, { HOST } from "../../api/base";
 
 export default {
   name: "tools-zps-shop-upd",
@@ -54,6 +54,8 @@ export default {
   },
   data() {
     return {
+      HOST,
+      uploadUrl: `${HOST}/api/common/v1/upload`,
       table: [],
       columns: [],
       loading: false,

@@ -33,6 +33,7 @@ div
           .comment-analysis {{ record.analysisItems?.map(ana => `${ana.aspectCategory} ${ana.aspectPolarity}`).join('  ') }}
           a-image-preview-group
             a-image(v-for="url in record.imageUrls" :key="url" :width="50" :src="url")
+          span.span-btn(@click="appealComment(record)") 申诉
       template(v-else-if="column.dataIndex == 'criticFoodNames'")
         div
           span(v-for="food in text" :key="food") {{ food }}
@@ -41,6 +42,12 @@ div
           span(v-for="food in text" :key="food") {{ food }}
       template(v-else-if="column.dataIndex == 'status'")
         div(:class="{ 'text-teal': ['已删除', '无责差评', '申诉成功'].includes(text) }") {{ text }}
+
+  a-drawer.elm-drawer(v-model:visible="elmFrameShow")
+    iframe(:src="elmFrameSrc")
+
+  a-drawer.mt-drawer(v-model:visible="mtFrameShow" size="large")
+    iframe(:src="mtFrameSrc")
 
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable(false)") 
@@ -89,6 +96,10 @@ export default {
       debounce_save: null,
       exporting: false,
       tableUrl: null,
+      elmFrameShow: false,
+      elmFrameSrc: '',
+      mtFrameShow: false,
+      mtFrameSrc: ''
     }
   },
   computed: {
@@ -254,6 +265,31 @@ export default {
       }
       return html
     },
+    appealComment(rec) {
+      if (rec.platform == '饿了么') {
+        baseFetch({
+          url: `/v1/checks/badmed_comments/elm/${rec.shopId}/${rec.commentId}/frames/appeal`,
+        })
+          .then((res) => {
+            this.elmFrameSrc = res.src
+            this.elmFrameShow = true
+          })
+          .catch((err) => {
+            message.error(err.message)
+          })
+      } else {
+        baseFetch({
+          url: `/v1/checks/badmed_comments/mt/${rec.shopId}/frames/comment_list`,
+        })
+          .then((res) => {
+            this.mtFrameSrc = res.src
+            this.mtFrameShow = true
+          })
+          .catch((err) => {
+            message.error(err.message)
+          })
+      }
+    },
     debounce(fn) {
       let timeout = null
       return function () {
@@ -312,8 +348,31 @@ export default {
 .text-teal
   color: #2dd4bf
 
+.span-btn
+  display: block
+  cursor: pointer
+  color: #1890ff
+
 .comment-analysis
   font-size: 0.886em
   color: #ccc
   white-space: pre
+
+iframe
+  border: none
+  width: 100%
+  height: 100%
+  position: absolute
+  top: 0
+  right: 0
+  left: 0
+  bottom: 0
 </style>
+
+<!-- <style lang="sass">
+.mt-drawer .ant-drawer-content-wrapper
+  width: 800px
+
+.elm-drawer .ant-drawer-content-wrapper
+  width: 400px
+</style> -->

@@ -11,7 +11,7 @@ div.note
           a-button(type="dashed" @click="e => imageUploaderVis = !imageUploaderVis" style="margin-left: 6px;") 图片 
         a-button(type="primary" @click="pub") 发布
     .editor-image-uploader(v-if="imageUploaderVis")
-      a-upload(action="http://192.168.3.3:9005/upload" list-type="picture-card"  v-model:file-list="imageList")
+      a-upload(:action="uploadUrl" list-type="picture-card"  v-model:file-list="imageList")
         CloudUploadOutlined
     a-spin(:spinning="loading")
       a-list.note-list(:data-source="noteList" item-layout="vertical" :split="false")
@@ -41,7 +41,7 @@ div.note
 
             div.note-item-content(contentEditable="true") {{item.content}}
             a-image-preview-group(v-if="item.images")
-              a-image(v-for="img in item.images.split('|')" :width="200" :src="`http://192.168.3.3:9005/${img}`")
+              a-image(v-for="img in item.images.split('|')" :width="200" :src="`${HOST}/${img}`")
             
             .note-item-comments(v-if="commentsVis[item.key]")
               a-input(v-model:value="commentsEditors[item.key]" @pressEnter="e => commentEnter(e, item.key)" size="small")
@@ -64,7 +64,7 @@ import {
 } from "@ant-design/icons-vue";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import baseFetch from "../../api/base";
+import baseFetch, { HOST } from "../../api/base";
 
 export default {
   name: "Note",
@@ -76,6 +76,8 @@ export default {
   },
   data() {
     return {
+      HOST,
+      uploadUrl: `${HOST}/api/common/v1/upload`,
       user: "匿名",
       editorText: "",
       noteList: [],

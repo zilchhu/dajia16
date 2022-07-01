@@ -93,7 +93,7 @@ div
     ) 导出
     a(
       v-show="tableUrl",
-      :href="`http://192.168.3.3:9005/${tableUrl}`",
+      :href="tableUrl",
       target="_blank"
     ) 下载
 </template>
