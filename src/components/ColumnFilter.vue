@@ -1,22 +1,52 @@
 <template lang="pug">
 .column-filter(@keyup="onKeyUp") 
-  //- div {{ JSON.stringify(tableFilters) }}
-  //- div {{ selectedKeys.length }}
-  //- div {{ columnKey }}
+  //- div {{ JSON.stringify(selectedKeys) }}
+  //- div {{ JSON.stringify(tableFilterKeys) }}
+  //- div {{ JSON.stringify(column) }}
   //- div {{ currentTable.length }} 
+  div(v-if="filterPanes.length == 1")
+    div(v-if="filterPanes[0].key == 'color'")
+      ColumnFilterColorOpts(
+        :column="column"
+        :table="table"
+        :currentTable="currentTable"
+        :filterOptions="filterOptions"
+        :filterPane="filterPanes[0]"
+        :defaultTextFilters="[]"
+        :selectedKeys="selectedKeys"
+        :setSelectedKeys="setSelectedKeys"
+        :resetToken="resetToken"
+        :delayConfirm="delayConfirm"
+      )
+    div(v-else)
+      ColumnFilterTextOpts(
+        :column="column"
+        :table="table"
+        :currentTable="currentTable"
+        :filterOptions="filterOptions"
+        :filterPane="filterPanes[0]"
+        :defaultTextFilters="[]"
+        :selectedKeys="selectedKeys"
+        :setSelectedKeys="setSelectedKeys"
+        :resetToken="resetToken"
+        :delayConfirm="delayConfirm"
+      )
 
-  a-tabs
+  a-tabs(v-else)
     a-tab-pane(v-for="pane in filterPanes" :key="pane.key" :tab="pane.label")
       div(v-if="pane.key == 'color'")
-        a-checkbox(:checked="colorAllChecked" :indeterminate="colorIndeterminate" @change="onColorFilterCheckAll") 全选
-        .filter-opt-list
-          .color-filter-opt(v-for="opt in colorFilterOptions" :key="opt.color") 
-            a-checkbox(
-              :checked="colorFilters.includes(opt.color)",
-              @change="(e) => onColorFilterCheck(e.target.checked, opt)"
-            ) 
-              span.color-filter-opt-color(:style="`background: ${opt.color}`") {{ opt.color }}
-              span.filter-opt-count （{{ opt.count }}）
+        ColumnFilterColorOpts(
+          :column="column"
+          :table="table"
+          :currentTable="currentTable"
+          :filterOptions="filterOptions"
+          :filterPane="pane"
+          :defaultTextFilters="[]"
+          :selectedKeys="selectedKeys"
+          :setSelectedKeys="setSelectedKeys"
+          :resetToken="resetToken"
+          :delayConfirm="delayConfirm"
+        )
       div(v-else)
         ColumnFilterTextOpts(
           :column="column"
@@ -28,32 +58,31 @@
           :selectedKeys="selectedKeys"
           :setSelectedKeys="setSelectedKeys"
           :resetToken="resetToken"
+          :delayConfirm="delayConfirm"
         )
-  
+
   .btn-group
-    a-button(@click="delayConfirm" type="primary" size="small") 确定
     a-button(@click="reset" size="small") 重置
+    a-button(@click="delayConfirm" type="primary" size="small") 确定
+
 </template>
 
 <script>
 import ColumnFilterTextOpts from './ColumnFilterTextOpts'
-
-function groupBy(arr, key) {
-  const groups = Array.from(new Set(arr.map(v => v[key])))
-  return groups.map(group => ({ group, members: arr.filter(v => v[key] == group) }))
-}
+import ColumnFilterColorOpts from './ColumnFilterColorOpts'
 
 export default {
   name: "column-filter",
   components: {
-    ColumnFilterTextOpts
+    ColumnFilterTextOpts,
+    ColumnFilterColorOpts
   },
   props: ['column', 'table', 'tableFilters', 'filterPanes', 'customFilterOption', 'selectedKeys', 'setSelectedKeys', 'confirm', 'clearFilters'],
   data() {
     return {
-      colorFilters: Array.from(new Set(
-        this.table.map(row => this.customFilterOption(row, this.column)).map(opt => opt.color)
-      )),
+      // defaultColorFilters: Array.from(new Set(
+      //   this.table.map(row => this.customFilterOption(row, this.column)).map(opt => opt.color)
+      // )),
       resetToken: 1
     }
   },
@@ -81,16 +110,7 @@ export default {
       }
       return this.currentTable.map(row => this.customFilterOption(row, this.column))
     },
-    colorFilterOptions() {
-      return groupBy(this.filterOptions, 'color')
-        .map(({ group, members }) => ({ color: group, values: members.map(m => m.value), count: members.length }))
-    },
-    colorIndeterminate() {
-      return !!this.colorFilters.length && this.colorFilters.length < this.colorFilterOptions.length
-    },
-    colorAllChecked() {
-      return this.colorFilters.length == this.colorFilterOptions.length
-    }
+
   },
   methods: {
     onColorFilterCheck(checked, opt) {
@@ -126,20 +146,8 @@ export default {
 
 <style lang="sass" scoped>
 .column-filter
-  max-width: 300px
-  padding: 0 8px 4px
-
-.filter-opt-list
-  width: 300px
-  height: 300px
-  max-height: 300px
-  overflow: auto
-
-.text-filter-opt
-  position: relative
-  width: 100%
-  height: 22px
-  white-space: nowrap
+  width: 350px
+  padding: 0 8px 0
 
 .color-filter-opt-color
   display: inline-block
@@ -156,7 +164,9 @@ export default {
 .btn-group
   display: flex
   align-items: center
+  justify-content: flex-end
   column-gap: 8px
+  padding: 4px
 </style>
 
 <style lang="sass">

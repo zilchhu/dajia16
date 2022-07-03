@@ -246,7 +246,7 @@ export default {
           key: "executedAt",
           title: "执行时间",
           dataIndex: "executedAt",
-          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '内容' }],
+          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '时间' }],
           _customFilterOption: (row, col) => ({
             value: row[col.dataIndex],
             text: this.toString(row[col.dataIndex]),
@@ -260,7 +260,7 @@ export default {
           key: "doneAt",
           title: "结束时间",
           dataIndex: "doneAt",
-          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '内容' }],
+          _filterPanes: [{ key: 'date', label: '日期' }, { key: 'text', label: '时间' }],
           _customFilterOption: (row, col) => ({
             value: row[col.dataIndex],
             text: this.toString(row[col.dataIndex]),
@@ -355,7 +355,7 @@ export default {
     extendedCols() {
       return this.columns.map(col => ({
         customFilterDropdown: col._filter,
-        onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
+        onFilter: (value, record) => record[col.dataIndex] == value,
         _filterPanes: [{ key: 'text', label: '内容' }],
         _customFilterOption: (row, col) => ({ value: row[col.dataIndex], text: this.toString(row[col.dataIndex]), color: 'white' }),
         showSorterTooltip: false,

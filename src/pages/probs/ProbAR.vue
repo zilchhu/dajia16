@@ -149,7 +149,6 @@ export default {
           ...col,
           customFilterDropdown: true,
           onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
-          resizable: true
         }
         if (col._sort) {
           _col.customFilterDropdown = false

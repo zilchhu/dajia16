@@ -1,24 +1,28 @@
 <template lang="pug">
 div
   a-table.ant-table-change(
-    :columns="extendedColumns",
-    :data-source="table",
     rowKey="shop_id",
     :loading="loading",
-    :pagination="{ showSizeChanger: true, defaultPageSize: 50, pageSizeOptions: ['50', '100', '200', '400'], size: 'small' }",
-    size="small",
+    :columns="extendedCols",
+    :data-source="table",
+    :pagination="{ showSizeChanger: true, defaultPageSize: 20, pageSizeOptions: ['20', '50', '100', '200', '400'], size: 'small' }",
     :scroll="scroll"
+    size="small",
+    @change="onTableChange"
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
-      table-select(
-        :columnTitle="column.title",
-        :columnIndex="column.dataIndex",
-        :tableData="table",
-        @select-change="setSelectedKeys",
-        @confirm="confirm()",
-        @reset="clearFilters()"
+      column-filter(
+        :column="column"
+        :table="table"
+        :tableFilters="tableFilters"
+        :filterPanes="column._filterPanes"
+        :customFilterOption="column._customFilterOption",
+        :selectedKeys="selectedKeys"
+        :setSelectedKeys="setSelectedKeys"
+        :confirm="confirm"
+        :clearFilters="clearFilters"
       )
     template(#bodyCell="{ column, text, record }")
       template(v-if="column._tag == 'date'")
@@ -30,7 +34,7 @@ div
             :value="text.content"
             placeholder="跟进处理"
             @change="(e) => handleChange(e.target.value, record.shop_id, column.dataIndex, text.id)"
-            autosize
+            autoSize
             :spellcheck="false"
           )
 
@@ -66,7 +70,7 @@ div
 <script>
 import { message } from "ant-design-vue"
 import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue"
-import TableSelect from "../../components/TableSelect"
+import ColumnFilter from "../../components/ColumnFilter"
 import BadComms from "./RateFollowUpBadComms"
 import app from "apprun"
 import baseFetch from "../../api/base.js"
@@ -74,7 +78,7 @@ import baseFetch from "../../api/base.js"
 export default {
   name: "RateFollowUp",
   components: {
-    TableSelect,
+    ColumnFilter,
     BadComms,
     SyncOutlined,
     ExportOutlined,
@@ -85,6 +89,7 @@ export default {
       bodyRect: { width: 900, height: 800 },
       columns: [],
       table: [],
+      tableFilters: {},
       loading: false,
       scrollY: 900,
       debounce_save: null,
@@ -98,32 +103,22 @@ export default {
     }
   },
   computed: {
-    extendedColumns() {
-      return this.columns.map((col) => {
-        let _col = {
-          ...col,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
-        }
-        if (col._sort) {
-          _col.customFilterDropdown = false
-          _col.sorter = (a, b) =>
-            this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex])
-        }
-        if (col._notFilter) {
-          _col.customFilterDropdown = false
-        }
-        if (col._filter) {
-          _col.customFilterDropdown = true
-        }
-        return _col
-      })
-    },
     scrollX() {
       return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
     },
     scroll() {
       return { y: this.scrollY, x: this.scrollX }
+    },
+    extendedCols() {
+      return this.columns.map(col => ({
+        customFilterDropdown: col._filter,
+        onFilter: (value, record) => record[col.dataIndex] == value,
+        _filterPanes: [{ key: 'text', label: '内容' }],
+        _customFilterOption: (row, col) => ({ value: row[col.dataIndex], text: this.toString(row[col.dataIndex]), color: 'white' }),
+        showSorterTooltip: false,
+        sorter: col._sort ? (a, b) => this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex]) : null,
+        ...col
+      }))
     },
   },
   methods: {
@@ -135,6 +130,11 @@ export default {
       } catch (err) {
         return 0
       }
+    },
+    toString(val) {
+      if (val == null) return ''
+      if (typeof val == 'string') return val
+      return JSON.stringify(val)
     },
     debounce(fn) {
       let timeout = null
@@ -150,17 +150,32 @@ export default {
       })
         .then((res) => {
           this.columns = [
-            { title: "平台", dataIndex: "platform", width: 60, fixed: "left" },
-            { title: "店铺id", dataIndex: "shop_id", width: 100, fixed: "left" },
-            { title: "店铺名称", dataIndex: "shop_name", width: 130, fixed: "left" },
-            { title: "物理店", dataIndex: "real_shop_name", width: 80, fixed: "left" },
-            { title: "负责人", dataIndex: "person", width: 70, fixed: "left" },
-            { title: "城市", dataIndex: "city", width: 60 },
+            { key: "platform", title: "平台", dataIndex: "platform", width: 60, fixed: "left", _filter: true },
+            { key: "shop_id", title: "店铺id", dataIndex: "shop_id", width: 100, fixed: "left", _filter: true },
+            { key: "shop_name", title: "店铺名称", dataIndex: "shop_name", width: 130, fixed: "left", _filter: true },
+            { key: "real_shop_name", title: "物理店", dataIndex: "real_shop_name", width: 80, fixed: "left", _filter: true },
+            { key: "person", title: "负责人", dataIndex: "person", width: 70, fixed: "left", _filter: true },
+            { key: "city", title: "城市", dataIndex: "city", width: 60, _filter: true },
             ...res.dates.map((date) => ({
+              key: date,
               title: date,
               dataIndex: date,
               width: 180,
               _tag: "date",
+              _filter: true,
+              _filterPanes: [
+                { key: 'rate', label: '评分' },
+                { key: 'content', label: '处理' },
+                { key: 'text', label: '值' },
+                { key: 'color', label: '颜色' },
+              ],
+              _customFilterOption: (row, col) => ({
+                value: row[col.dataIndex],
+                text: this.toString(row[col.dataIndex]),
+                rate: this.toString(row[col.dataIndex]?.rate),
+                content: this.toString(row[col.dataIndex]?.content),
+                color: row[col.dataIndex]?.rate && row[col.dataIndex]?.rate < 4.7 ? 'red' : 'white'
+              }),
             })),
           ]
           this.table = res.rates
@@ -170,6 +185,9 @@ export default {
           message.error(err.message)
           this.loading = false
         })
+    },
+    onTableChange(pagination, filters, sorter, { currentDataSource }) {
+      this.tableFilters = filters
     },
     handleChange(value, shop_id, col, id) {
       const i = this.table.findIndex((item) => item.shop_id == shop_id)

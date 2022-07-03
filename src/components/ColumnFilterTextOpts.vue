@@ -1,14 +1,15 @@
 <template lang="pug">
-.column-filter-text-opts-text-opts
-  a-input-group(style="display: flex;")
-    a-select(v-model:value="searchType")
+.column-filter-text-opts
+  a-input-group(style="display: flex; padding: 4px 0")
+    a-select(v-model:value="searchType" size="small")
       a-select-option(value="string") 文本
       a-select-option(value="regexp") 正则
-      a-select-option(value="function") 函数
+      //- a-select-option(value="function") 函数
     a-input-search(
       v-model:value="searchText",
       :placeholder="`搜索${column.title}`",
       :allowClear="true",
+      size="small"
       @change="onTextSearchChange"
     )
   a-checkbox(:checked="textAllChecked" :indeterminate="textIndeterminate" @change="onTextFilterCheckAll") 
@@ -23,6 +24,7 @@
         ) 
           span {{ opt.text }} 
           span.filter-opt-count （{{ opt.count }}）
+        .filter-addon(@click="onFilterOnly(opt)") 仅筛选此项
 </template>
 
 <script>
@@ -33,7 +35,7 @@ function groupBy(arr, key) {
 
 export default {
   name: "column-filter-text-opts",
-  props: ['column', 'table', 'currentTable', 'filterOptions', 'filterPane', 'defaultTextFilters', 'selectedKeys', 'setSelectedKeys', 'resetToken'],
+  props: ['column', 'table', 'currentTable', 'filterOptions', 'filterPane', 'defaultTextFilters', 'selectedKeys', 'setSelectedKeys', 'resetToken', 'delayConfirm'],
   data() {
     return {
       searchType: 'string',
@@ -68,9 +70,13 @@ export default {
           }
         case 'function':
           try {
-            let func = new Function('v', `return (${this.searchText})`)
-            return this.textFilterOptions.filter(opt => opt.values.some(v => func(v)))
+            let func = new Function('v', `return ${this.searchText}`)
+            return this.textFilterOptions.filter(opt => opt.values.some(v => {
+              console.log(v)
+              func(v)
+            }))
           } catch (err) {
+            console.error(err)
             return this.textFilterOptions
           }
         default:
@@ -125,15 +131,20 @@ export default {
       else this.textFilters = []
       this.setTextSelectedKeys()
     },
+    onTextFilterOptListScroll(e) {
+      this.textFilterOptListScrollTop = e.target.scrollTop
+    },
+    onFilterOnly(opt) {
+      this.textFilters = [opt.text]
+      this.setTextSelectedKeys()
+      this.delayConfirm()
+    },
     setTextSelectedKeys() {
       this.setSelectedKeys(Array.from(new Set(
         this.filterOptions
           .filter(opt => this.textFilters.includes(opt[this.filterPaneKey]))
           .map(opt => opt.value)
       )))
-    },
-    onTextFilterOptListScroll(e) {
-      this.textFilterOptListScrollTop = e.target.scrollTop
     },
   },
   watch: {
@@ -143,20 +154,15 @@ export default {
       this.setTextSelectedKeys()
     },
     resetToken() {
-      this.textFilters = this.searchedTextFilterOptions.map(opt => opt.text)
+      this.textFilters = [] // this.searchedTextFilterOptions.map(opt => opt.text)
     }
   }
 }
 </script>
 
 <style lang="sass" scoped>
-.column-filter-text-opts
-  max-width: 300px
 
 .filter-opt-list
-  width: 300px
-  height: 300px
-  max-height: 300px
   overflow: auto
 
 .text-filter-opt
@@ -165,22 +171,24 @@ export default {
   height: 22px
   white-space: nowrap
 
-.color-filter-opt-color
-  display: inline-block
-  width: 48px
-  color: transparent
-
 .filter-opt-count
   color: #999
   font-size: 12px
 
-.color-filter-opt
-  height: 22px
+.filter-addon
+  position: absolute
+  visibility: hidden
+  top: 0
+  right: 4px
+  line-height: 22px
+  padding: 0 4px
+  font-size: 0.88em
+  background-color: white
+  cursor: pointer
+  color: #3b82f6
 
-.btn-group
-  display: flex
-  align-items: center
-  column-gap: 8px
+.text-filter-opt:hover .filter-addon
+  visibility: visible
 </style>
 
 <style lang="sass">
