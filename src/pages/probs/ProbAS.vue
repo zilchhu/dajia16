@@ -31,8 +31,7 @@ div
       template(v-if="column.dataIndex == '分析'")
         a-input(
           :value="text",
-          @change="(e) => handleChange(e.target.value, record)", 
-          size="small"
+          @change="(e) => handleChange(e.target.value, record)",
         )
       template(v-else-if="column.dataIndex == '单均配送'")
         .cell(

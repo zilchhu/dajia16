@@ -1023,15 +1023,12 @@ export default {
       if (json.id != this.taskId) return
 
       let newTable = [...this.table]
-
       for (let buf of this.resultBufs) {
         updTableRow(buf, newTable)
       }
-
-      updTableRow(json, newTable)
+      this.table = newTable
 
       console.log("更新", this.resultBufs)
-      this.table = newTable
       this.resultBufs = []
     },
     resetData() {
@@ -1077,8 +1074,8 @@ export default {
   created() {
     this.throtUpdateTableRes = throttle(this.updateTableResult, 800)
 
-    app.on("update-foods/v1/task-row-result-change", this.onExecTask.bind(this))
-    app.on("excel/export-excel-res", this.onExportTable.bind(this))
+    app.on("excel/export-excel-res", json => this.onExportTable(json))
+    app.on("update-foods/v1/task-row-result-change", json => this.onExecTask(json))
 
     this.buildColumns()
     this.fetchShops()
@@ -1099,10 +1096,6 @@ export default {
     plainTable() {
       this.fetchTable()
     },
-  },
-  unmounted() {
-    app.off("update-foods/v1/task-row-result-change", this.onExecTask.bind(this))
-    app.off("excel/export-excel-res", this.onExportTable.bind(this))
   },
 }
 </script>

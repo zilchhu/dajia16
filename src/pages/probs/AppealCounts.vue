@@ -7,7 +7,7 @@ div
     :loading="loading",
     :pagination="false",
     size="small",
-    :scroll="{ y: scrollY }"
+    :scroll="{ y: scrollY }",
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
@@ -22,61 +22,107 @@ div
       )
     template(#bodyCell="{ column, text, record }")
       template(v-if="column.dataIndex == 'handle'")
-        div(:title="text")
-          a-input.m-input(
-            :value="text",
-            @change="(e) => handleChange(e.target.value, record)",
-            autoSize
-          )
+        a-input.m-input(
+          :value="text",
+          @change="(e) => handleChange(e.target.value, record)", 
+          size="small"
+        )
+      template(v-else-if="column.dataIndex == 'op'")
+        a-button(type="link" title="同步最近3天数据" size="small" @click="fetchTable(true, record.shopId)") 同步
 
   .left-bottom-div
-    a-button(type="link", size="small", @click="fetchTable") 
-      SyncOutlined
+    a-button(type="link", size="small", @click="fetchTable(false)") 
       span(style="margin-left: 4px") 刷新
+    a-button(type="link", title="同步最近3天数据" size="small", @click="fetchTable(true, -1)") 
+      span(style="margin-left: 4px") 同步
     a-button(
       type="link",
       size="small",
       @click="exportTable",
       :loading="exporting"
     ) 
-      ExportOutlined
       span(style="margin-left: 4px") 导出
     a(
       v-show="tableUrl",
       :href="tableUrl",
       target="_blank"
     ) 
-      DownloadOutlined
       span 下载
 </template>
 
 <script>
 import { message } from "ant-design-vue"
-import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue"
 import TableSelect from "../../components/TableSelect"
 import app from "apprun"
 import baseFetch from "../../api/base"
 
 export default {
-  name: "ProbBase",
+  name: "AppealCounts",
   components: {
     TableSelect,
-    SyncOutlined,
-    ExportOutlined,
-    DownloadOutlined,
   },
-  props: ["probType", "columns", "xScroll"],
   data() {
     return {
       table: [],
       loading: false,
       scrollY: 900,
-      debounce_save: null,
+      debounceSave: null,
       exporting: false,
       tableUrl: null,
     }
   },
   computed: {
+    columns() {
+      return [
+        {
+          title: "店铺id",
+          dataIndex: "shopId",
+          width: 100,
+          _sort: true,
+          _filter: true,
+        },
+        {
+          title: "店铺名称",
+          dataIndex: "shop_name",
+          width: 240,
+          _sort: true,
+          _filter: true,
+        },
+        {
+          title: "平台",
+          dataIndex: "platform",
+          width: 100,
+        },
+        {
+          title: "物理店",
+          dataIndex: "real_shop_name",
+          width: 140,
+          _sort: true,
+          _filter: true,
+        },
+        {
+          title: "负责人",
+          dataIndex: "person",
+          width: 120,
+        },
+        {
+          title: "剩余次数",
+          dataIndex: "remaining_cnt",
+          width: 140,
+          _sort: true,
+          _filter: true
+        },
+        {
+          title: "操作",
+          dataIndex: "op",
+          width: 140
+        },
+        {
+          title: "处理",
+          dataIndex: "handle",
+        },
+      ]
+    },
     extendedColumns() {
       return this.columns.map((col) => {
         let _col = {
@@ -99,15 +145,14 @@ export default {
         return _col
       })
     },
-    scrollX() {
-      return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
-    },
-    scroll() {
-      if (this.xScroll) return { y: this.scrollY, x: this.scrollX }
-      return { y: this.scrollY }
-    },
   },
   methods: {
+    getColFilters(colName) {
+      return Array.from(new Set(this.table.map((row) => row[colName]))).map((col) => ({
+        label: col || "",
+        value: col || "",
+      }))
+    },
     toNum(str) {
       try {
         let f = parseFloat(str)
@@ -117,17 +162,14 @@ export default {
         return 0
       }
     },
-    debounce(fn) {
-      let timeout = null
-      return function () {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => fn.apply(this, arguments), 800)
-      }
-    },
-    fetchTable() {
+    fetchTable(isSync = false, shopId = 0) {
       this.loading = true
       baseFetch({
-        url: `/v1/checks/${this.probType}`,
+        url: `/v1/checks/appeal_cnts`,
+        params: {
+          sync: isSync ? 1 : 0,
+          shop_id: shopId
+        }
       })
         .then((res) => {
           this.table = res
@@ -138,19 +180,32 @@ export default {
           this.loading = false
         })
     },
+    transformTable() {
+      return this.table.map((row) =>
+        this.columns.reduce((p, c) => ({ ...p, [c.title]: row[c.dataIndex] }), {})
+      )
+    },
+    exportTable() {
+      this.exporting = true
+      app.run("ws://", "excel/export-excel", {
+        baseName: "申诉剩余次数表",
+        rows: this.transformTable(),
+      })
+    },
+    debounce(fn) {
+      let timeout = null
+      return function () {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => fn.apply(this, arguments), 800)
+      }
+    },
     handleChange(value, record) {
-      // const i = this.table.findIndex((item) => record.key == item.key)
-      // if (i != -1) {
-      //   this.table[i]["handle"] = value
-      //   this.debounce_save(record)
-      // }
-
       let newTable = [...this.table]
       const i = newTable.findIndex((item) => record.key == item.key)
       if (i > -1) {
         newTable[i]["handle"] = value
         this.table = newTable
-        this.debounce_save(record)
+        this.debounceSave(record)
       }
     },
     save(record) {
@@ -160,7 +215,7 @@ export default {
           method: "POST",
           url: "/v1/checks/handles",
           data: {
-            type: this.probType,
+            type: 'appeal-cnt',
             key: record.handle_key ?? record.key,
             handle: target["handle"],
           },
@@ -172,18 +227,6 @@ export default {
             message.error(err.message)
           })
       }
-    },
-    transformTable() {
-      return this.table.map((row) =>
-        this.columns.reduce((p, c) => ({ ...p, [c.title]: row[c.dataIndex] }), {})
-      )
-    },
-    exportTable() {
-      this.exporting = true
-      app.run("ws://", "excel/export-excel", {
-        baseName: this.probType,
-        rows: this.transformTable(),
-      })
     },
   },
   created() {
@@ -197,7 +240,7 @@ export default {
       this.tableUrl = json.data
     })
 
-    this.debounce_save = this.debounce(this.save)
+    this.debounceSave = this.debounce(this.save)
     this.fetchTable()
   },
   mounted() {

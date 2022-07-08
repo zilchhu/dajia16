@@ -1,7 +1,7 @@
 <template lang="pug">
 div
   a-table.ant-table-change(
-    :columns="extendedColumns",
+    :columns="extendedCols",
     :data-source="table",
     rowKey="key",
     :loading="loading",
@@ -9,17 +9,21 @@ div
     size="small",
     :scroll="{ y: scrollY }",
     :rowClassName="(record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+    @change="onTableChange"
   )
     template(
       #customFilterDropdown="{ confirm, clearFilters, column, selectedKeys, setSelectedKeys }"
     )
-      table-select(
-        :columnTitle="column.title",
-        :columnIndex="column.dataIndex",
-        :tableData="table",
-        @select-change="setSelectedKeys",
-        @confirm="confirm()",
-        @reset="clearFilters()"
+      column-filter(
+        :column="column"
+        :table="table"
+        :tableFilters="tableFilters"
+        :filterPanes="column._filterPanes"
+        :customFilterOption="column._customFilterOption",
+        :selectedKeys="selectedKeys"
+        :setSelectedKeys="setSelectedKeys"
+        :confirm="confirm"
+        :clearFilters="clearFilters"
       )
     template(#bodyCell="{ column, text, record }")
       template(v-if="column.dataIndex == 'score'")
@@ -36,10 +40,12 @@ div
           span.span-btn(@click="appealComment(record)") 申诉
       template(v-else-if="column.dataIndex == 'criticFoodNames'")
         div
-          span(v-for="food in text" :key="food") {{ food }}
-      template(v-else-if="column.dataIndex == 'praiseFoodNames'")
+          span.pr-1.text-gray 点踩商品:
+          span(v-for="food in record.criticFoodNames" :key="food") {{ food }}
         div
-          span(v-for="food in text" :key="food") {{ food }}
+          sapn.pr-1.text-gray 点赞商品:
+          span(v-for="food in record.praiseFoodNames" :key="food") {{ food }}
+
       template(v-else-if="column.dataIndex == 'status'")
         div(:class="{ 'text-teal': ['已删除', '无责差评', '申诉成功'].includes(text) }") {{ text }}
 
@@ -50,12 +56,10 @@ div
     iframe(:src="mtFrameSrc")
 
   .left-bottom-div
-    a-button(type="link", size="small", @click="fetchTable(false)") 
-      SyncOutlined
+    a-button(type="link" size="small" :loading="loading" @click="fetchTable(false)") 
       span(style="margin-left: 4px") 刷新
-    //- a-button(type="link", size="small", @click="fetchTable(true)") 
-    //-   SyncOutlined
-    //-   span(style="margin-left: 4px") 同步
+    a-button(type="link" size="small" title="同步最新数据从美团/饿了么平台" :loading="loading" @click="fetchTable(true)") 
+      span(style="margin-left: 4px") 同步
     a-button(
       type="link",
       size="small",
@@ -75,7 +79,7 @@ div
 
 <script>
 import { message } from "ant-design-vue"
-import TableSelect from "../../components/TableSelect"
+import ColumnFilter from "../../components/ColumnFilter"
 import { SyncOutlined, ExportOutlined, DownloadOutlined } from "@ant-design/icons-vue"
 import app from "apprun"
 import baseFetch from "../../api/base"
@@ -83,7 +87,7 @@ import baseFetch from "../../api/base"
 export default {
   name: "BadMedComms",
   components: {
-    TableSelect,
+    ColumnFilter,
     SyncOutlined,
     ExportOutlined,
     DownloadOutlined,
@@ -91,6 +95,7 @@ export default {
   data() {
     return {
       table: [],
+      tableFilters: {},
       loading: false,
       scrollY: 900,
       debounce_save: null,
@@ -106,110 +111,136 @@ export default {
     columns() {
       return [
         {
+          key: 'platform',
           title: "平台",
           dataIndex: "platform",
-          width: 70,
+          width: 60,
+          _filter: true
         },
         {
+          key: 'shopId',
           title: "店铺ID",
           dataIndex: "shopId",
-          width: 90,
+          width: 85,
+          _filter: true
         },
         {
+          key: "shopName",
           title: "店铺名称",
           dataIndex: "shopName",
-          width: 130,
-          sorter: (a, b) => a.shopName?.localeCompare(b.shopName),
+          width: 100,
+          _filter: true,
         },
         {
+          key: "realShopName",
           title: "物理店",
           dataIndex: "realShopName",
-          width: 80,
-          sorter: (a, b) => a.realShopName?.localeCompare(b.realShopName),
+          width: 75,
+          _filter: true,
+          _sort: true,
+          _sortMethod: 'str'
         },
         {
+          key: "city",
           title: "城市",
           dataIndex: "city",
-          width: 80,
+          width: 60,
+          _filter: true,
         },
         {
+          key: "score",
           title: "评分",
           dataIndex: "score",
-          width: 80,
+          width: 70,
           _sort: true,
           _filter: true,
         },
         {
+          key: "overDeliveryTime",
           title: "超时",
           dataIndex: "overDeliveryTime",
-          width: 80,
+          width: 70,
+          align: "right",
           _sort: true,
           _filter: true,
         },
         {
+          key: "comment",
           title: "评价",
           dataIndex: "comment",
-          width: 200,
+          width: 240,
+          _filter: true,
         },
         {
-          title: "点踩商品",
+          key: "reAppealCnt",
+          title: "申诉剩余",
+          dataIndex: "reAppealCnt",
+          width: 80,
+          align: "right",
+          _sort: true,
+          _filter: true,
+        },
+        {
+          key: "criticFoodNames",
+          title: "点赞/点踩",
           dataIndex: "criticFoodNames",
           width: 160,
+          _filter: true,
         },
         {
-          title: "点赞商品",
-          dataIndex: "praiseFoodNames",
-          width: 160,
-        },
-        {
+          key: "commentDetail",
           title: "详情",
           dataIndex: "commentDetail",
           width: 160,
+          _filter: true,
         },
         {
+          key: "status",
           title: "状态",
           dataIndex: "status",
-          width: 100,
+          width: 70,
+          _filter: true,
         },
         {
+          key: "orderId",
           title: "订单",
           dataIndex: "orderId",
-          width: 100,
+          width: 80,
+          _filter: true,
         },
         {
+          key: "commentTime",
           title: "时间",
           dataIndex: "commentTime",
           width: 100,
-          sorter: (a, b) => a.commentTime?.localeCompare(b.commentTime),
+          _filter: true,
+          _sort: true,
+          _sortMethod: 'str',
+          _filterPanes: [{ key: 'text', label: '值', sortMethod: 'str', sortDirection: 'desc' }],
         },
         {
+          key: "person",
           title: "负责人",
           dataIndex: "person",
-          width: 80,
+          width: 60,
+          _filter: true,
         },
       ]
     },
-    extendedColumns(cols) {
-      return this.columns.map((col) => {
-        let _col = {
-          ...col,
-          customFilterDropdown: true,
-          onFilter: (value, record) => (record[col.dataIndex] ?? "") == value,
-          showSorterTooltip: false,
-        }
-        if (col._sort) {
-          _col.customFilterDropdown = false
-          _col.sorter = (a, b) =>
-            this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex])
-        }
-        if (col._notFilter) {
-          _col.customFilterDropdown = false
-        }
-        if (col._filter) {
-          _col.customFilterDropdown = true
-        }
-        return _col
-      })
+    extendedCols() {
+      return this.columns.map(col => ({
+        customFilterDropdown: col._filter,
+        onFilter: (value, record) => record[col.dataIndex] == value,
+        _filterPanes: [{ key: 'text', label: '值', sortMethod: col._sortMethod, sortDirection: 'asc' }],
+        _customFilterOption: (row, col) => ({ value: row[col.dataIndex], text: this.toString(row[col.dataIndex]), color: 'white' }),
+        showSorterTooltip: false,
+        sorter: col._sort
+          ? col._sortMethod == 'str'
+            ? (a, b) => a[col.dataIndex]?.localeCompare(b[col.dataIndex], 'zh-Hans-CN')
+            : (a, b) => this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex])
+          : null,
+        ...col
+      }))
     },
   },
   methods: {
@@ -228,6 +259,11 @@ export default {
         return 0
       }
     },
+    toString(val) {
+      if (val == null) return ''
+      if (typeof val == 'string') return val
+      return JSON.stringify(val)
+    },
     fetchTable(isSync = false) {
       this.loading = true
       baseFetch({
@@ -244,6 +280,9 @@ export default {
           message.error(err.message)
           this.loading = false
         })
+    },
+    onTableChange(pagination, filters, sorter, { currentDataSource }) {
+      this.tableFilters = filters
     },
     markComment(comment = '', analysisItems = []) {
       if (analysisItems.length == 0) return comment

@@ -20,7 +20,7 @@ function groupBy(arr, key) {
 
 export default {
   name: "column-filter-text-opts",
-  props: ['column', 'table', 'currentTable', 'filterOptions', 'filterPane', 'selectedKeys', 'setSelectedKeys', 'resetToken'],
+  props: ['column', 'table', 'currentTable', 'filterOptions', 'filterPane', 'selectedKeys', 'setSelectedKeys', 'resetToken', 'delayConfirm'],
   data() {
     return {
       colorFilters: []
@@ -87,8 +87,6 @@ export default {
   box-sizing: border-box
   width: 48px
   height: 18px
-  border-top: 2px solid transparent
-  border-bottom: 2px solid transparent
   color: transparent
 
 .filter-opt-count

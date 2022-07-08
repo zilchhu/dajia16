@@ -29,19 +29,26 @@ div
       )
     template(#bodyCell="{ column, text, record }")
       template(v-if="column.dataIndex == '分析'")
-        a-input(
+        a-input.m-input(
           :value="text",
           :title="text",
-          @change="(e) => handleChange(e.target.value, record)", 
-          size="small"
+          @change="(e) => handleAnalysisChange(e.target.value, record)"
         )
+      template(v-else-if="column.dataIndex == '责任判定'")
+        a-select.m-select(:value="text" size="small" @change="(value) => handleCompensateChange(value, record)")
+          a-select-option(value="商家") 商家
+          a-select-option(value="顾客") 顾客
+          a-select-option(value="骑手") 骑手
       template(
-        v-else-if="['派单日志', '退款原因', '提交原因', '责任判定'].includes(column.dataIndex)"
+        v-else-if="['派单日志', '退款原因', '提交原因'].includes(column.dataIndex)"
       )
         //- a-tooltip
         //-   template(#title)
         //-     .wrap {{ text }}
-        .ellipsis(:title="text") {{ text }}
+        a-tooltip(:overlayStyle="{ maxHeight: '1200px', maxWidth: '800px', width: '800px', overflow: 'auto' }")
+          .ellipsis {{ text }}
+          template(#title)
+            .wrap {{ text }}
 
   .left-bottom-div
     a-button(type="link", size="small", @click="fetchTable") 
@@ -95,12 +102,13 @@ export default {
           dataIndex: "店铺ID",
           width: 80,
           _filter: true,
-          _sort: true,
         },
         {
           title: "店铺名称",
           dataIndex: "店铺名称",
           width: 150,
+          _filter: true,
+          _sortStr: true,
         },
         {
           title: "平台",
@@ -116,6 +124,8 @@ export default {
           title: "物理店",
           dataIndex: "物理店",
           width: 80,
+          _filter: true,
+          _sortStr: true,
         },
         {
           title: "订单序号",
@@ -175,6 +185,11 @@ export default {
           _col.sorter = (a, b) =>
             this.toNum(a[col.dataIndex]) - this.toNum(b[col.dataIndex])
         }
+        if (col._sortStr) {
+          _col.customFilterDropdown = false
+          _col.sorter = (a, b) =>
+            a[col.dataIndex]?.localeCompare((b[col.dataIndex]))
+        }
         if (col._notFilter) {
           _col.customFilterDropdown = false
         }
@@ -229,11 +244,20 @@ export default {
     onSelectDate() {
       this.fetchTable()
     },
-    handleChange(value, record) {
+    handleAnalysisChange(value, record) {
       let newTable = [...this.table]
       const i = newTable.findIndex((item) => record.key == item.key)
       if (i > -1) {
         newTable[i]["分析"] = value
+        this.table = newTable
+        this.debounce_save(record)
+      }
+    },
+    handleCompensateChange(value, record) {
+      let newTable = [...this.table]
+      const i = newTable.findIndex((item) => record.key == item.key)
+      if (i > -1) {
+        newTable[i]["责任判定"] = value
         this.table = newTable
         this.debounce_save(record)
       }
@@ -248,6 +272,7 @@ export default {
           url: `/v1/checks/at/${target.id}`,
           data: {
             fill_text: target.分析,
+            compensate: target.责任判定
           },
         })
           .then((res) => {
@@ -300,4 +325,13 @@ export default {
 
 .wrap
   white-space: pre-wrap
+
+.m-input 
+  padding: 0
+  border-color: white
+  font-size: 12px !important
+  font-weight: bold
+
+.m-select
+  width: 100%
 </style>

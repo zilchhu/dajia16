@@ -259,9 +259,6 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-.bg-yellow
-  background-color: #fef08a1a
-
 .text-gray
   color: #9ca3af
 
@@ -275,4 +272,9 @@ export default {
   font-size: 0.886em
   color: #ccc
   white-space: pre
+</style>
+
+<style lang="sass">
+.bg-yellow
+  background-color: #fef08a1a
 </style>

@@ -52,8 +52,17 @@ export default {
       return this.filterPane.key
     },
     textFilterOptions() {
-      return groupBy(this.filterOptions, this.filterPaneKey)
+      const sorter = this.filterPane.sortMethod == 'str'
+        ? (a, b) => a?.text?.localeCompare(b?.text, 'zh-Hans-CN')
+        : (a, b) => this.toNum(a?.text) - this.toNum(b?.text)
+
+      let groups = groupBy(this.filterOptions, this.filterPaneKey)
         .map(({ group, members }) => ({ text: group, values: members.map(m => m.value), count: members.length }))
+
+      if (this.filterPane.sortMethod) groups = groups.sort(sorter)
+      if (this.filterPane.sortDirection == 'desc') groups = groups.reverse()
+
+      return groups
     },
     searchedTextFilterOptions() {
       if (this.searchText == '') return this.textFilterOptions
@@ -116,6 +125,20 @@ export default {
     },
   },
   methods: {
+    toNum(str) {
+      try {
+        let f = parseFloat(str)
+        if (isNaN(f)) return 0
+        return f
+      } catch (err) {
+        return 0
+      }
+    },
+    toString(val) {
+      if (val == null) return ''
+      if (typeof val == 'string') return val
+      return JSON.stringify(val)
+    },
     onTextSearchChange(e) {
       console.log('text-change', e.target.value)
       this.textFilters = this.searchedTextFilterOptions.map(opt => opt.text)

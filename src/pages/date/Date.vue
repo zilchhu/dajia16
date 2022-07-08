@@ -51,6 +51,7 @@ div(ref="date")
               :visible="shopNameCopyShows[`name-${record.shop_id}`] || false"
             )
               CopyOutlined
+        
       template(v-else-if="column.dataIndex == 'income'")
         .cell(:class="{ unsatisfied: isIncome(text, record) }", @click="copy") {{ text }}
       template(v-else-if="column.dataIndex == 'consume_ratio'")

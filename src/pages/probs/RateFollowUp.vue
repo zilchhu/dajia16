@@ -33,7 +33,7 @@ div
             v-else
             :value="text.content"
             placeholder="跟进处理"
-            @change="(e) => handleChange(e.target.value, record.shop_id, column.dataIndex, text.id)"
+            @change="(e) => handleChange(e.target.value, text.id)"
             autoSize
             :spellcheck="false"
           )
@@ -62,7 +62,7 @@ div
     v-model:visible="commsModalShow"
     :footer="null",
     centered,
-    :width="bodyRect.width * 0.88"
+    :width="bodyRect.width * 0.9"
   )
     BadComms(:platform="commsPlatform" :shopId="commsShopId" :shopName="commsShopName" :rateDate="commsRateDate")
 </template>
@@ -88,6 +88,7 @@ export default {
     return {
       bodyRect: { width: 900, height: 800 },
       columns: [],
+      columnDates: [],
       table: [],
       tableFilters: {},
       loading: false,
@@ -103,6 +104,9 @@ export default {
     }
   },
   computed: {
+    deviceId() {
+      return this.$store.state.deviceId
+    },
     scrollX() {
       return this.columns.map((col) => col.width ?? 200).reduce((p, v) => p + v, 0)
     },
@@ -178,6 +182,7 @@ export default {
               }),
             })),
           ]
+          this.columnDates = res.dates
           this.table = res.rates
           this.loading = false
         })
@@ -189,12 +194,29 @@ export default {
     onTableChange(pagination, filters, sorter, { currentDataSource }) {
       this.tableFilters = filters
     },
-    handleChange(value, shop_id, col, id) {
-      const i = this.table.findIndex((item) => item.shop_id == shop_id)
-      if (i > -1) {
-        this.table[i][col].content = value
+    findTableIndexById(id) {
+      for (let i = 0; i < this.table.length; i++) {
+        if (!this.table[i]) continue
+        for (let d of this.columnDates) {
+          if (this.table[i][d]?.id == id) return [i, d]
+        }
+      }
+      return [null, null]
+    },
+    handleChange(value, id) {
+      const [i, d] = this.findTableIndexById(id)
+      if (i != null) {
+        this.table[i][d].content = value
         this.debounce_save(value, id)
       }
+
+      // let newTable = [...this.table]
+      // const [i, d] = this.findTableIndexById(id)
+      // if (i != null) {
+      //   newTable[i][d].content = value
+      //   this.table = newTable
+      //   this.debounce_save(value, id)
+      // }
     },
     save(value, id) {
       baseFetch({
@@ -202,6 +224,7 @@ export default {
         url: `/v1/checks/rate_follow_ups/${id}`,
         data: {
           content: value,
+          deviceId: this.deviceId
         },
       })
         .then((res) => {
@@ -229,10 +252,10 @@ export default {
         baseName: '评分跟进表',
         rows: this.transformTable(),
       })
-    },
+    }
   },
   created() {
-    app.on("excel/export-excel-res", (json) => {
+    app.on("excel/export-excel-res", json => {
       if (json.code != 0) {
         message.error(json.message)
         return
@@ -242,13 +265,21 @@ export default {
       this.tableUrl = json.data
     })
 
+    app.on('gd/v1/checks/rate_follow_up_change', json => {
+      if (json.deviceId == this.deviceId) return
+      const [i, d] = this.findTableIndexById(json.id)
+      if (i != null) {
+        this.table[i][d].content = json.content
+      }
+    })
+
     this.debounce_save = this.debounce(this.save)
     this.fetchTable()
   },
   mounted() {
     this.bodyRect = document.body.getBoundingClientRect()
     this.scrollY = document.body.clientHeight - 204
-  },
+  }
 }
 </script>
 

@@ -105,12 +105,11 @@ export default {
       return _table
     },
     filterOptions() {
-      if (this.tableFilterKeys.length == 1 && this.tableFilterKeys[0] == this.columnKey) {
+      if (this.tableFilterKeys.length > 0 && this.tableFilterKeys.at(-1) == this.columnKey) {
         return this.table.map(row => this.customFilterOption(row, this.column))
       }
       return this.currentTable.map(row => this.customFilterOption(row, this.column))
     },
-
   },
   methods: {
     onColorFilterCheck(checked, opt) {

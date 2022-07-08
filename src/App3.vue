@@ -123,6 +123,7 @@ div(style="position: relative")
 import app from "apprun"
 import dayjs from "dayjs"
 import moment from "moment"
+import { v4 as uuidv4 } from 'uuid'
 import { message } from "ant-design-vue"
 import Login from "./components/user/Login"
 import baseFetch from "./api/base"
@@ -183,6 +184,9 @@ export default {
     token() {
       return this.$store.state.token
     },
+    deviceId() {
+      return this.$store.state.deviceId
+    }
   },
   methods: {
     fetch_all_names() {
@@ -314,6 +318,8 @@ export default {
     },
   },
   created() {
+    if (!this.deviceId) this.$store.commit("setDeviceId", uuidv4())
+
     app.on("ws-open", this.onWsOpen)
     app.on("ws-close", this.onWsClose)
 
@@ -321,10 +327,6 @@ export default {
     this.fetchTrainingIndex()
     this.getRoutes()
     this.initUserAccount()
-  },
-  unmounted() {
-    app.off("ws-open", this.onWsOpen)
-    app.off("ws-close", this.onWsClose)
   },
   watch: {
     $route(route, oldRoute) {
